@@ -12,6 +12,18 @@ buildscript {
     }
 }
 
+plugins {
+    id(Plugins.Ktlint.id) version Plugins.Ktlint.version
+}
+
 tasks.create<Delete>(name = "clean") {
     delete = setOf(rootProject.buildDir)
+}
+
+subprojects {
+    apply(plugin = Plugins.Ktlint.id)
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        debug.set(true)
+    }
 }
