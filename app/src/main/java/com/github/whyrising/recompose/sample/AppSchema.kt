@@ -1,4 +1,4 @@
-package com.github.whyrising.recompose
+package com.github.whyrising.recompose.sample
 
 data class AppSchema(
     val text: String,

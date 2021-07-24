@@ -1,4 +1,4 @@
-package com.github.whyrising.recompose
+package com.github.whyrising.recompose.sample
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,9 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.whyrising.recompose.MyKeys.*
+import com.github.whyrising.recompose.*
 import com.github.whyrising.recompose.events.event
-import com.github.whyrising.recompose.ui.theme.RecomposeTheme
+import com.github.whyrising.recompose.sample.Keys.*
+import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 
 @Composable
 fun Greeting(name: String) {
@@ -46,6 +47,14 @@ fun App(name: String, counter: String) {
 }
 
 class MainActivity : ComponentActivity() {
+    val framework = Framework()
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        framework.halt()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
