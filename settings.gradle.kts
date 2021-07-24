@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 rootProject.name = "Recompose"
 
 include(":app")
+include(":recompose")
