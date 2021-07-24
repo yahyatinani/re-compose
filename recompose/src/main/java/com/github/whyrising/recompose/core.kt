@@ -3,7 +3,6 @@ package com.github.whyrising.recompose
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.whyrising.recompose.Keys.*
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
@@ -166,9 +165,9 @@ fun dispatchSync(event: ArrayList<Any>) {
     handle(event)
 }
 //
-//@Composable
-//fun DispatchOnce(event: Any) {
-//    LaunchedEffect(true) {
+// @Composable
+// fun DispatchOnce(event: Any) {
+//     LaunchedEffect(true) {
 //        dispatch(event)
-//    }
-//}
+//     }
+// }

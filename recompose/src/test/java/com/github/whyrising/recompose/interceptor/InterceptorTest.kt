@@ -1,7 +1,12 @@
 package com.github.whyrising.recompose.interceptor
 
 import com.github.whyrising.recompose.Keys
-import com.github.whyrising.recompose.Keys.*
+import com.github.whyrising.recompose.Keys.before
+import com.github.whyrising.recompose.Keys.coeffects
+import com.github.whyrising.recompose.Keys.event
+import com.github.whyrising.recompose.Keys.originalEvent
+import com.github.whyrising.recompose.Keys.queue
+import com.github.whyrising.recompose.Keys.stack
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
