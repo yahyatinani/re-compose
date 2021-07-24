@@ -1,4 +1,5 @@
 Re-compose
 ========
 
-[![Android CI](https://github.com/whyrising/re-compose/actions/workflows/build.yml/badge.svg)](https://github.com/whyrising/re-compose/actions/workflows/build.yml)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/whyrising/re-compose/Android%20CI/main)
+
