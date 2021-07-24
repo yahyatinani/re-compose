@@ -2,7 +2,12 @@ package com.github.whyrising.recompose.fx
 
 import android.util.Log
 import com.github.whyrising.recompose.Keys
-import com.github.whyrising.recompose.Keys.*
+import com.github.whyrising.recompose.Keys.db
+import com.github.whyrising.recompose.Keys.dispatch
+import com.github.whyrising.recompose.Keys.dispatchN
+import com.github.whyrising.recompose.Keys.dofx
+import com.github.whyrising.recompose.Keys.effects
+import com.github.whyrising.recompose.Keys.fx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.db.reset
 import com.github.whyrising.recompose.dispatch
@@ -59,11 +64,9 @@ val doFx: Map<Keys, Any> = toInterceptor(
  */
 val fx1: Unit = regFx(id = fx) { listOfEffects: Any ->
     if (listOfEffects !is List<*>) {
-        Log.e(
-            "regFx",
-            "\":fx\" effect expects a list, but was given " +
-                    "${listOfEffects::class.java}"
-        )
+        val msg = "\":fx\" effect expects a list, but was given " +
+            "${listOfEffects::class.java}"
+        Log.e("regFx", msg)
     } else {
         val effects: List<List<Any>> = listOfEffects as List<List<Any>>
 
@@ -77,10 +80,11 @@ val fx1: Unit = regFx(id = fx) { listOfEffects: Any ->
 
             when {
                 fxFn != null -> fxFn(effectValue)
-                else -> Log.i(
-                    "regFx",
-                    "in :fx no handler registered for effect: $effectKey. Ignoring."
-                )
+                else -> {
+                    val msg = "in :fx no handler registered for effect: " +
+                        "$effectKey. Ignoring."
+                    Log.i("regFx", msg)
+                }
             }
         }
     }
@@ -99,7 +103,7 @@ val fx3: Unit = regFx(id = dispatch) { value ->
         else -> Log.e(
             "regFx",
             "ignoring bad :dispatch value. Expected an array list, but got: " +
-                    "$value"
+                "$value"
         )
     }
 }
@@ -115,7 +119,7 @@ val fx4: Unit = regFx(id = dispatchN) { value ->
         else -> Log.e(
             "regFx",
             "ignoring bad :dispatchN value. Expected a list, but got: " +
-                    "$value"
+                "$value"
         )
     }
 }

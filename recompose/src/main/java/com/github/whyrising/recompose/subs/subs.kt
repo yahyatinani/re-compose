@@ -10,10 +10,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 val kind: Kinds = Sub
 
-//-- cache ---------------------------------------------------------------------
+// -- cache ---------------------------------------------------------------------
 val memSubComp = ConcurrentHashMap<Any, Any>()
 
-//-- subscribe -----------------------------------------------------------------
+// -- subscribe -----------------------------------------------------------------
 
 internal fun <T> subscribe(qvec: ArrayList<Any>): T = qvec[0].let { id ->
     when (val r = getHandler(kind, id)) {
@@ -46,7 +46,7 @@ internal fun <T> subscribe(qvec: ArrayList<Any>): T = qvec[0].let { id ->
     }
 }
 
-//-- regSub -----------------------------------------------------------------
+// -- regSub -----------------------------------------------------------------
 // TODO: Reimplement maybe!
 fun <T> regSub(
     queryId: Any,

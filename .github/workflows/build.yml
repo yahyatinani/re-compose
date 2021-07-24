@@ -51,7 +51,7 @@ jobs:
         run: ./gradlew :recompose:ktlintCheck
 
       - name: Run tests
-        run: ./gradlew :recompose:check --stacktrace
+        run: ./gradlew :recompose:test --stacktrace
 
       - name: Bundle the build report
         if: failure()
