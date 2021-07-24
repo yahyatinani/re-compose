@@ -51,6 +51,5 @@ val injectDb = injectCofx(id = db)
  Adds to coeffects the value in `appDdb`, under the key `Db`
  */
 val cofx1 = regCofx(id = db) { coeffects ->
-    Log.e("regCofx", "Db")
     coeffects.plus(db to appDb)
 }
