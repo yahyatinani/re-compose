@@ -1,7 +1,10 @@
 package com.github.whyrising.recompose.stdinterceptors
 
 import com.github.whyrising.recompose.Keys
-import com.github.whyrising.recompose.Keys.*
+import com.github.whyrising.recompose.Keys.coeffects
+import com.github.whyrising.recompose.Keys.db
+import com.github.whyrising.recompose.Keys.effects
+import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.interceptor.toInterceptor
 
 /*

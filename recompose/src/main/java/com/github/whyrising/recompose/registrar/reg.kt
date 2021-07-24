@@ -1,7 +1,10 @@
 package com.github.whyrising.recompose.registrar
 
 import android.util.Log
-import com.github.whyrising.recompose.registrar.Kinds.*
+import com.github.whyrising.recompose.registrar.Kinds.Cofx
+import com.github.whyrising.recompose.registrar.Kinds.Event
+import com.github.whyrising.recompose.registrar.Kinds.Fx
+import com.github.whyrising.recompose.registrar.Kinds.Sub
 import java.util.concurrent.ConcurrentHashMap
 
 val eventHandlers = ConcurrentHashMap<Any, Any>()
