@@ -1,6 +1,9 @@
 package com.github.whyrising.recompose.registrar
 
-import com.github.whyrising.recompose.registrar.Kinds.*
+import com.github.whyrising.recompose.registrar.Kinds.Cofx
+import com.github.whyrising.recompose.registrar.Kinds.Event
+import com.github.whyrising.recompose.registrar.Kinds.Fx
+import com.github.whyrising.recompose.registrar.Kinds.Sub
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
