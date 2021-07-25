@@ -1,10 +1,6 @@
 apply(plugin = "maven-publish")
 apply(plugin = "signing")
 
-repositories {
-    mavenCentral()
-}
-
 fun Project.publishing(action: PublishingExtension.() -> Unit) =
     configure(action)
 
@@ -33,7 +29,7 @@ signing {
 publishing {
     repositories {
         maven {
-            val host = "https://oss.sonatype.org"
+            val host = "https://s01.oss.sonatype.org"
             val releasesRepoUrl =
                 uri("$host/service/local/staging/deploy/maven2/")
             val snapshotsRepoUrl = uri("$host/content/repositories/snapshots/")
@@ -58,7 +54,6 @@ publishing {
                 url.set(libUrl)
 
                 scm {
-
                     connection.set("scm:git:$libUrl")
                     developerConnection.set("scm:git:$devUrl")
                     url.set(libUrl)

@@ -12,6 +12,8 @@ buildscript {
 
 plugins {
     id(Plugins.Ktlint.id) version Plugins.Ktlint.version
+    id("maven-publish")
+    signing
 }
 
 allprojects {
@@ -21,6 +23,9 @@ allprojects {
 
 subprojects {
     apply(plugin = Plugins.Ktlint.id)
+
+    apply(plugin = "maven-publish")
+    apply(plugin = "signing")
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         debug.set(true)
@@ -33,4 +38,13 @@ subprojects {
         useJUnitPlatform()
         testLogging { events("passed", "skipped", "failed") }
     }
+}
+
+val publications: PublicationContainer =
+    (extensions.getByName("publishing") as PublishingExtension).publications
+
+signing {
+    useGpgCmd()
+    if (Ci.isRelease)
+        sign(publications)
 }
