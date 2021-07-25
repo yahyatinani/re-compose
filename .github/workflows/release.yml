@@ -1,14 +1,11 @@
 name: release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "The release version"
-        required: true
-      branch:
-        description: "The branch to release from"
-        required: true
+  push:
+    branches:
+      - 'release/**'
+    tags:
+      - 'v*'
 
 jobs:
   publish:
