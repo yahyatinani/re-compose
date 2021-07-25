@@ -1,11 +1,14 @@
 name: release
 
 on:
-  push:
-    branches:
-      - 'releases/**'
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The release version"
+        required: true
+      branch:
+        description: "The branch to release from"
+        required: true
 
 jobs:
   publish:
@@ -38,30 +41,30 @@ jobs:
 
       - name: Build AAR ⚙️🛠
         run: ./gradlew :recompose:assemble
-#
-#      - name: Publish to Maven Central 🚀
-#        run: ./gradlew :recompose:publishReleasePublicationToDeployRepository
-#        env:
-#          RELEASE_VERSION: ${{ github.ref }}
-#          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-#          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-#          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-#          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-#
-#      - name: Create Release ✅
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ github.ref }}
-#          release_name: ${{ github.ref }}
-#          draft: true
-#          prerelease: false
-#
-#      - name: Upload Re-compose Library AAR 🗳
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          files: recompose/build/outputs/aar/recompose-release.aar
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Maven Central 🚀
+        run: ./gradlew :recompose:publishReleasePublicationToDeployRepository
+        env:
+          RELEASE_VERSION: ${{ github.ref }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+
+      - name: Create Release ✅
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
+
+      - name: Upload Re-compose Library AAR 🗳
+        uses: softprops/action-gh-release@v1
+        with:
+          files: recompose/build/outputs/aar/recompose-release.aar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
