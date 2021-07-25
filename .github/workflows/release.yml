@@ -37,15 +37,15 @@ jobs:
 
       - name: Build AAR ⚙️🛠
         run: ./gradlew :recompose:assemble
-
-      - name: Publish to Maven Central 🚀
-        run: ./gradlew :recompose:publishReleasePublicationToDeployRepository
-        env:
-          RELEASE_VERSION: ${{ github.ref }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+#
+#      - name: Publish to Maven Central 🚀
+#        run: ./gradlew :recompose:publishReleasePublicationToDeployRepository
+#        env:
+#          RELEASE_VERSION: ${{ github.ref }}
+#          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+#          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+#          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+#          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
 #
 #      - name: Create Release ✅
 #        id: create_release
