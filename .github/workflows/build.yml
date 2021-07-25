@@ -6,7 +6,7 @@ on:
       - 'doc/**'
       - 'docs/**'
       - '*.md'
-      - '*.yml'
+      - '**/*.yml'
     branches:
       - main
       - release/*
@@ -16,7 +16,7 @@ on:
       - 'doc/**'
       - 'docs/**'
       - '*.md'
-      - '*.yml'
+      - '**/*.yml'
     branches:
       - main
       - release/*
