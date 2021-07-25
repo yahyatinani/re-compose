@@ -36,6 +36,7 @@ publishing {
 
             name = "deploy"
             url = if (Ci.isRelease) releasesRepoUrl else snapshotsRepoUrl
+            println("Ci.isRelease: ${Ci.isRelease}:$url")
             credentials {
                 username = System.getenv("OSSRH_USERNAME") ?: ossrhUsername
                 password = System.getenv("OSSRH_PASSWORD") ?: ossrhPassword
