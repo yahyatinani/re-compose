@@ -43,7 +43,7 @@ jobs:
         run: ./gradlew :recompose:assemble
 
       - name: Publish to Maven Central 🚀
-        run: ./gradlew :recompose:publishReleasePublicationToDeployRepository
+        run: ./gradlew :recompose:publishAllPublicationsToDeployRepository
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
