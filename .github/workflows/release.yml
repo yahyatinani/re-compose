@@ -61,10 +61,3 @@ jobs:
           release_name: ${{ github.event.inputs.version }}
           draft: true
           prerelease: false
-
-      - name: Upload Re-compose Library AAR 🗳
-        uses: softprops/action-gh-release@v1
-        with:
-          files: recompose/build/outputs/aar/recompose-release.aar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
