@@ -5,6 +5,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
 rootProject.name = "Recompose"
 
 include(":app")

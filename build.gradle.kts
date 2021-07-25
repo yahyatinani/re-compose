@@ -1,5 +1,3 @@
-// Top-level build file where you can add configuration options common
-// to all sub-projects/modules.
 buildscript {
     repositories {
         google()
@@ -16,8 +14,9 @@ plugins {
     id(Plugins.Ktlint.id) version Plugins.Ktlint.version
 }
 
-tasks.create<Delete>(name = "clean") {
-    delete = setOf(rootProject.buildDir)
+allprojects {
+    group = "com.github.whyrising.recompose"
+    version = Ci.publishVersion
 }
 
 subprojects {
@@ -25,5 +24,13 @@ subprojects {
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         debug.set(true)
+    }
+
+    tasks.withType<Test> {
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2)
+            .takeIf { it > 0 } ?: 1
+
+        useJUnitPlatform()
+        testLogging { events("passed", "skipped", "failed") }
     }
 }
