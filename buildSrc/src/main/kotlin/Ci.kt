@@ -8,7 +8,7 @@ object Ci {
         else -> "$snapshotBase.$githubBuildNumber-SNAPSHOT"
     }
 
-    private val releaseVersion = System.getenv("RELEASE_VERSION")
+    private val releaseVersion by lazy { System.getenv("RELEASE_VERSION") }
 
     val isRelease = releaseVersion != null
 
