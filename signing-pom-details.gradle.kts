@@ -29,7 +29,7 @@ signing {
 publishing {
     repositories {
         maven {
-            val host = "https://s01.oss.sonatype.org"
+            val host = "https://oss.sonatype.org"
             val releasesRepoUrl =
                 uri("$host/service/local/staging/deploy/maven2/")
             val snapshotsRepoUrl = uri("$host/content/repositories/snapshots/")
