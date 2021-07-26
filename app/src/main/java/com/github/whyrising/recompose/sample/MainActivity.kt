@@ -59,7 +59,7 @@ fun App(name: String, counter: String) {
 }
 
 class MainActivity : ComponentActivity() {
-    val framework = Framework()
+    private val framework = Framework()
 
     override fun onDestroy() {
         super.onDestroy()
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        regSub(text) { db: AppSchema, _: ArrayList<Any> ->
+        regSub(text) { db: AppSchema, _: List<Any> ->
             db.text.uppercase()
         }
 
@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
             (db as AppSchema).copy(counter = db.counter + 1)
         }
 
-        regSub(counter) { db: AppSchema, _: ArrayList<Any> ->
+        regSub(counter) { db: AppSchema, _: List<Any> ->
             "${db.counter}"
         }
 

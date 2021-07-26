@@ -3,11 +3,17 @@ package com.github.whyrising.recompose.interceptor
 import com.github.whyrising.recompose.Keys
 import com.github.whyrising.recompose.Keys.before
 import com.github.whyrising.recompose.Keys.coeffects
+import com.github.whyrising.recompose.Keys.db
 import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.Keys.originalEvent
 import com.github.whyrising.recompose.Keys.queue
 import com.github.whyrising.recompose.Keys.stack
+import com.github.whyrising.y.concretions.list.l
+import com.github.whyrising.y.concretions.map.m
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
@@ -82,5 +88,63 @@ class InterceptorTest : FreeSpec({
 
             context shouldBeSameInstanceAs context0
         }
+    }
+
+    "invokeInterceptors(context)" - {
+        "should return the same given context when the :queue is empty" {
+            val context = mapOf<Keys, Any>(
+                queue to l<Any>(),
+                stack to l<Any>()
+            )
+
+            val newContext = invokeInterceptors(context, before)
+
+            newContext shouldBeSameInstanceAs context
+        }
+
+        """
+            It should make a new context by invoking all interceptors in :queue
+            and stack them in :stack while emptying the queue
+        """ {
+            val f1: (context: Map<Keys, Any>) -> Map<Keys, Any> = { context ->
+                context.plus(db to (context[db] as Int).inc())
+            }
+
+            val f2: (context: Map<Keys, Any>) -> Map<Keys, Any> = { context ->
+                context.plus(db to (context[db] as Int) + 2)
+            }
+
+            val incBy1 = toInterceptor(id = ":incBy1", before = f1)
+            val incBy2 = toInterceptor(id = ":incBy2", before = f2)
+
+            val qu = l<Any>(incBy1, incBy2)
+            val stck = l<Any>()
+
+            val context = m(
+                db to 0,
+                queue to qu,
+                stack to stck
+            )
+
+            val newContext: Map<Keys, Any> = invokeInterceptors(context, before)
+
+            newContext[db] as Int shouldBeExactly 3
+            (newContext[queue] as List<*>).shouldBeEmpty()
+            (newContext[stack] as List<*>) shouldContainExactly qu.reversed()
+        }
+    }
+
+    "changeDirection(context) should fill the queue from the stack" {
+        val stck = l<Any>(1, 2, 3)
+
+        val context = m(
+            queue to l(),
+            stack to stck
+        )
+
+        val newContext = changeDirection(context)
+
+        (newContext[queue] as List<*>) shouldContainExactly stck
+        (newContext[stack] as List<*>) shouldContainExactly stck
     }
 })
