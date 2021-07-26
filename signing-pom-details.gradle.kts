@@ -21,7 +21,7 @@ signing {
         @Suppress("UnstableApiUsage")
         useInMemoryPgpKeys(signingKey, signingPassword)
     }
-    if (Ci.isRelease) {
+    if (Ci.isRelease()) {
         sign(publications)
     }
 }
@@ -35,8 +35,8 @@ publishing {
             val snapshotsRepoUrl = uri("$host/content/repositories/snapshots/")
 
             name = "deploy"
-            url = if (Ci.isRelease) releasesRepoUrl else snapshotsRepoUrl
-            println("Ci.isRelease: ${Ci.isRelease}:$url")
+            url = if (Ci.isRelease()) releasesRepoUrl else snapshotsRepoUrl
+            println("Ci.isRelease: ${Ci.isRelease()}:$url")
             credentials {
                 username = System.getenv("OSSRH_USERNAME") ?: ossrhUsername
                 password = System.getenv("OSSRH_PASSWORD") ?: ossrhPassword

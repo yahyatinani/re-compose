@@ -10,7 +10,7 @@ object Ci {
 
     private fun getReleaseVersion() = System.getenv("RELEASE_VERSION")
 
-    val isRelease = getReleaseVersion() != null
+    fun isRelease() = getReleaseVersion() != null
 
     val publishVersion = getReleaseVersion() ?: snapshotVersion
 }

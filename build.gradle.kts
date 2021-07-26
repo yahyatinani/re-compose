@@ -45,6 +45,6 @@ val publications: PublicationContainer =
 
 signing {
     useGpgCmd()
-    if (Ci.isRelease)
+    if (Ci.isRelease())
         sign(publications)
 }
