@@ -61,6 +61,10 @@ internal fun invokeInterceptorFn(
     return if (r is Map<*, *>) (r as Map<Keys, Any>) else context
 }
 
+/**
+ * :queue and :stack in context should be lists/interceptors of type
+ * PersistentList<*>.
+ */
 internal fun invokeInterceptors(
     context: Map<Keys, Any>,
     direction: Keys
