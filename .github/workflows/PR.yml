@@ -1,25 +1,12 @@
-name: Android CI Build
+name: Pull Request build
 
 on:
-  push:
-    paths-ignore:
-      - 'doc/**'
-      - 'docs/**'
-      - '*.md'
-      - '**/*.yml'
-    branches:
-      - main
-      - release/*
-
   pull_request:
     paths-ignore:
       - 'doc/**'
       - 'docs/**'
       - '*.md'
       - '**/*.yml'
-    branches:
-      - main
-      - release/*
 
 jobs:
   build:
