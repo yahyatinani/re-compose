@@ -133,4 +133,18 @@ class InterceptorTest : FreeSpec({
             (newContext[stack] as List<*>) shouldContainExactly qu.reversed()
         }
     }
+
+    "changeDirection(context) should fill the queue from the stack" {
+        val stck = l<Any>(1, 2, 3)
+
+        val context = m(
+            queue to l(),
+            stack to stck
+        )
+
+        val newContext = changeDirection(context)
+
+        (newContext[queue] as List<*>) shouldContainExactly stck
+        (newContext[stack] as List<*>) shouldContainExactly stck
+    }
 })
