@@ -164,10 +164,3 @@ fun dispatchSync(event: ArrayList<Any>) {
     Log.i("dispatchSync", "$event")
     handle(event)
 }
-//
-// @Composable
-// fun DispatchOnce(event: Any) {
-//     LaunchedEffect(true) {
-//        dispatch(event)
-//     }
-// }
