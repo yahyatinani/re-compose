@@ -68,7 +68,6 @@ internal fun invokeInterceptors(
     tailrec fun invokeInterceptors(
         context: Map<Keys, Any>
     ): Map<Keys, Any> {
-        // TODO: Make sure a PersistentList is passed by callers
         val qu = context[queue] as PersistentList<Map<Keys, Any>>
         return if (qu.isEmpty()) context
         else {
