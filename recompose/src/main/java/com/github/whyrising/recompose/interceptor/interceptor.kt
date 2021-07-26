@@ -69,13 +69,13 @@ internal fun invokeInterceptors(
         context: Map<Keys, Any>
     ): Map<Keys, Any> {
         // TODO: Make sure a PersistentList is passed by callers
-        val q = context[queue] as List<Map<Keys, Any>>
-        return if (q.isEmpty()) context
+        val qu = context[queue] as PersistentList<Map<Keys, Any>>
+        return if (qu.isEmpty()) context
         else {
-            val interceptor: Map<Keys, Any> = q.first()
+            val interceptor: Map<Keys, Any> = qu.first()
             val stk = (context[stack] ?: l<Any>()) as PersistentList<Any>
             val c = context
-                .plus(queue to q.drop(1))
+                .plus(queue to qu.rest())
                 .plus(stack to stk.conj(interceptor))
 
             val newContext = invokeInterceptorFn(c, interceptor, direction)
@@ -91,7 +91,7 @@ internal fun changeDirection(context: Map<Keys, Any>): Map<Keys, Any> =
     enqueue(context, context[stack]!!)
 
 fun execute(
-    eventVec: ArrayList<Any>,
+    eventVec: List<Any>,
     interceptors: List<Map<Keys, Any>>
 ) {
     val context0 = context(eventVec, interceptors)

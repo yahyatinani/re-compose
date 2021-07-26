@@ -35,8 +35,8 @@ import kotlinx.coroutines.launch
  */
 fun regEventDb(
     id: Any,
-    interceptors: ArrayList<Any>,
-    handler: (db: Any, vec: ArrayList<Any>) -> Any
+    interceptors: List<Any>,
+    handler: (db: Any, vec: List<Any>) -> Any
 ) {
     register(
         id = id,
@@ -51,7 +51,7 @@ fun regEventDb(
 
 fun regEventDb(
     id: Any,
-    handler: (db: Any, vec: ArrayList<Any>) -> Any
+    handler: (db: Any, vec: List<Any>) -> Any
 ) {
     Log.i("regEventDb", "$id")
     regEventDb(id, arrayListOf(), handler)
@@ -59,8 +59,8 @@ fun regEventDb(
 
 fun regEventFx(
     id: Any,
-    interceptors: ArrayList<Any>,
-    handler: (cofx: Map<Any, Any>, event: ArrayList<Any>) -> Map<Any, Any>
+    interceptors: List<Any>,
+    handler: (cofx: Map<Any, Any>, event: List<Any>) -> Map<Any, Any>
 ) {
     register(
         id = id,
@@ -75,7 +75,7 @@ fun regEventFx(
 
 fun regEventFx(
     id: Any,
-    handler: (cofx: Map<Any, Any>, event: ArrayList<Any>) -> Map<Any, Any>
+    handler: (cofx: Map<Any, Any>, event: List<Any>) -> Map<Any, Any>
 ) {
     regEventFx(id, arrayListOf(), handler)
 }
@@ -84,21 +84,21 @@ fun regEventFx(
 -- subscriptions ---------------------
  */
 
-fun <T> subscribe(qvec: ArrayList<Any>): T {
+fun <T> subscribe(qvec: List<Any>): T {
     return com.github.whyrising.recompose.subs.subscribe(qvec)
 }
 
 fun <T> regSub(
     queryId: Any,
-    computationFn: (db: T, queryVec: ArrayList<Any>) -> Any,
+    computationFn: (db: T, queryVec: List<Any>) -> Any,
 ) {
     com.github.whyrising.recompose.subs.regSub(queryId, computationFn)
 }
 
 fun regSub(
     queryId: Any,
-    inputFn: (queryVec: ArrayList<Any>) -> Any,
-    computationFn: (input: Any, queryVec: ArrayList<Any>) -> Any,
+    inputFn: (queryVec: List<Any>) -> Any,
+    computationFn: (input: Any, queryVec: List<Any>) -> Any,
 ) {
     com.github.whyrising.recompose.subs.regSub(
         queryId,
@@ -126,7 +126,7 @@ fun regFx(id: Any, handler: (value: Any) -> Unit) {
  */
 
 class Framework : ViewModel() {
-    private val receiver = subscribe<ArrayList<Any>>().subscribe { eventVec ->
+    private val receiver = subscribe<List<Any>>().subscribe { eventVec ->
         if (eventVec.isEmpty()) return@subscribe
 
         viewModelScope.launch {
@@ -155,12 +155,12 @@ private inline fun <reified T> subscribe(): Observable<T> = publisher.filter {
     it as T
 }
 
-fun dispatch(event: Any) {
+fun dispatch(event: List<Any>) {
     Log.i("dispatch", "$event")
     publisher.onNext(event)
 }
 
-fun dispatchSync(event: ArrayList<Any>) {
+fun dispatchSync(event: List<Any>) {
     Log.i("dispatchSync", "$event")
     handle(event)
 }

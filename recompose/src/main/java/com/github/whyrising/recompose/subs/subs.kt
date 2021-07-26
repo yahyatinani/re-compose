@@ -15,14 +15,14 @@ val memSubComp = ConcurrentHashMap<Any, Any>()
 
 // -- subscribe -----------------------------------------------------------------
 
-internal fun <T> subscribe(qvec: ArrayList<Any>): T = qvec[0].let { id ->
+internal fun <T> subscribe(qvec: List<Any>): T = qvec[0].let { id ->
     when (val r = getHandler(kind, id)) {
         null -> throw IllegalArgumentException(
             "No query function was found for the given id: `$id`"
         )
         is Array<*> -> {
-            val inputFn = r[0] as (ArrayList<Any>) -> Any
-            val computationFn = r[1] as (Any, ArrayList<Any>) -> Any
+            val inputFn = r[0] as (List<Any>) -> Any
+            val computationFn = r[1] as (Any, List<Any>) -> Any
 
             // TODO: Implement input with [v1 v2] return
             val input = inputFn(qvec)
@@ -40,7 +40,7 @@ internal fun <T> subscribe(qvec: ArrayList<Any>): T = qvec[0].let { id ->
             }
         }
         else -> {
-            val function = r as (Any, ArrayList<Any>) -> Any
+            val function = r as (Any, List<Any>) -> Any
             function(appDb, qvec) as T
         }
     }

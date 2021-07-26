@@ -6,21 +6,33 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.concretions.list.l
 
 val kind: Kinds = Event
 
-private fun flatten(interceptors: ArrayList<Any>) =
-    interceptors.flatMap { element: Any ->
-        when (element) {
-            is ArrayList<*> -> element as ArrayList<Map<Keys, Any>>
-            else -> arrayListOf(element as Map<Keys, Any>)
+// TODO: Make it lazy.
+/**
+ * Returns a flat list of interceptors, since `interceptors` can be nested as
+lists of interceptors (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
+
+ * It preserves the order of `interceptors`.
+ */
+internal fun flatten(interceptors: List<Any>): List<Any> =
+    interceptors.foldRight(l()) { interceptor, list ->
+        when (interceptor) {
+            is List<*> -> {
+                interceptor.foldRight(list) { item, l ->
+                    l.conj(item!!)
+                }
+            }
+            else -> list.conj(interceptor)
         }
     }
 
 /***
  * Associate the given event `id` with the given collection of `interceptors`.
  */
-fun register(id: Any, interceptors: ArrayList<Any>) {
+fun register(id: Any, interceptors: List<Any>) {
     registerHandler(id, kind, flatten(interceptors))
 }
 
@@ -28,7 +40,7 @@ fun register(id: Any, interceptors: ArrayList<Any>) {
 -------------  Handle event ----------------------
  */
 
-fun handle(eventVec: ArrayList<Any>) {
+fun handle(eventVec: List<Any>) {
     val eventId = eventVec[0]
     val handler: Any = getHandler(kind, eventId) ?: return
 
