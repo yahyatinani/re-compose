@@ -18,7 +18,7 @@ plugins {
 
 allprojects {
     group = "com.github.whyrising.recompose"
-    version = Ci.publishVersion
+    version = Ci.publishVersion()
 }
 
 subprojects {
