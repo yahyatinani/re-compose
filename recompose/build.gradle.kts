@@ -56,7 +56,9 @@ val androidSourcesJar by tasks.register<Jar>("androidSourcesJar") {
 
 val androidJavadoc by tasks.register<Javadoc>("androidJavadoc") {
     source = android.sourceSets.getByName("main").java.getSourceFiles()
-    classpath += project.files(android.bootClasspath.joinToString { File.pathSeparator })
+    classpath += project.files(
+        android.bootClasspath.joinToString { File.pathSeparator }
+    )
 }
 
 val androidJavadocJar by tasks.register<Jar>("androidJavadocJar") {
@@ -67,9 +69,9 @@ val androidJavadocJar by tasks.register<Jar>("androidJavadocJar") {
     isReproducibleFileOrder = true
 }
 
-apply(from = "../signing-pom-details.gradle.kts")
-
 afterEvaluate {
+    apply(from = "../signing-pom-details.gradle.kts")
+
     publishing {
         publications {
             create<MavenPublication>("release") {
@@ -77,14 +79,41 @@ afterEvaluate {
             }
         }
 
-        // Package the source code
         publications.withType<MavenPublication>().forEach {
             it.apply {
                 artifact(androidSourcesJar)
                 artifact(androidJavadocJar)
+
+                pom {
+                    val devUrl = "https://github.com/whyrising"
+                    val libUrl = "$devUrl/re-compose"
+
+                    name.set("Re-compose")
+                    description.set("Event Driven Android UI Framework")
+                    url.set(libUrl)
+
+                    scm {
+                        connection.set("scm:git:$libUrl")
+                        developerConnection.set("scm:git:$devUrl")
+                        url.set(libUrl)
+                    }
+
+                    licenses {
+                        license {
+                            name.set("MIT")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id.set("whyrising")
+                            name.set("Yahya Tinani")
+                            email.set("yahyatinani@gmail.com")
+                        }
+                    }
+                }
             }
         }
-
-        // TODO: Package the Docs
     }
 }
