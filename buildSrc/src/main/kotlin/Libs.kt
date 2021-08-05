@@ -9,7 +9,7 @@ object Libs {
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.0-rc02"
+        const val version = "1.0.0"
 
         const val ui = "$gr.ui:ui:$version"
 
