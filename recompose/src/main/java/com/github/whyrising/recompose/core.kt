@@ -125,6 +125,14 @@ fun regFx(id: Any, handler: (value: Any) -> Unit) {
 -- Framework ------------------------------
  */
 
+val publisher: PublishSubject<Any> = PublishSubject.create()
+
+private inline fun <reified T> subscribe(): Observable<T> = publisher.filter {
+    it is T
+}.map {
+    it as T
+}
+
 class Framework : ViewModel() {
     private val receiver = subscribe<List<Any>>().subscribe { eventVec ->
         if (eventVec.isEmpty()) return@subscribe
@@ -135,32 +143,20 @@ class Framework : ViewModel() {
     }
 
     fun halt() {
-        Log.i("halt: ", "event receiver")
+        Log.i("halt", "receiver disposed.")
         receiver.dispose()
     }
 
     override fun onCleared() {
         super.onCleared()
-
-        Log.i("onCleared", "Resources released")
         halt()
     }
 }
 
-val publisher: PublishSubject<Any> = PublishSubject.create()
-
-private inline fun <reified T> subscribe(): Observable<T> = publisher.filter {
-    it is T
-}.map {
-    it as T
-}
-
 fun dispatch(event: List<Any>) {
-    Log.i("dispatch", "$event")
     publisher.onNext(event)
 }
 
 fun dispatchSync(event: List<Any>) {
-    Log.i("dispatchSync", "$event")
     handle(event)
 }
