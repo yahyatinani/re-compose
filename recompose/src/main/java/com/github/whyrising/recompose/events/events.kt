@@ -6,6 +6,7 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.concretions.list.PersistentList
 import com.github.whyrising.y.concretions.list.l
 
 val kind: Kinds = Event
@@ -17,7 +18,7 @@ lists of interceptors (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
 
  * It preserves the order of `interceptors`.
  */
-internal fun flatten(interceptors: List<Any>): List<Any> =
+internal fun flatten(interceptors: List<Any>): PersistentList<Any> =
     interceptors.foldRight(l()) { interceptor, list ->
         when (interceptor) {
             is List<*> -> {
