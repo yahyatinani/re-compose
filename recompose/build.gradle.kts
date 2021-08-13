@@ -42,6 +42,7 @@ dependencies {
     implementation(Libs.Androidx.viewModelCompose)
     implementation(Libs.ReactiveX.rxKotlin)
     implementation(Libs.Y.collections)
+    implementation(Libs.Y.concurrency)
 
     testImplementation(Libs.Kotlin.kotlinReflect)
     testImplementation(Libs.Kotest.runner)
