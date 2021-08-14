@@ -2,14 +2,14 @@ object Libs {
     const val jvmTarget = "1.8"
 
     object Kotlin {
-        const val version = "1.5.10"
+        const val version = "1.5.21"
 
         const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:$version"
     }
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.0"
+        const val version = "1.0.1"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -35,20 +35,20 @@ object Libs {
     object Androidx {
         // Integration with activities
         const val activityCompose =
-            "androidx.activity:activity-compose:1.3.0-rc02"
+            "androidx.activity:activity-compose:1.3.1"
 
         // Integration with ViewModels
         const val viewModelCompose =
             "androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07"
 
         // Appcompat is needed for themes.xml resource
-        const val appcompat = "androidx.appcompat:appcompat:1.3.0"
+        const val appcompat = "androidx.appcompat:appcompat:1.3.1"
 
         const val navigationCompose =
-            "androidx.navigation:navigation-compose:2.4.0-alpha03"
+            "androidx.navigation:navigation-compose:2.4.0-alpha06"
 
         const val constraintLayoutCompose =
-            "androidx.constraintlayout:constraintlayout-compose:1.0.0-alpha08"
+            "androidx.constraintlayout:constraintlayout-compose:1.0.0-beta02"
 
         const val coreKtx = "androidx.core:core-ktx:1.6.0"
     }
