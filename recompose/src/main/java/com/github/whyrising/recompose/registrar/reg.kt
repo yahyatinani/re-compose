@@ -1,54 +1,37 @@
 package com.github.whyrising.recompose.registrar
 
-import android.util.Log
-import com.github.whyrising.recompose.registrar.Kinds.Cofx
-import com.github.whyrising.recompose.registrar.Kinds.Event
-import com.github.whyrising.recompose.registrar.Kinds.Fx
-import com.github.whyrising.recompose.registrar.Kinds.Sub
-import java.util.concurrent.ConcurrentHashMap
+import com.github.whyrising.y.collections.core.assocIn
+import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.concurrency.Atom
+import com.github.whyrising.y.concurrency.atom
 
-val eventHandlers = ConcurrentHashMap<Any, Any>()
-val fxHandlers = ConcurrentHashMap<Any, Any>()
-val cofxHandlers = ConcurrentHashMap<Any, Any>()
-val subHandlers = ConcurrentHashMap<Any, Any>()
+/**
+ * This atom contains a register of all handlers.
+ * It's a two layer map, keyed first by `Kinds` (of handler), and then `id` of
+ * handler.
+ * { Event to { id to handler },
+ *  Fx to { id to handler },
+ *  Cofx to { id to handler },
+ *  Sub to { id to handler } }
+ * Leaf nodes are handlers.
+ */
+internal val register: Atom<IPersistentMap<Any, Any>> = atom(m())
 
 enum class Kinds { Event, Fx, Cofx, Sub }
 
-fun getHandler(kind: Kinds, id: Any): Any? = when (kind) {
-    Event -> eventHandlers[id]
-    Cofx -> cofxHandlers[id]
-    Sub -> subHandlers[id]
-    Fx -> fxHandlers[id]
+fun getHandler(kind: Kinds, id: Any): Any? = register().valAt(kind).let {
+    (it as IPersistentMap<Any, Any>?)?.valAt(id)
 }
 
 internal fun registerHandler(
     id: Any,
     kind: Kinds,
     handlerFn: Any
-) {
-    when (kind) {
-        Event -> {
-            if (eventHandlers[id] != null)
-                Log.w("regEventDb: ", "overwriting handler for: $id")
-
-            eventHandlers[id] = handlerFn
-        }
-        Fx -> {
-            if (fxHandlers[id] != null)
-                Log.w("regFx: ", "overwriting handler for: $id")
-            fxHandlers[id] = handlerFn
-        }
-        Cofx -> {
-            if (cofxHandlers[id] != null)
-                Log.w("regCofx: ", "overwriting handler for: $id")
-
-            cofxHandlers[id] = handlerFn
-        }
-        Sub -> {
-            if (subHandlers[id] != null)
-                Log.w("regSub: ", "overwriting handler for: $id")
-
-            subHandlers[id] = handlerFn
-        }
+): Any {
+    register.swap(l(kind, id), handlerFn) { currentVal, ks, v ->
+        assocIn(currentVal, ks, v) as IPersistentMap<Any, Any>
     }
+    return handlerFn
 }

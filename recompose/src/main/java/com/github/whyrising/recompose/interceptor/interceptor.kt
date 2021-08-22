@@ -8,40 +8,47 @@ import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.Keys.originalEvent
 import com.github.whyrising.recompose.Keys.queue
 import com.github.whyrising.recompose.Keys.stack
-import com.github.whyrising.y.concretions.list.PersistentList
-import com.github.whyrising.y.concretions.list.l
+import com.github.whyrising.y.collections.concretions.list.PersistentList
+import com.github.whyrising.y.collections.core.assocIn
+import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.map.IPersistentMap
 
 fun toInterceptor(
     id: Any,
-    before: (context: Map<Keys, Any>) -> Map<Keys, Any> = { it },
-    after: (context: Map<Keys, Any>) -> Any = { it }
-): Map<Keys, Any> = mapOf(
+    before: (
+        context: IPersistentMap<Keys, Any>
+    ) -> IPersistentMap<Keys, Any> = { it },
+    after: (
+        context: IPersistentMap<Keys, Any>
+    ) -> IPersistentMap<Keys, Any> = { it }
+): IPersistentMap<Keys, Any> = m(
     Keys.id to id,
     Keys.before to before,
     Keys.after to after,
 )
 
-fun assocCofx(context: Map<Keys, Any>, key: Any, value: Any): Map<Keys, Any> {
-    val cofx = context[coeffects] as Map<Keys, Any>?
-
-    val newCofx: Map<Any, Any> = cofx?.plus(key to value) ?: mapOf(key to value)
-
-    return context.plus(coeffects to newCofx)
-}
+fun assocCofx(
+    context: IPersistentMap<Keys, Any>,
+    key: Keys,
+    value: Any
+): IPersistentMap<Keys, Any> =
+    assocIn(context, l(coeffects, key), value) as IPersistentMap<Keys, Any>
 
 private fun enqueue(
-    context: Map<Keys, Any>,
+    context: IPersistentMap<Keys, Any>,
     interceptors: Any
-) = context.plus(queue to interceptors)
+): IPersistentMap<Keys, Any> = context.assoc(queue, interceptors)
 
 /**
  * Create a fresh context.
  */
 internal fun context(
     eventVec: Any,
-    interceptors: List<Map<Keys, Any>>
-): Map<Keys, Any> {
-    val context0 = mapOf<Keys, Any>()
+    interceptors: List<IPersistentMap<Keys, Any>>
+): IPersistentMap<Keys, Any> {
+    val context0 = m<Keys, Any>()
     val context1 = assocCofx(context0, event, eventVec)
     val context2 = assocCofx(context1, originalEvent, eventVec)
 
@@ -51,14 +58,16 @@ internal fun context(
 // -- Execute Interceptor Chain  ----------------------------------------------
 
 internal fun invokeInterceptorFn(
-    context: Map<Keys, Any>,
-    interceptor: Map<Keys, Any>,
+    context: IPersistentMap<Keys, Any>,
+    interceptor: IPersistentMap<Keys, Any>,
     direction: Keys
-): Map<Keys, Any> {
-    val f = interceptor[direction] as (Map<Keys, Any>) -> Any
-    val r = f(context)
+): IPersistentMap<Keys, Any> {
+    val f = get(interceptor, direction) as (IPersistentMap<Keys, Any>) -> Any
 
-    return if (r is Map<*, *>) (r as Map<Keys, Any>) else context
+    return when (val r = f(context)) {
+        is IPersistentMap<*, *> -> (r as IPersistentMap<Keys, Any>)
+        else -> context
+    }
 }
 
 /**
@@ -66,36 +75,43 @@ internal fun invokeInterceptorFn(
  * PersistentList<*>.
  */
 internal fun invokeInterceptors(
-    context: Map<Keys, Any>,
+    context: IPersistentMap<Keys, Any>,
     direction: Keys
-): Map<Keys, Any> {
+): IPersistentMap<Keys, Any> {
     tailrec fun invokeInterceptors(
-        context: Map<Keys, Any>
-    ): Map<Keys, Any> {
-        val qu = context[queue] as PersistentList<Map<Keys, Any>>
-        return if (qu.isEmpty()) context
-        else {
-            val interceptor: Map<Keys, Any> = qu.first()
-            val stk = (context[stack] ?: l<Any>()) as PersistentList<Any>
-            val c = context
-                .plus(queue to qu.rest())
-                .plus(stack to stk.conj(interceptor))
+        context: IPersistentMap<Keys, Any>
+    ): IPersistentMap<Keys, Any> {
+        val qu = get(context, queue)
+            as PersistentList<IPersistentMap<Keys, Any>>
 
-            val newContext = invokeInterceptorFn(c, interceptor, direction)
+        return when {
+            qu.isEmpty() -> context
+            else -> {
+                val interceptor: IPersistentMap<Keys, Any> = qu.first()
+                val stk =
+                    (get(context, stack) ?: l<Any>()) as PersistentList<Any>
 
-            invokeInterceptors(newContext)
+                val c = context
+                    .assoc(queue, qu.rest())
+                    .assoc(stack, stk.conj(interceptor))
+
+                val newContext = invokeInterceptorFn(c, interceptor, direction)
+
+                invokeInterceptors(newContext)
+            }
         }
     }
 
     return invokeInterceptors(context)
 }
 
-internal fun changeDirection(context: Map<Keys, Any>): Map<Keys, Any> =
-    enqueue(context, context[stack]!!)
+internal fun changeDirection(
+    context: IPersistentMap<Keys, Any>
+): IPersistentMap<Keys, Any> = enqueue(context, get(context, stack)!!)
 
 fun execute(
     eventVec: List<Any>,
-    interceptors: List<Map<Keys, Any>>
+    interceptors: List<IPersistentMap<Keys, Any>>
 ) {
     val context0 = context(eventVec, interceptors)
     val context1 = invokeInterceptors(context0, before)

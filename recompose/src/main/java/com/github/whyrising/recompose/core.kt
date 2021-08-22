@@ -9,6 +9,7 @@ import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.y.collections.map.IPersistentMap
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import kotlinx.coroutines.launch
@@ -60,7 +61,10 @@ fun regEventDb(
 fun regEventFx(
     id: Any,
     interceptors: List<Any>,
-    handler: (cofx: Map<Any, Any>, event: List<Any>) -> Map<Any, Any>
+    handler: (
+        cofx: IPersistentMap<Any, Any>,
+        event: List<Any>
+    ) -> IPersistentMap<Any, Any>
 ) {
     register(
         id = id,
@@ -75,7 +79,10 @@ fun regEventFx(
 
 fun regEventFx(
     id: Any,
-    handler: (cofx: Map<Any, Any>, event: List<Any>) -> Map<Any, Any>
+    handler: (
+        cofx: IPersistentMap<Any, Any>,
+        event: List<Any>
+    ) -> IPersistentMap<Any, Any>
 ) {
     regEventFx(id, arrayListOf(), handler)
 }

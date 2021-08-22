@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose.events
 
-import com.github.whyrising.y.concretions.list.PersistentList
-import com.github.whyrising.y.concretions.list.l
+import com.github.whyrising.y.collections.concretions.list.PersistentList
+import com.github.whyrising.y.collections.core.l
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.reflection.shouldBeSubtypeOf

@@ -10,27 +10,29 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Cofx
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.map.IPersistentMap
 
 /*
 ---------- Registration ----------------
  */
 val kind: Kinds = Cofx
 
-fun regCofx(id: Any, handler: (coeffects: Map<Any, Any>) -> Any) {
+fun regCofx(id: Any, handler: (coeffects: IPersistentMap<Any, Any>) -> Any) {
     registerHandler(id, kind, handler)
 }
 
 /*
 ------------- Interceptor ---------------
  */
-fun injectCofx(id: Any): Map<Keys, Any> = toInterceptor(
+fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
     id = coeffects,
     before = { context ->
         val handler = getHandler(kind, id) as ((Any) -> Any)?
         if (handler != null) {
-            val cofx = context[coeffects] ?: mapOf<Any, Any>()
-            val newCofx = handler(cofx)
-            val newContext = context.plus(coeffects to newCofx)
+            val newCofx = handler(get(context, coeffects) ?: m<Any, Any>())
+            val newContext = context.assoc(coeffects, newCofx)
 
             newContext
         } else {
@@ -51,5 +53,5 @@ val injectDb = injectCofx(id = db)
  Adds to coeffects the value in `appDdb`, under the key `Db`
  */
 val cofx1 = regCofx(id = db) { coeffects ->
-    coeffects.plus(db to appDb)
+    coeffects.assoc(db, appDb)
 }

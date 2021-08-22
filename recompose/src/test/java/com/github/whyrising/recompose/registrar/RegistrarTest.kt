@@ -4,20 +4,28 @@ import com.github.whyrising.recompose.registrar.Kinds.Cofx
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.Kinds.Fx
 import com.github.whyrising.recompose.registrar.Kinds.Sub
+import com.github.whyrising.y.collections.core.m
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 
 class RegistrarTest : FreeSpec({
+    afterTest {
+        register.reset(m())
+    }
+
     "registerHandler()/getHandler(kind)" - {
         "Fx kind" {
             val id = ":fx"
             val handlerFn = { _: Any -> }
-            registerHandler(id, Fx, handlerFn)
+            val hFn = registerHandler(id, Fx, handlerFn)
 
             val handler = getHandler(Fx, id)
 
+            register().count shouldBeExactly 1
             handler shouldBeSameInstanceAs handlerFn
+            hFn shouldBeSameInstanceAs handlerFn
         }
 
         "Event kind" {
@@ -37,6 +45,7 @@ class RegistrarTest : FreeSpec({
 
             val handler = getHandler(Cofx, id)
 
+            register().count shouldBeExactly 1
             handler shouldBeSameInstanceAs handlerFn
         }
 

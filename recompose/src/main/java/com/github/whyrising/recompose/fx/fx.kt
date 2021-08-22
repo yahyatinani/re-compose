@@ -15,6 +15,8 @@ import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.map.IPersistentMap
 
 /*
 -- Registration ----------------------------------------------------------------
@@ -29,13 +31,13 @@ fun regFx(id: Any, handler: (value: Any) -> Unit) {
 -- Interceptor -----------------------------------------------------------------
  */
 
-val doFx: Map<Keys, Any> = toInterceptor(
+val doFx: IPersistentMap<Keys, Any> = toInterceptor(
     id = dofx,
-    after = { keys: Map<Keys, Any> ->
-        val effects = keys[effects] as Map<Any, Any>
-        val effectsWithoutDb: Map<Any, Any> = effects.minus(db)
+    after = { context: IPersistentMap<Keys, Any> ->
+        val effects = get(context, effects) as IPersistentMap<Any, Any>
+        val effectsWithoutDb: IPersistentMap<Any, Any> = effects.dissoc(db)
 
-        val newDb = effects[db]
+        val newDb = get(effects, db)
         if (newDb != null) {
             val fxFn = getHandler(kind, db) as (value: Any) -> Unit
             Log.i(
@@ -56,6 +58,8 @@ val doFx: Map<Keys, Any> = toInterceptor(
                 )
             }
         }
+
+        context
     }
 )
 

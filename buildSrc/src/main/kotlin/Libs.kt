@@ -72,7 +72,7 @@ object Libs {
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.4"
+        private const val version = "0.0.5"
 
         const val core = "$group:y-core:$version"
         const val collections = "$group:y-collections:$version"

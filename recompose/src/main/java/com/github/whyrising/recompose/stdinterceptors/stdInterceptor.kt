@@ -6,6 +6,9 @@ import com.github.whyrising.recompose.Keys.db
 import com.github.whyrising.recompose.Keys.effects
 import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.interceptor.toInterceptor
+import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.map.IPersistentMap
 
 /*
 -- Interceptor Factories -----------------------------------------------------
@@ -16,34 +19,38 @@ These 2 factories wrap the 2 kinds of event handlers.
 
 fun dbHandlerToInterceptor(
     handlerFn: (db: Any, vec: List<Any>) -> Any
-): Map<Keys, Any> = toInterceptor(
+): IPersistentMap<Keys, Any> = toInterceptor(
     id = ":db-handler",
-    before = { context: Map<Keys, Any> ->
-        val cofx = context[coeffects] as Map<*, *>
-        val oldDb = cofx[db]
-        val event = cofx[event] as List<Any>
+    before = { context: IPersistentMap<Keys, Any> ->
+        val cofx = get(context, coeffects) as IPersistentMap<*, *>
+        val oldDb = get(cofx, db)
+        val event = get(cofx, event) as List<Any>
 
         val newDb = handlerFn(oldDb!!, event)
 
-        val fx = (context[effects] ?: mapOf<Any, Any>()) as Map<Keys, Any>
+        val fx = (get(context, effects)
+            ?: m<Any, Any>()) as IPersistentMap<Keys, Any>
 
-        val newFx = fx.plus(db to newDb)
+        val newFx = fx.assoc(db, newDb)
 
-        context.plus(effects to newFx)
+        context.assoc(effects, newFx)
     }
 )
 
 fun fxHandlerToInterceptor(
-    handlerFn: (cofx: Map<Any, Any>, event: List<Any>) -> Map<Any, Any>
+    handlerFn: (
+        cofx: IPersistentMap<Any, Any>,
+        event: List<Any>
+    ) -> IPersistentMap<Any, Any>
 ): Any = toInterceptor(
     id = ":fx-handler",
     before = { context ->
-        val cofx = context[coeffects] as Map<Any, Any>
-        val event = cofx[event] as List<Any>
+        val cofx = get(context, coeffects) as IPersistentMap<Any, Any>
+        val event = get(cofx, event) as List<Any>
 
         val fxData = handlerFn(cofx, event)
 
-        val newContext = context.plus(effects to fxData)
+        val newContext = context.assoc(effects, fxData)
 
         newContext
     }

@@ -6,8 +6,9 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.concretions.list.PersistentList
-import com.github.whyrising.y.concretions.list.l
+import com.github.whyrising.y.collections.concretions.list.PersistentList
+import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.collections.map.IPersistentMap
 
 val kind: Kinds = Event
 
@@ -45,7 +46,7 @@ fun handle(eventVec: List<Any>) {
     val eventId = eventVec[0]
     val handler: Any = getHandler(kind, eventId) ?: return
 
-    val chainOfInterceptors = handler as List<Map<Keys, Any>>
+    val chainOfInterceptors = handler as List<IPersistentMap<Keys, Any>>
     execute(eventVec, chainOfInterceptors)
 }
 
