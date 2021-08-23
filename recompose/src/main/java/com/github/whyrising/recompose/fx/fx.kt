@@ -39,24 +39,19 @@ val doFx: IPersistentMap<Keys, Any> = toInterceptor(
 
         val newDb = get(effects, db)
         if (newDb != null) {
-            val fxFn = getHandler(kind, db) as (value: Any) -> Unit
-            Log.i(
-                "doFx",
-                "$newDb"
-            )
-            fxFn(newDb)
+            val dbFxHandler = getHandler(kind, db) as (newDb: Any) -> Unit
+            dbFxHandler(newDb)
         }
 
         for ((effectKey, effectValue) in effectsWithoutDb) {
-            val fxFn = getHandler(kind, effectKey) as ((value: Any) -> Unit)?
+            val fxHandler = getHandler(kind, effectKey) as ((Any) -> Unit)?
 
-            when {
-                fxFn != null -> fxFn(effectValue)
-                else -> Log.i(
-                    "re-compose",
-                    "no handler registered for effect: $effectKey. Ignoring."
-                )
-            }
+            if (fxHandler != null)
+                fxHandler(effectValue)
+            else Log.i(
+                "re-compose",
+                "no handler registered for effect: $effectKey. Ignoring."
+            )
         }
 
         context
@@ -66,64 +61,66 @@ val doFx: IPersistentMap<Keys, Any> = toInterceptor(
 /*
 -- Builtin Effect Handlers ----------------------------------------------------
  */
-val fx1: Unit = regFx(id = fx) { listOfEffects: Any ->
+val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
     if (listOfEffects !is List<*>) {
-        val msg = "\":fx\" effect expects a list, but was given " +
-            "${listOfEffects::class.java}"
-        Log.e("regFx", msg)
-    } else {
-        val effects: List<List<Any>> = listOfEffects as List<List<Any>>
+        Log.e(
+            "regFx", "\":fx\" effect expects a list, but was given " +
+                "${listOfEffects::class.java}"
+        )
 
-        effects.forEach { effect: List<Any> ->
-            val (effectKey, effectValue) = effect
-
-            if (effectKey == db)
-                Log.w("regFx", "\":fx\" effect should not contain a :db effect")
-
-            val fxFn = getHandler(kind, effectKey) as ((value: Any) -> Unit)?
-
-            when {
-                fxFn != null -> fxFn(effectValue)
-                else -> {
-                    val msg = "in :fx no handler registered for effect: " +
-                        "$effectKey. Ignoring."
-                    Log.i("regFx", msg)
-                }
-            }
-        }
+        return@regFx
     }
-}
 
-val fx2: Unit = regFx(id = db) { value ->
-    when {
-        appDb != value -> resetAppDb(value)
-        else -> Log.i("regFx", "Same appDb value")
-    }
-}
+    val effects: List<List<Any>> = listOfEffects as List<List<Any>>
 
-val fx3: Unit = regFx(id = dispatch) { value ->
-    when (value) {
-        is ArrayList<*> -> dispatch(value)
-        else -> Log.e(
+    effects.forEach { effect: List<Any> ->
+        val (effectKey, effectValue) = effect
+
+        if (effectKey == db)
+            Log.w("regFx", "\":fx\" effect should not contain a :db effect")
+
+        val fxFn = getHandler(kind, effectKey) as ((Any) -> Unit)?
+
+        if (fxFn != null)
+            fxFn(effectValue)
+        else Log.i(
             "regFx",
-            "ignoring bad :dispatch value. Expected an array list, but got: " +
-                "$value"
+            "in :fx no handler registered for effect: $effectKey. Ignoring."
         )
     }
 }
 
-val fx4: Unit = regFx(id = dispatchN) { value ->
-    when (value) {
-        is List<*> -> {
-            value.forEach { vec: Any? ->
-                val event = vec as ArrayList<Any>
-                dispatch(event)
-            }
-        }
-        else -> Log.e(
+val updateDbFx: Unit = regFx(id = db) { newAppDb ->
+    if (appDb == newAppDb) {
+        Log.i("regFx", "Same appDb value")
+        return@regFx
+    }
+
+    resetAppDb(newAppDb)
+}
+
+val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
+    if (event !is ArrayList<*>) {
+        Log.e(
             "regFx",
-            "ignoring bad :dispatchN value. Expected a list, but got: " +
-                "$value"
+            "ignoring bad :dispatch value. Expected ArrayList, but got: $event"
         )
+        return@regFx
+    }
+
+    dispatch(event)
+}
+
+val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
+    if (events !is List<*>) {
+        Log.e(
+            "regFx",
+            "ignoring bad :dispatchN value. Expected a list, but got: $events"
+        )
+        return@regFx
+    }
+
+    events.forEach { event: Any? ->
+        dispatch(event as ArrayList<Any>)
     }
 }
