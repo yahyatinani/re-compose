@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
  */
 fun regEventDb(
     id: Any,
-    interceptors: List<Any>,
+    interceptors: List<Any> = arrayListOf(),
     handler: (db: Any, vec: List<Any>) -> Any
 ) {
     register(
@@ -50,17 +50,9 @@ fun regEventDb(
     )
 }
 
-fun regEventDb(
-    id: Any,
-    handler: (db: Any, vec: List<Any>) -> Any
-) {
-    Log.i("regEventDb", "$id")
-    regEventDb(id, arrayListOf(), handler)
-}
-
 fun regEventFx(
     id: Any,
-    interceptors: List<Any>,
+    interceptors: List<Any> = arrayListOf(),
     handler: (
         cofx: IPersistentMap<Any, Any>,
         event: List<Any>
@@ -75,16 +67,6 @@ fun regEventFx(
             fxHandlerToInterceptor(handler)
         )
     )
-}
-
-fun regEventFx(
-    id: Any,
-    handler: (
-        cofx: IPersistentMap<Any, Any>,
-        event: List<Any>
-    ) -> IPersistentMap<Any, Any>
-) {
-    regEventFx(id, arrayListOf(), handler)
 }
 
 /*
