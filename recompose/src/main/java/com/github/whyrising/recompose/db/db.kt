@@ -20,6 +20,6 @@ import androidx.compose.runtime.setValue
 var appDb by mutableStateOf<Any>(0)
     private set
 
-fun reset(value: Any) {
+fun resetAppDb(value: Any) {
     appDb = value
 }

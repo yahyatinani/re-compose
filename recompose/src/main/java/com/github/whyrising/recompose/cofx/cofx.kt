@@ -19,7 +19,16 @@ import com.github.whyrising.y.collections.map.IPersistentMap
  */
 val kind: Kinds = Cofx
 
-fun regCofx(id: Any, handler: (coeffects: IPersistentMap<Any, Any>) -> Any) {
+/**
+ * @param id for the given cofx handler.
+ * @param handler is a function that takes a coeffects map and returns a
+ * modified one.
+ */
+fun regCofx(
+    id: Any,
+    handler: (coeffects: IPersistentMap<Any, Any>) -> IPersistentMap<Any, Any>
+) {
+    println("regCofx registered $id")
     registerHandler(id, kind, handler)
 }
 
@@ -29,12 +38,12 @@ fun regCofx(id: Any, handler: (coeffects: IPersistentMap<Any, Any>) -> Any) {
 fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
     id = coeffects,
     before = { context ->
-        val handler = getHandler(kind, id) as ((Any) -> Any)?
-        if (handler != null) {
-            val newCofx = handler(get(context, coeffects) ?: m<Any, Any>())
-            val newContext = context.assoc(coeffects, newCofx)
+        val injectCofxDb = getHandler(kind, id) as ((Any) -> Any)?
+        if (injectCofxDb != null) {
+            val cofx = get(context, coeffects) ?: m<Any, Any>()
+            val newCofx = injectCofxDb(cofx)
 
-            newContext
+            context.assoc(coeffects, newCofx)
         } else {
             Log.e("injectCofx", "No cofx handler registered for $id")
             context
@@ -46,12 +55,12 @@ fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
 ------------ Builtin CoEffects Handlers --------------
  */
 
-// Because this interceptor is used so much, we reify it
-val injectDb = injectCofx(id = db)
-
 /*
  Adds to coeffects the value in `appDdb`, under the key `Db`
  */
-val cofx1 = regCofx(id = db) { coeffects ->
+val cofxDb = regCofx(id = db) { coeffects ->
     coeffects.assoc(db, appDb)
 }
+
+// Because this interceptor is used so much, we reify it
+val injectDb = injectCofx(id = db)

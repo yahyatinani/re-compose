@@ -9,7 +9,7 @@ import com.github.whyrising.recompose.Keys.dofx
 import com.github.whyrising.recompose.Keys.effects
 import com.github.whyrising.recompose.Keys.fx
 import com.github.whyrising.recompose.db.appDb
-import com.github.whyrising.recompose.db.reset
+import com.github.whyrising.recompose.db.resetAppDb
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
@@ -96,7 +96,7 @@ val fx1: Unit = regFx(id = fx) { listOfEffects: Any ->
 
 val fx2: Unit = regFx(id = db) { value ->
     when {
-        appDb != value -> reset(value)
+        appDb != value -> resetAppDb(value)
         else -> Log.i("regFx", "Same appDb value")
     }
 }
