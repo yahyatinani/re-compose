@@ -114,7 +114,7 @@ class InterceptorTest : FreeSpec({
                     context.assoc(db, (get(context, db) as Int).inc())
                 }
 
-            val f2: (context: IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
+            val f2: (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
                 { context ->
                     context.assoc(db, (get(context, db) as Int) + 2)
                 }

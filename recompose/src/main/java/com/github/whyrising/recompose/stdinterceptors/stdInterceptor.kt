@@ -28,8 +28,8 @@ fun dbHandlerToInterceptor(
 
         val newDb = handlerFn(oldDb!!, event)
 
-        val fx = (get(context, effects)
-            ?: m<Any, Any>()) as IPersistentMap<Keys, Any>
+        val fx = (get(context, effects) ?: m<Any, Any>())
+            as IPersistentMap<Keys, Any>
 
         val newFx = fx.assoc(db, newDb)
 
