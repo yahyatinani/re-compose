@@ -14,23 +14,18 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import kotlinx.coroutines.launch
 
-/**
- * Context:
- *
- * {:coeffects {:event [:some-id :some-param]
- *              :db    <original contents of app-db>}
- *
- *  :effects   {:db        <new value for app-db>
- *              :dispatch  [:an-event-id :param1]}
- *
- *  :queue     [a collection of further interceptors]
- *
- *  :stack     [a collection of interceptors already walked]}
- */
+// -- Dispatch -----------------------------------------------------------------
 
-/*
--- Events ---------------------------------------------------
- */
+fun dispatch(event: List<Any>) {
+    publisher.onNext(event)
+}
+
+fun dispatchSync(event: List<Any>) {
+    handle(event)
+}
+
+// -- Events ---------------------------------------------------
+
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
@@ -69,9 +64,7 @@ fun regEventFx(
     )
 }
 
-/*
--- subscriptions ---------------------
- */
+// -- Subscriptions ------------------------------------------------------------
 
 fun <T> subscribe(qvec: List<Any>): T {
     return com.github.whyrising.recompose.subs.subscribe(qvec)
@@ -96,9 +89,7 @@ fun regSub(
     )
 }
 
-/*
--- effects ---------------------------------
- */
+// -- Effects ------------------------------------------------------------------
 
 /**
  * Register the given effect `handler` for the given `id`
@@ -110,9 +101,7 @@ fun regFx(id: Any, handler: (value: Any) -> Unit) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }
 
-/*
--- Framework ------------------------------
- */
+// -- Framework ----------------------------------------------------------------
 
 val publisher: PublishSubject<Any> = PublishSubject.create()
 
@@ -140,12 +129,4 @@ class Framework : ViewModel() {
         super.onCleared()
         halt()
     }
-}
-
-fun dispatch(event: List<Any>) {
-    publisher.onNext(event)
-}
-
-fun dispatchSync(event: List<Any>) {
-    handle(event)
 }
