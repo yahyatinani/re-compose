@@ -64,7 +64,8 @@ val doFx: IPersistentMap<Keys, Any> = toInterceptor(
 val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
     if (listOfEffects !is List<*>) {
         Log.e(
-            "regFx", "\":fx\" effect expects a list, but was given " +
+            "regFx",
+            "\":fx\" effect expects a list, but was given " +
                 "${listOfEffects::class.java}"
         )
 

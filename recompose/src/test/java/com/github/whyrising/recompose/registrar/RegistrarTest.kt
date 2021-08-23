@@ -23,7 +23,6 @@ class RegistrarTest : FreeSpec({
 
             val handler = getHandler(Fx, id)
 
-            register().count shouldBeExactly 1
             handler shouldBeSameInstanceAs handlerFn
             hFn shouldBeSameInstanceAs handlerFn
         }
