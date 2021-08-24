@@ -9,7 +9,6 @@ import com.github.whyrising.recompose.Keys.dofx
 import com.github.whyrising.recompose.Keys.effects
 import com.github.whyrising.recompose.Keys.fx
 import com.github.whyrising.recompose.db.appDb
-import com.github.whyrising.recompose.db.resetAppDb
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
@@ -92,12 +91,10 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
 }
 
 val updateDbFx: Unit = regFx(id = db) { newAppDb ->
-    if (appDb == newAppDb) {
-        Log.i("regFx", "Same appDb value")
+    if (appDb === newAppDb)
         return@regFx
-    }
 
-    resetAppDb(newAppDb)
+    appDb = newAppDb
 }
 
 val dispatchEventFx: Unit = regFx(id = dispatch) { event ->

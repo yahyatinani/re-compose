@@ -2,7 +2,7 @@ package com.github.whyrising.recompose
 
 import com.github.whyrising.recompose.Keys.db
 import com.github.whyrising.recompose.cofx.regCofx
-import com.github.whyrising.recompose.db.resetAppDb
+import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.y.collections.core.get
@@ -23,7 +23,7 @@ class CofxTest : FreeSpec({
     }
 
     "cofxDb" {
-        resetAppDb(-22)
+        appDb = -22
         val coeffects = m(db to -1)
 
         val cofxDbHandler = getHandler(Kinds.Cofx, db) as ((Any) -> Any)
