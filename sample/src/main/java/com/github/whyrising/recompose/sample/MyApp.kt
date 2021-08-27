@@ -10,7 +10,7 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        regEventDb(initialize) { _, _ ->
+        regEventDb<Any>(initialize) { _, _ ->
             AppSchema(text = "Android", 0)
         }
 

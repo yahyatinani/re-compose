@@ -9,6 +9,7 @@ import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.map.IPersistentMap
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -29,14 +30,14 @@ fun dispatchSync(event: List<Any>) {
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
-fun regEventDb(
+fun <T> regEventDb(
     id: Any,
-    interceptors: List<Any> = arrayListOf(),
-    handler: (db: Any, vec: List<Any>) -> Any
+    interceptors: List<Any> = l(),
+    handler: (db: T, vec: List<Any>) -> Any
 ) {
     register(
         id = id,
-        interceptors = arrayListOf(
+        interceptors = l(
             injectDb,
             doFx,
             interceptors,
@@ -47,7 +48,7 @@ fun regEventDb(
 
 fun regEventFx(
     id: Any,
-    interceptors: List<Any> = arrayListOf(),
+    interceptors: List<Any> = l(),
     handler: (
         cofx: IPersistentMap<Any, Any>,
         event: List<Any>
@@ -55,7 +56,7 @@ fun regEventFx(
 ) {
     register(
         id = id,
-        interceptors = arrayListOf(
+        interceptors = l(
             injectDb,
             doFx,
             interceptors,

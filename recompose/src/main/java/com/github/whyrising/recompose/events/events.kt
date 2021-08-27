@@ -22,10 +22,8 @@ lists of interceptors (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
 internal fun flatten(interceptors: List<Any>): PersistentList<Any> =
     interceptors.foldRight(l()) { interceptor, list ->
         when (interceptor) {
-            is List<*> -> {
-                interceptor.foldRight(list) { item, l ->
-                    l.conj(item!!)
-                }
+            is List<*> -> interceptor.foldRight(list) { item, l ->
+                l.conj(item!!)
             }
             else -> list.conj(interceptor)
         }
@@ -50,7 +48,4 @@ fun handle(eventVec: List<Any>) {
     execute(eventVec, chainOfInterceptors)
 }
 
-fun event(id: Any, vararg args: Any) = arrayListOf(
-    id,
-    *args
-)
+fun event(id: Any, vararg args: Any): List<Any> = l(id, *args)

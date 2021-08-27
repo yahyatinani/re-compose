@@ -74,8 +74,8 @@ class MainActivity : ComponentActivity() {
             db.text.uppercase()
         }
 
-        regEventDb(inc) { db, _ ->
-            (db as AppSchema).copy(counter = db.counter + 1)
+        regEventDb<AppSchema>(inc) { db, _ ->
+            db.copy(counter = db.counter + 1)
         }
 
         regSub(counter) { db: AppSchema, _: List<Any> ->

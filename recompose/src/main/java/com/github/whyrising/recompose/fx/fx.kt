@@ -119,6 +119,6 @@ val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
     }
 
     events.forEach { event: Any? ->
-        dispatch(event as ArrayList<Any>)
+        dispatch(event as List<Any>)
     }
 }
