@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
+internal val DEFAULT_APP_DB_VALUE = Any()
+
 /**
  * ------------------ Application State ---------------
  *
@@ -13,9 +15,7 @@ import androidx.compose.runtime.setValue
  *
  * Updates via event handlers.
  *
- * At the start, It contains a placeholder value `0` until an init event gets
- * dispatched.
- *
+ * It is set to a default token until it gets initialized via an event handler.
  * */
-var appDb by mutableStateOf<Any>(0)
+var appDb by mutableStateOf(DEFAULT_APP_DB_VALUE)
     internal set
