@@ -45,7 +45,7 @@ object Libs {
         const val appcompat = "androidx.appcompat:appcompat:1.3.1"
 
         const val navigationCompose =
-            "androidx.navigation:navigation-compose:2.4.0-alpha06"
+            "androidx.navigation:navigation-compose:2.4.0-alpha07"
 
         const val constraintLayoutCompose =
             "androidx.constraintlayout:constraintlayout-compose:1.0.0-beta02"

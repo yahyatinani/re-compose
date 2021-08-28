@@ -17,8 +17,8 @@ These 2 factories wrap the 2 kinds of event handlers.
 
  */
 
-fun dbHandlerToInterceptor(
-    handlerFn: (db: Any, vec: List<Any>) -> Any
+fun <T> dbHandlerToInterceptor(
+    handlerFn: (db: T, vec: List<Any>) -> Any
 ): IPersistentMap<Keys, Any> = toInterceptor(
     id = ":db-handler",
     before = { context: IPersistentMap<Keys, Any> ->
@@ -26,7 +26,7 @@ fun dbHandlerToInterceptor(
         val oldDb = get(cofx, db)
         val event = get(cofx, event) as List<Any>
 
-        val newDb = handlerFn(oldDb!!, event)
+        val newDb = handlerFn(oldDb as T, event)
 
         val fx = (get(context, effects) ?: m<Any, Any>())
             as IPersistentMap<Keys, Any>
