@@ -139,6 +139,12 @@ fun TimeApp() {
     }
 }
 
+fun timeticker() {
+    Timer().schedule(0, 1000) {
+        dispatch(event(timer, Date()))
+    }
+}
+
 class MainActivity : ComponentActivity() {
 
     private val framework = Framework()
@@ -156,9 +162,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LaunchedEffect(true) {
-                Timer().schedule(0, 1000) {
-                    dispatch(event(timer, Date()))
-                }
+                timeticker()
             }
 
             RecomposeTheme {
@@ -168,6 +172,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 @Preview(showBackground = true)
