@@ -38,10 +38,10 @@ fun regCofx(
 fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
     id = coeffects,
     before = { context ->
-        val injectCofxDb = getHandler(kind, id) as ((Any) -> Any)?
-        if (injectCofxDb != null) {
+        val injectCofx = getHandler(kind, id) as ((Any) -> Any)?
+        if (injectCofx != null) {
             val cofx = get(context, coeffects) ?: m<Any, Any>()
-            val newCofx = injectCofxDb(cofx)
+            val newCofx = injectCofx(cofx)
 
             context.assoc(coeffects, newCofx)
         } else {
