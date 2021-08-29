@@ -10,8 +10,6 @@ import java.util.Date
 fun initialize() {
     regEventDb<Any>(initialize) { _, _ ->
         AppSchema(
-            text = "Android",
-            counter = 0,
             time = Date(),
             timeColor = "Red",
         )
