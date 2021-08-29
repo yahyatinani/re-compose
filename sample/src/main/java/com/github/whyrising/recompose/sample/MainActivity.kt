@@ -1,7 +1,6 @@
 package com.github.whyrising.recompose.sample
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.graphics.Color.parseColor
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,6 +34,7 @@ import com.github.whyrising.recompose.sample.Keys.timeColorName
 import com.github.whyrising.recompose.sample.Keys.timeFormat
 import com.github.whyrising.recompose.sample.Keys.timer
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
+import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subscribe
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -64,20 +63,7 @@ private fun reg() {
         timeColor,
         inputFn = { subscribe<String>(event(timeColorName)) }
     ) { input, _ ->
-        val regex = Regex("^#([A-Fa-f0-9]{6})$")
-        val colorStr = input as String
-        when {
-            colorStr == "Red" -> Color.Red
-            colorStr == "Blue" -> Color.Blue
-            colorStr == "Cyan" -> Color.Cyan
-            colorStr == "Green" -> Color.Green
-            colorStr == "Yellow" -> Color.Yellow
-            colorStr == "Magenta" -> Color.Magenta
-            colorStr == "DarkGray" -> Color.DarkGray
-            colorStr == "Orange" -> Color(parseColor("#ffbf00"))
-            regex.matches(colorStr) -> Color(parseColor(colorStr))
-            else -> Color.Black
-        }
+        toColor(input as String)
     }
 
     regSub(
@@ -172,7 +158,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 }
 
 @Preview(showBackground = true)
