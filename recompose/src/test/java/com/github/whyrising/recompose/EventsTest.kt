@@ -1,5 +1,6 @@
-package com.github.whyrising.recompose.events
+package com.github.whyrising.recompose
 
+import com.github.whyrising.recompose.events.flatten
 import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.core.l
 import io.kotest.core.spec.style.FreeSpec

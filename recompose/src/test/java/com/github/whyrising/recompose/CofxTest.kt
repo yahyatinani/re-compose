@@ -23,7 +23,7 @@ class CofxTest : FreeSpec({
     }
 
     "cofxDb" {
-        appDb = -22
+        appDb.reset(-22)
         val coeffects = m(db to -1)
 
         val cofxDbHandler = getHandler(Kinds.Cofx, db) as ((Any) -> Any)

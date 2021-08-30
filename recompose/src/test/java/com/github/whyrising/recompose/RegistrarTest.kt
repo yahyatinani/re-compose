@@ -1,9 +1,12 @@
-package com.github.whyrising.recompose.registrar
+package com.github.whyrising.recompose
 
 import com.github.whyrising.recompose.registrar.Kinds.Cofx
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.Kinds.Fx
 import com.github.whyrising.recompose.registrar.Kinds.Sub
+import com.github.whyrising.recompose.registrar.getHandler
+import com.github.whyrising.recompose.registrar.register
+import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.y.collections.core.m
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.ints.shouldBeExactly

@@ -41,6 +41,10 @@ dependencies {
     implementation(Libs.Androidx.appcompat)
     implementation(Libs.Androidx.viewModelCompose)
     implementation(Libs.ReactiveX.rxKotlin)
+
+    implementation(Libs.Coroutines.core)
+    implementation(Libs.Coroutines.android)
+
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)
 

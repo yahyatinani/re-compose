@@ -41,7 +41,7 @@ internal fun <T> subscribe(qvec: List<Any>): T = qvec[0].let { id ->
         }
         else -> {
             val function = r as (Any, List<Any>) -> Any
-            function(appDb, qvec) as T
+            function(appDb(), qvec) as T
         }
     }
 }

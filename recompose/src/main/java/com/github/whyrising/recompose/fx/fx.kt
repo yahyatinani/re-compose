@@ -91,10 +91,10 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
 }
 
 val updateDbFx: Unit = regFx(id = db) { newAppDb ->
-    if (appDb === newAppDb)
+    if (appDb() === newAppDb)
         return@regFx
 
-    appDb = newAppDb
+    appDb.reset(newAppDb)
 }
 
 val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
