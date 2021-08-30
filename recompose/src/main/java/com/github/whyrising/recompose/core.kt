@@ -98,7 +98,7 @@ fun regSub(
  * @param handler is a side-effecting function which takes a single argument
  * and whose return value is ignored.
  */
-fun regFx(id: Any, handler: (value: Any) -> Unit) {
+fun regFx(id: Any, handler: (value: Any?) -> Unit) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }
 

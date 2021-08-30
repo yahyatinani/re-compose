@@ -73,13 +73,13 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
 
     val effects: List<List<Any>> = listOfEffects as List<List<Any>>
 
-    effects.forEach { effect: List<Any> ->
+    effects.forEach { effect: List<Any?> ->
         val (effectKey, effectValue) = effect
 
         if (effectKey == db)
             Log.w("regFx", "\":fx\" effect should not contain a :db effect")
 
-        val fxFn = getHandler(kind, effectKey) as ((Any) -> Unit)?
+        val fxFn = getHandler(kind, effectKey!!) as ((Any?) -> Unit)?
 
         if (fxFn != null)
             fxFn(effectValue)
