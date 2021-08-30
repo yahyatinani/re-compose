@@ -16,26 +16,32 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.whyrising.recompose.Framework
+import com.github.whyrising.recompose.Keys.fx
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.events.event
 import com.github.whyrising.recompose.regEventDb
+import com.github.whyrising.recompose.regEventFx
+import com.github.whyrising.recompose.regFx
 import com.github.whyrising.recompose.regSub
+import com.github.whyrising.recompose.sample.Keys.startTicks
 import com.github.whyrising.recompose.sample.Keys.time
 import com.github.whyrising.recompose.sample.Keys.timeColor
 import com.github.whyrising.recompose.sample.Keys.timeColorChange
 import com.github.whyrising.recompose.sample.Keys.timeColorName
 import com.github.whyrising.recompose.sample.Keys.timeFormat
 import com.github.whyrising.recompose.sample.Keys.timer
+import com.github.whyrising.recompose.sample.Keys.timeticker
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subscribe
+import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.collections.core.m
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,6 +55,16 @@ private fun reg() {
 
     regEventDb<AppSchema>(timeColorChange) { db, (_, newColor) ->
         db.copy(timeColor = newColor as String)
+    }
+
+    regFx(timeticker) {
+        Timer().schedule(0, 1000) {
+            dispatch(event(timer, Date()))
+        }
+    }
+
+    regEventFx(startTicks) { _, _ ->
+        m(fx to l(l(timeticker, null)))
     }
 
     regSub(time) { db: AppSchema, _ ->
@@ -89,7 +105,7 @@ fun ColorInput() {
     Surface {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Time color:",
+                text = "Primary color:",
                 style = MaterialTheme.typography.h5,
             )
 
@@ -114,20 +130,19 @@ fun TimeApp() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Local time:",
-            style = MaterialTheme.typography.h3,
-            fontWeight = FontWeight.Light,
-            color = MaterialTheme.colors.primary
-        )
-        Clock()
-        ColorInput()
-    }
-}
-
-fun timeticker() {
-    Timer().schedule(0, 1000) {
-        dispatch(event(timer, Date()))
+        val colors = MaterialTheme.colors
+        MaterialTheme(
+            colors = colors.copy(primary = subscribe(event(timeColor)))
+        ) {
+            Text(
+                text = "Local time:",
+                style = MaterialTheme.typography.h3,
+                fontWeight = FontWeight.Light,
+                color = MaterialTheme.colors.primary
+            )
+            Clock()
+            ColorInput()
+        }
     }
 }
 
@@ -146,11 +161,9 @@ class MainActivity : ComponentActivity() {
 
         reg()
 
-        setContent {
-            LaunchedEffect(true) {
-                timeticker()
-            }
+        dispatch(event(startTicks))
 
+        setContent {
             RecomposeTheme {
                 Surface {
                     TimeApp()

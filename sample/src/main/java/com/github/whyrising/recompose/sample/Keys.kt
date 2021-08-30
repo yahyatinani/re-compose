@@ -8,5 +8,7 @@ enum class Keys {
     timeFormat,
     timeColor,
     timeColorName,
-    timeColorChange
+    timeColorChange,
+    startTicks,
+    timeticker
 }

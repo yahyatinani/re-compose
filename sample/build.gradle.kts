@@ -54,6 +54,9 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation(Libs.Androidx.activityCompose)
 
+    implementation(Libs.Y.collections)
+    implementation(Libs.Y.concurrency)
+
     implementation(project(mapOf("path" to ":recompose")))
 
     testImplementation("junit:junit:4.13.2")
