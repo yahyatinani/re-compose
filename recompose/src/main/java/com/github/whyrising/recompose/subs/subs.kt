@@ -1,11 +1,19 @@
 package com.github.whyrising.recompose.subs
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.concurrency.IAtom
+import com.github.whyrising.y.concurrency.IDeref
+import com.github.whyrising.y.concurrency.atom
 import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty
@@ -35,55 +43,116 @@ class SoftReferenceDelegate<T : Any>(
 
 val subsCache by SoftReferenceDelegate { ConcurrentHashMap<Any, Any>() }
 
+val queryReaction = atom(m<Any, Any>())
+
 // -- subscribe -----------------------------------------------------------------
+internal const val TAG = "re-compose"
 
-internal fun <T> subscribe(qvec: List<Any>): T {
+internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
     val queryId = qvec[0]
+    val handlerFn = getHandler(kind, queryId) as ((List<Any>) -> Reaction<Any>)?
 
-    return when (val handlerFn = getHandler(kind, queryId)) {
-        null -> throw IllegalArgumentException(
-            "No query function was found for the given id: `$queryId`"
+    if (handlerFn == null) {
+        Log.e(TAG, "no subscription handler registered for id: `$queryId`")
+        throw IllegalArgumentException(
+            "no subscription handler registered for id: `$queryId`"
         )
-        is Array<*> -> {
-            val inputFn = handlerFn[0] as (List<Any>) -> Any
-            val computationFn = handlerFn[1] as (Any, List<Any>) -> Any
+    }
+    val cacheKey = v(qvec, v<Any>())
+//    val cache = subsCache[cacheKey]
+    val cached = get(queryReaction(), cacheKey)
 
-            // TODO: Implement input with [v1 v2] return
-            val input = inputFn(qvec)
-            val cache = subsCache[input]
-
-            if (cache == null) {
-                Log.i("subscribe", "no cache for $input")
-                val computation = computationFn(input, qvec)
-
-                subsCache[input] = computation
-                computation as T
-            } else {
-                Log.i("subscribe", "cache: $cache")
-                cache as T
-            }
-        }
-        else -> {
-            val function = handlerFn as (Any, List<Any>) -> Any
-            function(appDb(), qvec) as T
-        }
+    if (cached != null) {
+        Log.i(TAG, "cache was found for subscription `$cacheKey`")
+        return cached as Reaction<T>
     }
 
+    Log.i(TAG, "No cache was found for subscription `$cacheKey`")
+
+    val reaction = handlerFn(qvec)
+
+    queryReaction.swap { qCache ->
+        qCache.assoc(cacheKey, reaction)
+    }
+
+//    if (subsCache.contains(cacheKey) && r == subsCache[cacheKey]) {
+//        Log.i(TAG, "replace cache `$cacheKey`")
+//        subsCache.remove(cacheKey)
+//    }
+
+//    subsCache[cacheKey] = r
+
+    return reaction as Reaction<T>
 }
 
 // -- regSub -----------------------------------------------------------------
 // TODO: Reimplement maybe!
 internal fun <T> regSub(
     queryId: Any,
-    computationFn: (db: T, queryVec: ArrayList<Any>) -> Any,
+    computationFn: (db: T, queryVec: List<Any>) -> Any,
 ) {
-    registerHandler(queryId, kind, computationFn)
+    val subsHandlerFn = { queryVec: List<Any> ->
+        Reaction { computationFn(appDb() as T, queryVec) }
+    }
+
+    registerHandler(queryId, kind, subsHandlerFn)
 }
 
 internal fun regSub(
     queryId: Any,
-    inputFn: (queryVec: ArrayList<Any>) -> Any,
-    computationFn: (input: Any, queryVec: ArrayList<Any>) -> Any,
+    inputFn: (queryVec: List<Any>) -> Any,
+    computationFn: (input: Any, queryVec: List<Any>) -> Any,
 ) {
-    registerHandler(queryId, kind, arrayOf(inputFn, computationFn))
+    val subsHandlerFn = { queryVec: List<Any> ->
+        val subscriptions = inputFn(queryVec) as Reaction<Any>
+
+        Reaction { computationFn(subscriptions.deref(), queryVec) }
+    }
+    registerHandler(queryId, kind, subsHandlerFn)
+}
+
+class Reaction<T>(val f: () -> T) : IDeref<T>, IAtom<T> {
+    private val state: MutableState<T> by lazy { mutableStateOf(f()) }
+
+    init {
+        // Add a watcher to app-db so the reaction can recalculate its value
+        // when the app-db changes.
+        // TODO: Remove the reaction watcher when reaction  is no longer
+        //  being used.
+        // TODO: Use a legit reaction id
+        appDb.addWatch(f.hashCode().toString()) { key, atom, old, new ->
+            val computation = f()
+            if (state.value != computation) {
+                Log.i(TAG, "$computation")
+                state.value = computation
+            }
+            key
+        }
+    }
+
+    override fun reset(newValue: T): T {
+        TODO("Not yet implemented")
+    }
+
+    override fun swap(f: (currentVal: T) -> T): T {
+        TODO("Not yet implemented")
+    }
+
+    override fun <A> swap(arg: A, f: (currentVal: T, arg: A) -> T): T {
+        TODO("Not yet implemented")
+    }
+
+    override fun <A1, A2> swap(
+        arg1: A1,
+        arg2: A2,
+        f: (currentVal: T, arg1: A1, arg2: A2) -> T
+    ): T {
+        TODO("Not yet implemented")
+    }
+
+    override fun deref(): T = state.value
+
+    companion object {
+        const val TAG = "reaction"
+    }
 }

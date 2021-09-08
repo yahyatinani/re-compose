@@ -1,5 +1,8 @@
 package com.github.whyrising.recompose.db
 
+import com.github.whyrising.y.concurrency.Atom
+import com.github.whyrising.y.concurrency.atom
+
 internal val DEFAULT_APP_DB_VALUE = Any()
 
 /**
@@ -13,4 +16,4 @@ internal val DEFAULT_APP_DB_VALUE = Any()
  *
  * It is set to a default token until it gets initialized via an event handler.
  * */
-internal var appDb: CAtom<Any> = catom(DEFAULT_APP_DB_VALUE)
+internal var appDb: Atom<Any> = atom(DEFAULT_APP_DB_VALUE)

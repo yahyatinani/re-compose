@@ -14,6 +14,8 @@ fun toColor(stringColor: String): Color = when {
     stringColor == "Magenta" -> Color.Magenta
     stringColor == "DarkGray" -> Color.DarkGray
     stringColor == "Orange" -> Color(parseColor("#ffbf00"))
+    stringColor == "Purple" -> Color(parseColor("#6A0DAD"))
+    stringColor == "Pink" -> Color(parseColor("#FBA0E3"))
     hexColorRegex.matches(stringColor) -> Color(parseColor(stringColor))
     else -> Color.Black
 }

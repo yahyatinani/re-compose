@@ -9,6 +9,7 @@ import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.map.IPersistentMap
 import kotlinx.coroutines.CoroutineScope
@@ -119,7 +120,7 @@ fun regEventFx(
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: List<Any>): T {
+fun <T> subscribe(qvec: List<Any>): Reaction<T> {
     return com.github.whyrising.recompose.subs.subscribe(qvec)
 }
 

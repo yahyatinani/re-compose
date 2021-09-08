@@ -5,11 +5,10 @@ enum class Keys {
     initialize,
     timer,
     time,
-    timeFormat,
+    formattedTime,
     timeColor,
     timeColorName,
     timeColorChange,
     startTicks,
-    timeticker,
-    themeColors
+    timeticker
 }

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
@@ -27,13 +26,12 @@ import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.regFx
 import com.github.whyrising.recompose.regSub
+import com.github.whyrising.recompose.sample.Keys.formattedTime
 import com.github.whyrising.recompose.sample.Keys.startTicks
-import com.github.whyrising.recompose.sample.Keys.themeColors
 import com.github.whyrising.recompose.sample.Keys.time
 import com.github.whyrising.recompose.sample.Keys.timeColor
 import com.github.whyrising.recompose.sample.Keys.timeColorChange
 import com.github.whyrising.recompose.sample.Keys.timeColorName
-import com.github.whyrising.recompose.sample.Keys.timeFormat
 import com.github.whyrising.recompose.sample.Keys.timer
 import com.github.whyrising.recompose.sample.Keys.timeticker
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
@@ -91,17 +89,9 @@ fun reg(lifecycleScope: CoroutineScope) {
         toColor(input as String)
     }
 
-    regSub(
-        queryId = themeColors,
-        inputFn = { subscribe<Color>(event(timeColor)) }
-    ) { input, qvec ->
-        val colors = qvec[1] as Colors
-        colors.copy(primary = input as Color)
-    }
-
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
     regSub(
-        timeFormat,
+        formattedTime,
         inputFn = { subscribe<String>(event(time)) }
     ) { input, _ ->
         simpleDateFormat.format(input)
@@ -111,10 +101,10 @@ fun reg(lifecycleScope: CoroutineScope) {
 @Composable
 fun Clock() {
     Text(
-        text = subscribe<String>(event(timeFormat)),
+        text = subscribe<String>(event(formattedTime)).deref(),
         style = MaterialTheme.typography.h1,
         fontWeight = FontWeight.SemiBold,
-        color = subscribe(event(timeColor))
+        color = subscribe<Color>(event(timeColor)).deref()
     )
 }
 
@@ -129,7 +119,7 @@ fun ColorInput() {
 
             Spacer(modifier = Modifier.width(4.dp))
             OutlinedTextField(
-                value = subscribe<String>(event(timeColorName)),
+                value = subscribe<String>(event(timeColorName)).deref(),
                 onValueChange = {
                     dispatch(event(timeColorChange, it))
                 }
@@ -147,8 +137,12 @@ fun TimeApp() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        MaterialTheme(subscribe(event(themeColors, MaterialTheme.colors))) {
-            println("sdasfddddddddddd")
+        MaterialTheme(
+            colors = MaterialTheme.colors.copy(
+                primary = subscribe<Color>(event(timeColor)).deref()
+            )
+        ) {
+            println("recomposition happened")
             Text(
                 text = "Local time:",
                 style = MaterialTheme.typography.h3,

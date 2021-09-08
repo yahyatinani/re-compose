@@ -11,7 +11,7 @@ fun initialize() {
     regEventDb<Any>(initialize) { _, _ ->
         AppSchema(
             time = Date(),
-            timeColor = "Red",
+            timeColor = "Pink",
         )
     }
 
