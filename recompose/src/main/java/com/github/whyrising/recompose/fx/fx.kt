@@ -22,7 +22,7 @@ import com.github.whyrising.y.collections.map.IPersistentMap
  */
 val kind: Kinds = Kinds.Fx
 
-fun regFx(id: Any, handler: (value: Any) -> Unit) {
+fun regFx(id: Any, handler: suspend (value: Any) -> Unit) {
     registerHandler(id, kind, handler)
 }
 
@@ -38,12 +38,14 @@ val doFx: IPersistentMap<Keys, Any> = toInterceptor(
 
         val newDb = get(effects, db)
         if (newDb != null) {
-            val dbFxHandler = getHandler(kind, db) as (newDb: Any) -> Unit
+            val dbFxHandler =
+                getHandler(kind, db) as suspend (newDb: Any) -> Unit
             dbFxHandler(newDb)
         }
 
         for ((effectKey, effectValue) in effectsWithoutDb) {
-            val fxHandler = getHandler(kind, effectKey) as ((Any) -> Unit)?
+            val fxHandler =
+                getHandler(kind, effectKey) as (suspend (Any) -> Unit)?
 
             if (fxHandler != null)
                 fxHandler(effectValue)
@@ -79,7 +81,7 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
         if (effectKey == db)
             Log.w("regFx", "\":fx\" effect should not contain a :db effect")
 
-        val fxFn = getHandler(kind, effectKey!!) as ((Any?) -> Unit)?
+        val fxFn = getHandler(kind, effectKey!!) as (suspend (Any?) -> Unit)?
 
         if (fxFn != null)
             fxFn(effectValue)

@@ -40,10 +40,10 @@ dependencies {
     implementation(Libs.Androidx.coreKtx)
     implementation(Libs.Androidx.appcompat)
     implementation(Libs.Androidx.viewModelCompose)
-    implementation(Libs.ReactiveX.rxKotlin)
 
     implementation(Libs.Coroutines.core)
     implementation(Libs.Coroutines.android)
+    implementation(Libs.Coroutines.vmLifecycle)
 
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)

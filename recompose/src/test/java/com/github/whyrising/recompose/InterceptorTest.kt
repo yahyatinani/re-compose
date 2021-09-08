@@ -59,7 +59,13 @@ class InterceptorTest : FreeSpec({
             stack to listOf(1, 2, 3)
         )
 
-        val f: (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
+        val f: suspend (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
+            { context ->
+                val q = (get(context, queue) as List<Any>).plus(1)
+                context.assoc(queue, q)
+            }
+
+        val g: (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
             { context ->
                 val q = (get(context, queue) as List<Any>).plus(1)
                 context.assoc(queue, q)
@@ -71,7 +77,7 @@ class InterceptorTest : FreeSpec({
         )
 
         "should call :before and add to the context" {
-            val addToQ = toInterceptor(id = ":add-to-queue", before = f)
+            val addToQ = toInterceptor(id = ":add-to-queue", before = g)
 
             val context = invokeInterceptorFn(context0, addToQ, before)
 

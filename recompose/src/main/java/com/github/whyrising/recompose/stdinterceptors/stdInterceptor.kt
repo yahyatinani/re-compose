@@ -48,10 +48,6 @@ fun fxHandlerToInterceptor(
         val cofx = get(context, coeffects) as IPersistentMap<Any, Any>
         val event = get(cofx, event) as List<Any>
 
-        val fxData = handlerFn(cofx, event)
-
-        val newContext = context.assoc(effects, fxData)
-
-        newContext
+        context.assoc(effects, handlerFn(cofx, event))
     }
 )

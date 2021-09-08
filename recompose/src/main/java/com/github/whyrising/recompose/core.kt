@@ -11,18 +11,70 @@ import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.map.IPersistentMap
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 // -- Dispatch -----------------------------------------------------------------
 
+/* Statics:
+* 1. app-db         | App lifetime
+* 2. register       | App lifetime
+* 3. subs-cache     | App lifetime
+* 4. events-channel | App lifetime
+* 5. viewModelScope | App lifetime
+* 6. fx-scope       | fx  lifetime
+*/
+
 fun dispatch(event: List<Any>) {
-    publisher.onNext(event)
+    Recompose.viewModelScope.launch(Dispatchers.Main.immediate) {
+        Recompose.eventQueue.send(event)
+        Log.i(Recompose.TAG, "Event ${event[0]} queued.")
+    }.invokeOnCompletion {
+        Log.i(Recompose.TAG, "Event ${event[0]} dispatch completed.")
+    }
 }
 
 fun dispatchSync(event: List<Any>) {
-    handle(event)
+    runBlocking {
+        handle(event)
+    }
+}
+
+object Recompose : ViewModel() {
+    const val TAG = "Recompose"
+    internal val eventQueue = Channel<List<Any>>()
+    val applicationScope = CoroutineScope(SupervisorJob())
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                val eventVec: List<Any> = eventQueue.receive()
+                when {
+                    eventVec.isEmpty() -> continue
+                    else -> handle(eventVec)
+                }
+            }
+        }.invokeOnCompletion {
+            Log.i(TAG, "Queue receiver completed.")
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        Log.i(TAG, "onCleared() got called.")
+        viewModelScope.cancel()
+        eventQueue.close()
+    }
+}
+
+fun recomposeFactory(): Recompose {
+    TODO()
 }
 
 // -- Events ---------------------------------------------------
@@ -98,36 +150,10 @@ fun regSub(
  * @param handler is a side-effecting function which takes a single argument
  * and whose return value is ignored.
  */
-fun regFx(id: Any, handler: (value: Any?) -> Unit) {
+fun regFx(id: Any, handler: suspend (value: Any?) -> Unit) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }
 
 // -- Framework ----------------------------------------------------------------
 
-val publisher: PublishSubject<Any> = PublishSubject.create()
 
-private inline fun <reified T> subscribe(): Observable<T> = publisher.filter {
-    it is T
-}.map {
-    it as T
-}
-
-class Framework : ViewModel() {
-    private val receiver = subscribe<List<Any>>().subscribe { eventVec ->
-        if (eventVec.isEmpty()) return@subscribe
-
-        viewModelScope.launch {
-            handle(eventVec)
-        }
-    }
-
-    fun halt() {
-        Log.i("halt", "receiver disposed.")
-        receiver.dispose()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        halt()
-    }
-}

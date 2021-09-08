@@ -6,44 +6,69 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.reflect.KProperty
 
 val kind: Kinds = Sub
 
 // -- cache ---------------------------------------------------------------------
-val memSubComp = ConcurrentHashMap<Any, Any>()
+// TODO: Needs thread synchronization? and remove dead cache?
+class SoftReferenceDelegate<T : Any>(
+    val initialization: () -> T
+) {
+    private var reference: SoftReference<T>? = null
+
+    operator fun getValue(
+        thisRef: Any?,
+        property: KProperty<*>
+    ): T {
+        val stored = reference?.get()
+        if (stored != null)
+            return stored
+
+        val new = initialization()
+        reference = SoftReference(new)
+        return new
+    }
+}
+
+val subsCache by SoftReferenceDelegate { ConcurrentHashMap<Any, Any>() }
 
 // -- subscribe -----------------------------------------------------------------
 
-internal fun <T> subscribe(qvec: List<Any>): T = qvec[0].let { id ->
-    when (val r = getHandler(kind, id)) {
+internal fun <T> subscribe(qvec: List<Any>): T {
+    val queryId = qvec[0]
+
+    return when (val handlerFn = getHandler(kind, queryId)) {
         null -> throw IllegalArgumentException(
-            "No query function was found for the given id: `$id`"
+            "No query function was found for the given id: `$queryId`"
         )
         is Array<*> -> {
-            val inputFn = r[0] as (List<Any>) -> Any
-            val computationFn = r[1] as (Any, List<Any>) -> Any
+            val inputFn = handlerFn[0] as (List<Any>) -> Any
+            val computationFn = handlerFn[1] as (Any, List<Any>) -> Any
 
             // TODO: Implement input with [v1 v2] return
             val input = inputFn(qvec)
-            val cache = memSubComp[input]
+            val cache = subsCache[input]
 
             if (cache == null) {
-                Log.i("input", "$input")
+                Log.i("subscribe", "no cache for $input")
                 val computation = computationFn(input, qvec)
 
-                memSubComp[input] = computation
+                subsCache[input] = computation
                 computation as T
             } else {
-                Log.i("cache", "$cache")
+                Log.i("subscribe", "cache: $cache")
                 cache as T
             }
         }
         else -> {
-            val function = r as (Any, List<Any>) -> Any
+            val function = handlerFn as (Any, List<Any>) -> Any
             function(appDb(), qvec) as T
         }
     }
+
 }
 
 // -- regSub -----------------------------------------------------------------

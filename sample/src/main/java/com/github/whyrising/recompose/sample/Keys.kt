@@ -10,5 +10,6 @@ enum class Keys {
     timeColorName,
     timeColorChange,
     startTicks,
-    timeticker
+    timeticker,
+    themeColors
 }

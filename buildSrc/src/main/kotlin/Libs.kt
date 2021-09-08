@@ -61,18 +61,12 @@ object Libs {
         const val android = "$group:kotlinx-coroutines-android:$version"
         const val coroutinesTest = "$group:kotlinx-coroutines-test:$version"
 
-        const val vm = "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
-    }
-
-    object ReactiveX {
-        private const val version = "3.0.1"
-
-        const val rxKotlin = "io.reactivex.rxjava3:rxkotlin:$version"
+        const val vmLifecycle = "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
     }
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.5"
+        private const val version = "0.0.6"
 
         const val core = "$group:y-core:$version"
         const val collections = "$group:y-collections:$version"

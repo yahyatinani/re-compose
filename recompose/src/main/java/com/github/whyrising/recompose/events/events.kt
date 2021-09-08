@@ -40,12 +40,10 @@ fun register(id: Any, interceptors: List<Any>) {
 -------------  Handle event ----------------------
  */
 
-fun handle(eventVec: List<Any>) {
-    val eventId = eventVec[0]
-    val handler: Any = getHandler(kind, eventId) ?: return
+suspend fun handle(eventVec: List<Any>) {
+    val handler: Any = getHandler(kind, eventVec[0]) ?: return
 
-    val chainOfInterceptors = handler as List<IPersistentMap<Keys, Any>>
-    execute(eventVec, chainOfInterceptors)
+    execute(eventVec, handler as List<IPersistentMap<Keys, Any>>)
 }
 
 fun event(id: Any, vararg args: Any): List<Any> = l(id, *args)
