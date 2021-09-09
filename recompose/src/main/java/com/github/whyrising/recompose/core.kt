@@ -131,14 +131,14 @@ fun <T> regSub(
     com.github.whyrising.recompose.subs.regSub(queryId, computationFn)
 }
 
-fun regSub(
+fun <T> regSub(
     queryId: Any,
-    inputFn: (queryVec: List<Any>) -> Any,
-    computationFn: (input: Any, queryVec: List<Any>) -> Any,
+    signalsFn: (queryVec: List<Any>) -> Reaction<T>,
+    computationFn: (input: T, queryVec: List<Any>) -> Any,
 ) {
     com.github.whyrising.recompose.subs.regSub(
         queryId,
-        inputFn,
+        signalsFn,
         computationFn
     )
 }

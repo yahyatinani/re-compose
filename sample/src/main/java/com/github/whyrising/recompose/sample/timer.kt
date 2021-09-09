@@ -65,10 +65,8 @@ fun reg(lifecycleScope: CoroutineScope) {
 
     regFx(timeticker) {
         lifecycleScope.launch(Dispatchers.Default) {
-            val event: MutableList<Any> = mutableListOf(timer, Date())
             while (true) {
-                event[1] = Date()
-                dispatch(event)
+                dispatch(event(timer, Date()))
                 delay(1000)
             }
         }
@@ -84,15 +82,15 @@ fun reg(lifecycleScope: CoroutineScope) {
 
     regSub(
         timeColor,
-        inputFn = { subscribe<String>(event(timeColorName)) }
+        signalsFn = { subscribe<String>(event(timeColorName)) }
     ) { input, _ ->
-        toColor(input as String)
+        toColor(input)
     }
 
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
     regSub(
         formattedTime,
-        inputFn = { subscribe<String>(event(time)) }
+        signalsFn = { subscribe<Date>(event(time)) }
     ) { input, _ ->
         simpleDateFormat.format(input)
     }

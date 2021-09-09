@@ -11,9 +11,11 @@ import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.IAtom
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.concurrency.atom
+import com.github.whyrising.y.core.str
 import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty
@@ -50,7 +52,8 @@ internal const val TAG = "re-compose"
 
 internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
     val queryId = qvec[0]
-    val handlerFn = getHandler(kind, queryId) as ((List<Any>) -> Reaction<Any>)?
+    val handlerFn = getHandler(kind, queryId)
+        as ((db: Atom<*>, qvec: List<Any>) -> Reaction<Any>)?
 
     if (handlerFn == null) {
         Log.e(TAG, "no subscription handler registered for id: `$queryId`")
@@ -69,7 +72,7 @@ internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
 
     Log.i(TAG, "No cache was found for subscription `$cacheKey`")
 
-    val reaction = handlerFn(qvec)
+    val reaction = handlerFn(appDb, qvec)
 
     queryReaction.swap { qCache ->
         qCache.assoc(cacheKey, reaction)
@@ -89,22 +92,22 @@ internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
 // TODO: Reimplement maybe!
 internal fun <T> regSub(
     queryId: Any,
-    computationFn: (db: T, queryVec: List<Any>) -> Any,
+    extractorFn: (db: T, queryVec: List<Any>) -> Any,
 ) {
-    val subsHandlerFn = { queryVec: List<Any> ->
-        Reaction { computationFn(appDb() as T, queryVec) }
+    val subsHandlerFn = { db: Atom<T>, queryVec: List<Any> ->
+        Reaction { extractorFn(db(), queryVec) }
     }
 
     registerHandler(queryId, kind, subsHandlerFn)
 }
 
-internal fun regSub(
+internal fun <T> regSub(
     queryId: Any,
-    inputFn: (queryVec: List<Any>) -> Any,
-    computationFn: (input: Any, queryVec: List<Any>) -> Any,
+    signalsFn: (queryVec: List<Any>) -> Reaction<T>,
+    computationFn: (input: T, queryVec: List<Any>) -> Any,
 ) {
-    val subsHandlerFn = { queryVec: List<Any> ->
-        val subscriptions = inputFn(queryVec) as Reaction<Any>
+    val subsHandlerFn = { db: Any, queryVec: List<Any> ->
+        val subscriptions = signalsFn(queryVec)
 
         Reaction { computationFn(subscriptions.deref(), queryVec) }
     }
@@ -120,7 +123,9 @@ class Reaction<T>(val f: () -> T) : IDeref<T>, IAtom<T> {
         // TODO: Remove the reaction watcher when reaction  is no longer
         //  being used.
         // TODO: Use a legit reaction id
-        appDb.addWatch(f.hashCode().toString()) { key, atom, old, new ->
+        // TODO: hash reactions
+        val reactionId = str("rx", hashCode())
+        appDb.addWatch(reactionId) { key, atom, old, new ->
             val computation = f()
             if (state.value != computation) {
                 Log.i(TAG, "$computation")

@@ -45,6 +45,7 @@ dependencies {
     implementation(Libs.Coroutines.android)
     implementation(Libs.Coroutines.vmLifecycle)
 
+    implementation(Libs.Y.core)
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)
 
