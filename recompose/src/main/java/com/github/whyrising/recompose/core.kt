@@ -46,10 +46,11 @@ fun dispatchSync(event: List<Any>) {
     }
 }
 
+val applicationScope = CoroutineScope(SupervisorJob())
+
 object Recompose : ViewModel() {
     const val TAG = "Recompose"
     internal val eventQueue = Channel<List<Any>>()
-    val applicationScope = CoroutineScope(SupervisorJob())
 
     init {
         viewModelScope.launch {
