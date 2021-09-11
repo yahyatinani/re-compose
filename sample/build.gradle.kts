@@ -53,6 +53,7 @@ dependencies {
     implementation(Libs.Compose.uiToolingPreview)
     implementation("com.google.android.material:material:1.4.0")
     implementation(Libs.Androidx.activityCompose)
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.18.0")
 
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)

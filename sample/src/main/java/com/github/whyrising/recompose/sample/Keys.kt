@@ -6,9 +6,11 @@ enum class Keys {
     timer,
     time,
     formattedTime,
-    timeColor,
+    primaryColor,
     timeColorName,
     timeColorChange,
     startTicks,
-    timeticker
+    timeticker,
+    materialThemeColors,
+    statusBarDarkIcons
 }

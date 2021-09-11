@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose.sample
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,14 +9,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,9 +31,11 @@ import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.regFx
 import com.github.whyrising.recompose.regSub
 import com.github.whyrising.recompose.sample.Keys.formattedTime
+import com.github.whyrising.recompose.sample.Keys.materialThemeColors
+import com.github.whyrising.recompose.sample.Keys.primaryColor
 import com.github.whyrising.recompose.sample.Keys.startTicks
+import com.github.whyrising.recompose.sample.Keys.statusBarDarkIcons
 import com.github.whyrising.recompose.sample.Keys.time
-import com.github.whyrising.recompose.sample.Keys.timeColor
 import com.github.whyrising.recompose.sample.Keys.timeColorChange
 import com.github.whyrising.recompose.sample.Keys.timeColorName
 import com.github.whyrising.recompose.sample.Keys.timer
@@ -39,6 +45,7 @@ import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -51,12 +58,13 @@ const val HH_MM_SS = "HH:mm:ss"
 
 fun reg(lifecycleScope: CoroutineScope) {
     regEventDb<AppSchema>(timer) { db, (_, newTime) ->
-        println("Received newTime: $newTime")
         db.copy(time = newTime as Date)
     }
 
-    regEventDb<AppSchema>(timeColorChange) { db, (_, newColor) ->
-        db.copy(timeColor = newColor as String)
+    regEventDb<AppSchema>(timeColorChange) { db, (_, color) ->
+        db.copy(
+            timeColor = (color as String).replaceFirstChar { it.uppercase() }
+        )
     }
 
     regEventFx(startTicks) { _, _ ->
@@ -81,28 +89,54 @@ fun reg(lifecycleScope: CoroutineScope) {
     }
 
     regSub(
-        timeColor,
-        signalsFn = { subscribe<String>(event(timeColorName)) }
-    ) { input, _ ->
-        toColor(input)
+        primaryColor,
+        { subscribe<String>(l(timeColorName)) }
+    ) { colorStr, (_, defaultColor) ->
+        Log.i("MainActivity", "`primaryColor` compFn did run")
+
+        toColor(colorStr, default = defaultColor as Color)
+    }
+
+    regSub(
+        materialThemeColors,
+        { (_, _, defaultColor): List<Any> ->
+            subscribe(event(primaryColor, defaultColor))
+        }
+    ) { primaryColor: Color, (_, colors): List<Any> ->
+        Log.i("MainActivity", "`materialThemeColors` compFn did run")
+
+        (colors as Colors).copy(primary = primaryColor)
     }
 
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
     regSub(
         formattedTime,
-        signalsFn = { subscribe<Date>(event(time)) }
-    ) { input, _ ->
-        simpleDateFormat.format(input)
+        { subscribe(event(time)) }
+    ) { date: Date, _ ->
+        simpleDateFormat.format(date)
+    }
+
+    regSub(
+        statusBarDarkIcons,
+        { (_, defaultColor): List<Any> ->
+            subscribe(event(primaryColor, defaultColor))
+        }
+    ) { primaryColor: Color, _ ->
+        Log.i("MainActivity", "`statusBarDarkIcons` compFn did run")
+
+        primaryColor.luminance() >= 0.5f
     }
 }
 
 @Composable
 fun Clock() {
     Text(
-        text = subscribe<String>(event(formattedTime)).deref(),
+        text = subscribe<String>(l(formattedTime)).deref(),
         style = MaterialTheme.typography.h1,
         fontWeight = FontWeight.SemiBold,
-        color = subscribe<Color>(event(timeColor)).deref()
+        color = subscribe<Color>(
+            l(primaryColor, MaterialTheme.colors.onSurface)
+        ).deref()
     )
 }
 
@@ -112,12 +146,13 @@ fun ColorInput() {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Primary color:",
-                style = MaterialTheme.typography.h5,
+                style = MaterialTheme.typography.h5
             )
-
             Spacer(modifier = Modifier.width(4.dp))
             OutlinedTextField(
-                value = subscribe<String>(event(timeColorName)).deref(),
+                value = subscribe<String>(l(timeColorName)).deref(),
+                singleLine = true,
+                maxLines = 1,
                 onValueChange = {
                     dispatch(event(timeColorChange, it))
                 }
@@ -135,12 +170,25 @@ fun TimeApp() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        val defaultColor = MaterialTheme.colors.onSurface
         MaterialTheme(
-            colors = MaterialTheme.colors.copy(
-                primary = subscribe<Color>(event(timeColor)).deref()
-            )
+            colors = subscribe<Colors>(
+                l(materialThemeColors, MaterialTheme.colors, defaultColor)
+            ).deref()
         ) {
-            println("recomposition happened")
+            val systemUiController = rememberSystemUiController()
+
+            SideEffect {
+                systemUiController.setSystemBarsColor(
+                    color = subscribe<Color>(
+                        l(primaryColor, defaultColor)
+                    ).deref(),
+                    darkIcons = subscribe<Boolean>(
+                        l(statusBarDarkIcons, defaultColor)
+                    ).deref()
+                )
+            }
+
             Text(
                 text = "Local time:",
                 style = MaterialTheme.typography.h3,
