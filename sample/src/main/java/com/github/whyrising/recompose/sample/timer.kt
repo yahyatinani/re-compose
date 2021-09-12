@@ -62,9 +62,7 @@ fun reg(lifecycleScope: CoroutineScope) {
     }
 
     regEventDb<AppSchema>(timeColorChange) { db, (_, color) ->
-        db.copy(
-            timeColor = (color as String).replaceFirstChar { it.uppercase() }
-        )
+        db.copy(timeColor = (color as String))
     }
 
     regEventFx(startTicks) { _, _ ->
@@ -94,7 +92,10 @@ fun reg(lifecycleScope: CoroutineScope) {
     ) { colorStr, (_, defaultColor) ->
         Log.i("MainActivity", "`primaryColor` compFn did run")
 
-        toColor(colorStr, default = defaultColor as Color)
+        toColor(
+            stringColor = colorStr.replaceFirstChar { it.uppercase() },
+            default = defaultColor as Color
+        )
     }
 
     regSub(
