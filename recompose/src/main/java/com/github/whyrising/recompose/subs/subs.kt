@@ -100,26 +100,27 @@ internal fun <T> regSub(
 
         val reactionId = str("rs", reaction.hashCode())
 
-        db.addWatch(reactionId) { _, _, _, new ->
+        db.addWatch(reactionId) { key, _, _, new ->
+            var currentV = reaction.atom()
             val nodeOutput = fn(new)
             Log.i(TAG, "extraction of: $nodeOutput")
 
-            val old = reaction.atom()
-            if (nodeOutput != old) {
-                // we launch a new coroutine only when the output of this node
-                // change.
+            // TODO: Move this to Reaction
+            while (true) {
+                if (nodeOutput == currentV) {
+                    return@addWatch key
+                }
                 Log.i(TAG, "new nodeOutput: $nodeOutput")
-                applicationScope.launch {
-                    while (true) {
-                        if (reaction.atom.compareAndSet(old, nodeOutput)) {
-                            Log.i("launch", "${Thread.currentThread()}")
 
-                            for ((k, notifyWatchers) in reaction.watches())
-                                notifyWatchers(k, reaction, old, nodeOutput)
+                // TODO: Start a coroutine here maybe?
+                when {
+                    reaction.atom.compareAndSet(currentV, nodeOutput) -> {
+                        for ((k, notifyWatchers) in reaction.watches())
+                            notifyWatchers(k, reaction, currentV, nodeOutput)
 
-                            return@launch
-                        }
+                        return@addWatch key
                     }
+                    else -> currentV = reaction.atom()
                 }
             }
         }
@@ -142,15 +143,19 @@ internal fun <T> regSub(
         val reactionId = str("rx", reaction.hashCode())
 
         subscriptions.addWatch(reactionId) { k, _, _, new ->
-            val old = reaction.atom()
+            // TODO: Move to Reaction
+            var currentV = reaction.atom()
             applicationScope.launch {
                 val computation = fn(new)
                 while (true) {
-                    if (reaction.atom.compareAndSet(old, computation)) {
-                        for ((key, callback) in reaction.watches())
-                            callback(key, reaction, old, computation)
+                    when {
+                        reaction.atom.compareAndSet(currentV, computation) -> {
+                            for ((key, callback) in reaction.watches())
+                                callback(key, reaction, currentV, computation)
 
-                        return@launch
+                            return@launch
+                        }
+                        else -> currentV = reaction.atom()
                     }
                 }
             }

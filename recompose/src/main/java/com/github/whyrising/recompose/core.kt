@@ -53,6 +53,7 @@ object Recompose : ViewModel() {
     internal val eventQueue = Channel<List<Any>>()
 
     init {
+        // TODO: make sure to start it from the main dispatcher!
         viewModelScope.launch {
             while (true) {
                 val eventVec: List<Any> = eventQueue.receive()
