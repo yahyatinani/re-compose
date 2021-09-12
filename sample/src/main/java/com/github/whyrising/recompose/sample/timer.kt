@@ -93,7 +93,7 @@ fun reg(lifecycleScope: CoroutineScope) {
         Log.i("MainActivity", "`primaryColor` compFn did run")
 
         toColor(
-            stringColor = colorStr.replaceFirstChar { it.uppercase() },
+            stringColor = colorStr.lowercase(),
             default = defaultColor as Color
         )
     }
