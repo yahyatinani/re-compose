@@ -9,7 +9,7 @@ object Libs {
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.1"
+        const val version = "1.0.2"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -27,6 +27,8 @@ object Libs {
         // Material design icons
         const val iconsCore = "$gr.material:material-icons-core:$version"
         const val iconsExt = "$gr.material:material-icons-extended:$version"
+
+        const val runtime = "androidx.compose.runtime:runtime:$version"
 
         // UI Testing
         const val uiTestJUnit = "$gr.ui:ui-test-junit4:$version"

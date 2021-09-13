@@ -42,6 +42,7 @@ import com.github.whyrising.recompose.sample.Keys.timer
 import com.github.whyrising.recompose.sample.Keys.timeticker
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
+import com.github.whyrising.recompose.subs.watch
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
@@ -132,12 +133,12 @@ fun reg(lifecycleScope: CoroutineScope) {
 @Composable
 fun Clock() {
     Text(
-        text = subscribe<String>(l(formattedTime)).deref(),
+        text = subscribe<String>(l(formattedTime)).watch(),
         style = MaterialTheme.typography.h1,
         fontWeight = FontWeight.SemiBold,
         color = subscribe<Color>(
             l(primaryColor, MaterialTheme.colors.onSurface)
-        ).deref()
+        ).watch()
     )
 }
 
@@ -151,7 +152,7 @@ fun ColorInput() {
             )
             Spacer(modifier = Modifier.width(4.dp))
             OutlinedTextField(
-                value = subscribe<String>(l(timeColorName)).deref(),
+                value = subscribe<String>(l(timeColorName)).watch(),
                 singleLine = true,
                 maxLines = 1,
                 onValueChange = {
@@ -175,18 +176,19 @@ fun TimeApp() {
         MaterialTheme(
             colors = subscribe<Colors>(
                 l(materialThemeColors, MaterialTheme.colors, defaultColor)
-            ).deref()
+            ).watch()
         ) {
             val systemUiController = rememberSystemUiController()
 
+            val color = subscribe<Color>(l(primaryColor, defaultColor)).watch()
+            val areStatusBarIconsDark = subscribe<Boolean>(
+                l(statusBarDarkIcons, defaultColor)
+            ).watch()
+
             SideEffect {
                 systemUiController.setSystemBarsColor(
-                    color = subscribe<Color>(
-                        l(primaryColor, defaultColor)
-                    ).deref(),
-                    darkIcons = subscribe<Boolean>(
-                        l(statusBarDarkIcons, defaultColor)
-                    ).deref()
+                    color = color,
+                    darkIcons = areStatusBarIconsDark
                 )
             }
 
