@@ -105,9 +105,8 @@ internal fun <T, R> regSub(
     val subsHandlerFn = { db: Atom<T>, queryVec: List<Any> ->
         val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
         val reaction = Reaction { extractor(db()) }
-        val reactionId = str("rs", reaction.hashCode())
 
-        db.addWatch(reactionId) { key, _, _, newAppDbVal ->
+        db.addWatch(reaction.id) { key, _, _, newAppDbVal ->
             val nodeOutput = extractor(newAppDbVal)
             reaction.swap { nodeOutput }
             key
@@ -142,6 +141,8 @@ internal fun <T, R> regSub(
 
 class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     internal val state: MutableStateFlow<T> by lazy { MutableStateFlow(f()) }
+
+    val id: String by lazy { str("rx", hashCode()) }
 
     override fun deref(): T = state.value
 
