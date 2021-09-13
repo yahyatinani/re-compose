@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.cofx.injectDb
+import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
@@ -126,24 +127,31 @@ fun <T> subscribe(qvec: List<Any>): Reaction<T> {
     return com.github.whyrising.recompose.subs.subscribe(qvec)
 }
 
-fun <T> regSub(
+/**
+ * @param queryId a unique id for the subscription.
+ * @param extractor a function which extract data directly from [appDb], with no
+ * further computation.
+ */
+fun <T, R> regSub(
     queryId: Any,
-    computationFn: (db: T, queryVec: List<Any>) -> Any,
-) {
-    com.github.whyrising.recompose.subs.regSub(queryId, computationFn)
-}
+    extractor: (db: T, queryVec: List<Any>) -> R,
+) = com.github.whyrising.recompose.subs.regSub(queryId, extractor)
 
-fun <T> regSub(
+/**
+ * @param queryId a unique id for the subscription.
+ * @param signalsFn a function that
+ * @param computationFn a function that obtains data from [signalsFn], and
+ * compute derived data from it.
+ */
+fun <T, R> regSub(
     queryId: Any,
     signalsFn: (queryVec: List<Any>) -> Reaction<T>,
-    computationFn: (input: T, queryVec: List<Any>) -> Any,
-) {
-    com.github.whyrising.recompose.subs.regSub(
-        queryId,
-        signalsFn,
-        computationFn
-    )
-}
+    computationFn: (input: T, queryVec: List<Any>) -> R,
+) = com.github.whyrising.recompose.subs.regSub(
+    queryId,
+    signalsFn,
+    computationFn
+)
 
 // -- Effects ------------------------------------------------------------------
 

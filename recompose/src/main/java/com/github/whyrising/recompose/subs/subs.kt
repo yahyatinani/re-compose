@@ -14,12 +14,14 @@ import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.concurrency.Atom
+import com.github.whyrising.y.concurrency.IAtom
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.str
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
@@ -96,33 +98,19 @@ internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
 }
 
 // -- regSub -----------------------------------------------------------------
-internal fun <T> regSub(
+internal fun <T, R> regSub(
     queryId: Any,
-    extractorFn: (db: T, queryVec: List<Any>) -> Any,
+    extractorFn: (db: T, queryVec: List<Any>) -> R,
 ) {
     val subsHandlerFn = { db: Atom<T>, queryVec: List<Any> ->
-        val fn = { appDb: T -> extractorFn(appDb, queryVec) }
-        val reaction = Reaction { fn(db()) }
-
+        val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
+        val reaction = Reaction { extractor(db()) }
         val reactionId = str("rs", reaction.hashCode())
 
-        db.addWatch(reactionId) { key, _, _, new ->
-            var currentV = reaction.deref()
-            val nodeOutput = fn(new)
-            Log.i(TAG, "extraction of: $nodeOutput")
-
-            // TODO: Move to Reaction, feature envy alert!!
-            while (true) {
-                if (nodeOutput == currentV)
-                    return@addWatch key
-
-                Log.i(TAG, "new nodeOutput: $nodeOutput")
-
-                // TODO: Start a coroutine here maybe?
-                if (reaction.state.compareAndSet(currentV, nodeOutput)) {
-                    return@addWatch key
-                } else currentV = reaction.deref()
-            }
+        db.addWatch(reactionId) { key, _, _, newAppDbVal ->
+            val nodeOutput = extractor(newAppDbVal)
+            reaction.swap { nodeOutput }
+            key
         }
 
         reaction
@@ -131,31 +119,19 @@ internal fun <T> regSub(
     registerHandler(queryId, kind, subsHandlerFn)
 }
 
-internal fun <T> regSub(
+internal fun <T, R> regSub(
     queryId: Any,
     signalsFn: (queryVec: List<Any>) -> Reaction<T>,
-    computationFn: (input: T, queryVec: List<Any>) -> Any,
+    computationFn: (input: T, queryVec: List<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
     val subsHandlerFn = { _: Atom<Any>, queryVec: List<Any> ->
-        val subscriptions = signalsFn(queryVec)
-        val fn = { input: T -> computationFn(input, queryVec) }
-        val reaction = Reaction { fn(subscriptions.deref()) }
+        val inputNode = signalsFn(queryVec)
+        val materialisedView = { input: T -> computationFn(input, queryVec) }
+        val reaction = Reaction { materialisedView(inputNode.deref()) }
 
-        // TODO: Move to Reaction, feature envy alert!!
-        reaction.viewModelScope.launch(context) {
-            subscriptions.state.collect { new ->
-                Log.i(
-                    "subscriptionCount",
-                    "${queryVec[0]}: ${reaction.state.subscriptionCount.value}"
-                )
-                var currentV = reaction.deref()
-                val computation = fn(new)
-                while (true)
-                    if (reaction.state.compareAndSet(currentV, computation)) {
-                        return@collect
-                    } else currentV = reaction.deref()
-            }
+        reaction.reactTo(inputNode, context) { newInput ->
+            materialisedView(newInput)
         }
 
         reaction
@@ -164,15 +140,75 @@ internal fun <T> regSub(
     registerHandler(queryId, kind, subsHandlerFn)
 }
 
-class Reaction<T>(val f: () -> T) : IDeref<T>, ViewModel() {
+class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     internal val state: MutableStateFlow<T> by lazy { MutableStateFlow(f()) }
 
     override fun deref(): T = state.value
 
-    operator fun invoke(): MutableStateFlow<T> = state
+    override fun reset(newValue: T): T = state.updateAndGet { newValue }
 
-    companion object {
-        const val TAG = "reaction"
+    /**
+     * This function use a regular comparison using [Any.equals].
+     * If [f] returns a value that is equal to the current stored value in the
+     * reaction, this function does not actually change the reference that is
+     * stored in the [state].
+     *
+     * [f] may be evaluated multiple times, if [state] is being concurrently
+     * updated.
+     *
+     * This method is **thread-safe** and can be safely invoked from concurrent
+     * coroutines without external synchronization.
+     */
+    override fun swap(f: (currentVal: T) -> T): T = state.updateAndGet(f)
+
+    override fun <A> swap(arg: A, f: (currentVal: T, arg: A) -> T): T {
+        while (true) {
+            val currentVal = state.value
+            val newVal = f(currentVal, arg)
+
+            if (state.compareAndSet(currentVal, newVal))
+                return newVal
+        }
+    }
+
+    override fun <A1, A2> swap(
+        arg1: A1,
+        arg2: A2,
+        f: (currentVal: T, arg1: A1, arg2: A2) -> T
+    ): T {
+        while (true) {
+            val currentVal = state.value
+            val newVal = f(currentVal, arg1, arg2)
+
+            if (state.compareAndSet(currentVal, newVal))
+                return newVal
+        }
+    }
+}
+
+/**
+ * This function runs the [computation] function every time the [inputNode]
+ * changes.
+ *
+ * @param inputNode reaction which extract data directly from [appDb],
+ * but do no further computation.
+ * @param context for the coroutines running under [viewModelScope].
+ * @param computation a function that obtains data from [inputNode], and compute
+ * derived data from it.
+ */
+internal inline fun <T, R> Reaction<R>.reactTo(
+    inputNode: Reaction<T>,
+    context: CoroutineContext,
+    crossinline computation: suspend (newInput: T) -> R
+) {
+    viewModelScope.launch(context) {
+        inputNode.state.collect { newInput: T ->
+            // Evaluate this only once by leaving it out of swap,
+            // since swap can run f multiple times, the output is the same for
+            // the same input
+            val materializedView = computation(newInput)
+            swap { materializedView }
+        }
     }
 }
 
