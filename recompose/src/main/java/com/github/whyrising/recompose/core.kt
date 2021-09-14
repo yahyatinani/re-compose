@@ -4,25 +4,81 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.cofx.injectDb
+import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.map.IPersistentMap
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 // -- Dispatch -----------------------------------------------------------------
 
+/* Statics:
+* 1. app-db         | App lifetime
+* 2. register       | App lifetime
+* 3. subs-cache     | App lifetime
+* 4. events-channel | App lifetime
+* 5. viewModelScope | App lifetime
+* 6. fx-scope       | fx  lifetime
+*/
+
 fun dispatch(event: List<Any>) {
-    publisher.onNext(event)
+    Recompose.viewModelScope.launch(Dispatchers.Main.immediate) {
+        Recompose.eventQueue.send(event)
+        Log.i(Recompose.TAG, "Event ${event[0]} queued.")
+    }.invokeOnCompletion {
+        Log.i(Recompose.TAG, "Event ${event[0]} dispatch completed.")
+    }
 }
 
 fun dispatchSync(event: List<Any>) {
-    handle(event)
+    runBlocking {
+        handle(event)
+    }
+}
+
+val applicationScope = CoroutineScope(SupervisorJob())
+
+object Recompose : ViewModel() {
+    const val TAG = "Recompose"
+    internal val eventQueue = Channel<List<Any>>()
+
+    init {
+        // TODO: make sure to start it from the main dispatcher!
+        viewModelScope.launch {
+            while (true) {
+                val eventVec: List<Any> = eventQueue.receive()
+                when {
+                    eventVec.isEmpty() -> continue
+                    else -> handle(eventVec)
+                }
+            }
+        }.invokeOnCompletion {
+            Log.i(TAG, "Queue receiver completed.")
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        Log.i(TAG, "onCleared() got called.")
+        viewModelScope.cancel()
+        eventQueue.close()
+    }
+}
+
+fun recomposeFactory(): Recompose {
+    TODO()
 }
 
 // -- Events ---------------------------------------------------
@@ -67,28 +123,35 @@ fun regEventFx(
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: List<Any>): T {
+fun <T> subscribe(qvec: List<Any>): Reaction<T> {
     return com.github.whyrising.recompose.subs.subscribe(qvec)
 }
 
-fun <T> regSub(
+/**
+ * @param queryId a unique id for the subscription.
+ * @param extractor a function which extract data directly from [appDb], with no
+ * further computation.
+ */
+fun <T, R> regSub(
     queryId: Any,
-    computationFn: (db: T, queryVec: List<Any>) -> Any,
-) {
-    com.github.whyrising.recompose.subs.regSub(queryId, computationFn)
-}
+    extractor: (db: T, queryVec: List<Any>) -> R,
+) = com.github.whyrising.recompose.subs.regSub(queryId, extractor)
 
-fun regSub(
+/**
+ * @param queryId a unique id for the subscription.
+ * @param signalsFn a function that
+ * @param computationFn a function that obtains data from [signalsFn], and
+ * compute derived data from it.
+ */
+fun <T, R> regSub(
     queryId: Any,
-    inputFn: (queryVec: List<Any>) -> Any,
-    computationFn: (input: Any, queryVec: List<Any>) -> Any,
-) {
-    com.github.whyrising.recompose.subs.regSub(
-        queryId,
-        inputFn,
-        computationFn
-    )
-}
+    signalsFn: (queryVec: List<Any>) -> Reaction<T>,
+    computationFn: (input: T, queryVec: List<Any>) -> R,
+) = com.github.whyrising.recompose.subs.regSub(
+    queryId,
+    signalsFn,
+    computationFn
+)
 
 // -- Effects ------------------------------------------------------------------
 
@@ -98,36 +161,8 @@ fun regSub(
  * @param handler is a side-effecting function which takes a single argument
  * and whose return value is ignored.
  */
-fun regFx(id: Any, handler: (value: Any?) -> Unit) {
+fun regFx(id: Any, handler: suspend (value: Any?) -> Unit) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }
 
 // -- Framework ----------------------------------------------------------------
-
-val publisher: PublishSubject<Any> = PublishSubject.create()
-
-private inline fun <reified T> subscribe(): Observable<T> = publisher.filter {
-    it is T
-}.map {
-    it as T
-}
-
-class Framework : ViewModel() {
-    private val receiver = subscribe<List<Any>>().subscribe { eventVec ->
-        if (eventVec.isEmpty()) return@subscribe
-
-        viewModelScope.launch {
-            handle(eventVec)
-        }
-    }
-
-    fun halt() {
-        Log.i("halt", "receiver disposed.")
-        receiver.dispose()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        halt()
-    }
-}

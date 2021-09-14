@@ -9,7 +9,7 @@ object Libs {
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.1"
+        const val version = "1.0.2"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -27,6 +27,8 @@ object Libs {
         // Material design icons
         const val iconsCore = "$gr.material:material-icons-core:$version"
         const val iconsExt = "$gr.material:material-icons-extended:$version"
+
+        const val runtime = "androidx.compose.runtime:runtime:$version"
 
         // UI Testing
         const val uiTestJUnit = "$gr.ui:ui-test-junit4:$version"
@@ -61,18 +63,12 @@ object Libs {
         const val android = "$group:kotlinx-coroutines-android:$version"
         const val coroutinesTest = "$group:kotlinx-coroutines-test:$version"
 
-        const val vm = "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
-    }
-
-    object ReactiveX {
-        private const val version = "3.0.1"
-
-        const val rxKotlin = "io.reactivex.rxjava3:rxkotlin:$version"
+        const val vmLifecycle = "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
     }
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.5"
+        private const val version = "0.0.6"
 
         const val core = "$group:y-core:$version"
         const val collections = "$group:y-collections:$version"

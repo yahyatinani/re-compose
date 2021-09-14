@@ -23,10 +23,20 @@ android {
             )
         }
     }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = Libs.Compose.version
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = Libs.jvmTarget
     }
@@ -40,11 +50,13 @@ dependencies {
     implementation(Libs.Androidx.coreKtx)
     implementation(Libs.Androidx.appcompat)
     implementation(Libs.Androidx.viewModelCompose)
-    implementation(Libs.ReactiveX.rxKotlin)
+    implementation(Libs.Compose.runtime)
 
     implementation(Libs.Coroutines.core)
     implementation(Libs.Coroutines.android)
+    implementation(Libs.Coroutines.vmLifecycle)
 
+    implementation(Libs.Y.core)
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)
 

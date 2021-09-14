@@ -11,7 +11,7 @@ fun initialize() {
     regEventDb<Any>(initialize) { _, _ ->
         AppSchema(
             time = Date(),
-            timeColor = "Red",
+            timeColor = "Pink",
         )
     }
 
@@ -22,6 +22,7 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        System.setProperty("kotlinx.coroutines.debug", "on")
 
         initialize()
     }

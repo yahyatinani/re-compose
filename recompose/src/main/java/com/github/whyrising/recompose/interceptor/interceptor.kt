@@ -20,7 +20,7 @@ fun toInterceptor(
     before: (
         context: IPersistentMap<Keys, Any>
     ) -> IPersistentMap<Keys, Any> = { it },
-    after: (
+    after: suspend (
         context: IPersistentMap<Keys, Any>
     ) -> IPersistentMap<Keys, Any> = { it }
 ): IPersistentMap<Keys, Any> = m(
@@ -57,16 +57,25 @@ internal fun context(
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 
-internal fun invokeInterceptorFn(
+internal suspend fun invokeInterceptorFn(
     context: IPersistentMap<Keys, Any>,
     interceptor: IPersistentMap<Keys, Any>,
     direction: Keys
 ): IPersistentMap<Keys, Any> {
-    val f = get(interceptor, direction) as (IPersistentMap<Keys, Any>) -> Any
+    val f = get(interceptor, direction)
 
-    return when (val r = f(context)) {
-        is IPersistentMap<*, *> -> (r as IPersistentMap<Keys, Any>)
-        else -> context
+    return if (direction == after) {
+        f as suspend (IPersistentMap<Keys, Any>) -> Any
+        when (val r = f(context)) {
+            is IPersistentMap<*, *> -> (r as IPersistentMap<Keys, Any>)
+            else -> context
+        }
+    } else {
+        f as (IPersistentMap<Keys, Any>) -> Any
+        when (val r = f(context)) {
+            is IPersistentMap<*, *> -> (r as IPersistentMap<Keys, Any>)
+            else -> context
+        }
     }
 }
 
@@ -74,11 +83,11 @@ internal fun invokeInterceptorFn(
  * :queue and :stack in context should be lists/interceptors of type
  * PersistentList<*>.
  */
-internal fun invokeInterceptors(
+internal suspend fun invokeInterceptors(
     context: IPersistentMap<Keys, Any>,
     direction: Keys
 ): IPersistentMap<Keys, Any> {
-    tailrec fun invokeInterceptors(
+    tailrec suspend fun invokeInterceptors(
         context: IPersistentMap<Keys, Any>
     ): IPersistentMap<Keys, Any> {
         val qu = get(context, queue)
@@ -95,9 +104,9 @@ internal fun invokeInterceptors(
                     .assoc(queue, qu.rest())
                     .assoc(stack, stk.conj(interceptor))
 
-                val newContext = invokeInterceptorFn(c, interceptor, direction)
-
-                invokeInterceptors(newContext)
+                invokeInterceptors(
+                    context = invokeInterceptorFn(c, interceptor, direction)
+                )
             }
         }
     }
@@ -109,12 +118,12 @@ internal fun changeDirection(
     context: IPersistentMap<Keys, Any>
 ): IPersistentMap<Keys, Any> = enqueue(context, get(context, stack)!!)
 
-fun execute(
+suspend fun execute(
     eventVec: List<Any>,
     interceptors: List<IPersistentMap<Keys, Any>>
 ) {
     val context0 = context(eventVec, interceptors)
     val context1 = invokeInterceptors(context0, before)
     val context2 = changeDirection(context1)
-    val context3 = invokeInterceptors(context2, after)
+    invokeInterceptors(context2, after)
 }

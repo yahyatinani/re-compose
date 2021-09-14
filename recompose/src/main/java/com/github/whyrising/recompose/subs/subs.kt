@@ -6,59 +6,103 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.collections.vector.IPersistentVector
+import com.github.whyrising.y.concurrency.Atom
+import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
 
 val kind: Kinds = Sub
 
 // -- cache ---------------------------------------------------------------------
-val memSubComp = ConcurrentHashMap<Any, Any>()
+internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 
 // -- subscribe -----------------------------------------------------------------
+internal const val TAG = "re-compose"
 
-internal fun <T> subscribe(qvec: List<Any>): T = qvec[0].let { id ->
-    when (val r = getHandler(kind, id)) {
-        null -> throw IllegalArgumentException(
-            "No query function was found for the given id: `$id`"
-        )
-        is Array<*> -> {
-            val inputFn = r[0] as (List<Any>) -> Any
-            val computationFn = r[1] as (Any, List<Any>) -> Any
-
-            // TODO: Implement input with [v1 v2] return
-            val input = inputFn(qvec)
-            val cache = memSubComp[input]
-
-            if (cache == null) {
-                Log.i("input", "$input")
-                val computation = computationFn(input, qvec)
-
-                memSubComp[input] = computation
-                computation as T
-            } else {
-                Log.i("cache", "$cache")
-                cache as T
-            }
-        }
-        else -> {
-            val function = r as (Any, List<Any>) -> Any
-            function(appDb(), qvec) as T
+private fun <T> cacheReaction(
+    key: IPersistentVector<Any>,
+    reaction: Reaction<T>
+): Reaction<T> {
+    reaction.addOnDispose { r: Reaction<T> ->
+        if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
+            Log.i(
+                "reactionsCache",
+                "${get(key, 0)} got removed from cache."
+            )
+            reactionsCache.remove(key)
         }
     }
+
+    reactionsCache[key] = reaction
+    return reaction
+}
+
+internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
+    val queryId = qvec[0]
+    val handlerFn = getHandler(kind, queryId)
+        as ((db: Atom<*>, qvec: List<Any>) -> Reaction<T>)?
+
+    if (handlerFn == null) {
+        Log.e(TAG, "no subscription handler registered for id: `$queryId`")
+        throw IllegalArgumentException(
+            "no subscription handler registered for id: `$queryId`"
+        )
+    }
+    val cacheKey = v(qvec, v<Any>())
+    val cachedReaction = reactionsCache[cacheKey]
+
+    if (cachedReaction != null) {
+        Log.i(TAG, "cache was found for subscription `$cacheKey`")
+        return cachedReaction as Reaction<T>
+    }
+
+    Log.i(TAG, "No cache was found for subscription `$cacheKey`")
+    val reaction = handlerFn(appDb, qvec)
+
+    return cacheReaction(cacheKey, reaction)
 }
 
 // -- regSub -----------------------------------------------------------------
-// TODO: Reimplement maybe!
-internal fun <T> regSub(
+internal fun <T, R> regSub(
     queryId: Any,
-    computationFn: (db: T, queryVec: ArrayList<Any>) -> Any,
+    extractorFn: (db: T, queryVec: List<Any>) -> R,
 ) {
-    registerHandler(queryId, kind, computationFn)
+    val subsHandlerFn = { db: Atom<T>, queryVec: List<Any> ->
+        val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
+        val reaction = Reaction { extractor(db()) }
+
+        db.addWatch(reaction.id) { key, _, _, newAppDbVal ->
+            val nodeOutput = extractor(newAppDbVal)
+            reaction.swap { nodeOutput }
+            key
+        }
+
+        reaction
+    }
+
+    registerHandler(queryId, kind, subsHandlerFn)
 }
 
-internal fun regSub(
+internal fun <T, R> regSub(
     queryId: Any,
-    inputFn: (queryVec: ArrayList<Any>) -> Any,
-    computationFn: (input: Any, queryVec: ArrayList<Any>) -> Any,
+    signalsFn: (queryVec: List<Any>) -> Reaction<T>,
+    computationFn: (input: T, queryVec: List<Any>) -> R,
+    context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    registerHandler(queryId, kind, arrayOf(inputFn, computationFn))
+    val subsHandlerFn = { _: Atom<Any>, queryVec: List<Any> ->
+        val inputNode = signalsFn(queryVec)
+        val materialisedView = { input: T -> computationFn(input, queryVec) }
+        val reaction = Reaction { materialisedView(inputNode.deref()) }
+
+        reaction.reactTo(inputNode, context) { newInput ->
+            materialisedView(newInput)
+        }
+
+        reaction
+    }
+
+    registerHandler(queryId, kind, subsHandlerFn)
 }

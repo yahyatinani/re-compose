@@ -17,7 +17,7 @@ import com.github.whyrising.y.concurrency.atom
  *  Sub to { id to handler } }
  * Leaf nodes are handlers.
  */
-internal val register: Atom<IPersistentMap<Any, Any>> = atom(m())
+internal var register: Atom<IPersistentMap<Any, Any>> = atom(m())
 
 enum class Kinds { Event, Fx, Cofx, Sub }
 
