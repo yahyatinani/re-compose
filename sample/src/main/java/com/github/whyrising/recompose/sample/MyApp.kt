@@ -22,7 +22,7 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        System.setProperty("kotlinx.coroutines.debug", "on" )
+        System.setProperty("kotlinx.coroutines.debug", "on")
 
         initialize()
     }
