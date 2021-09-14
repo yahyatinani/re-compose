@@ -7,11 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.y.concurrency.IAtom
 import com.github.whyrising.y.concurrency.IDeref
-import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.str
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -19,9 +20,22 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
-    internal var isFresh = atom(true)
 
-    internal val state: MutableStateFlow<T> by lazy { MutableStateFlow(f()) }
+    // this flag is used to track the last subscriber of this reaction
+    private var isFresh = true
+
+    internal val state: MutableStateFlow<T> by lazy {
+        val mutableStateFlow = MutableStateFlow(f())
+        mutableStateFlow.subscriptionCount
+            .onEach { count ->
+                when {
+                    // last subscriber just disappeared
+                    count == 0 && !isFresh -> onCleared()
+                    else -> isFresh = false
+                }
+            }.launchIn(viewModelScope)
+        mutableStateFlow
+    }
 
     val id: String by lazy { str("rx", hashCode()) }
 
@@ -78,18 +92,6 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
 
     internal fun addOnDispose(f: (Reaction<T>) -> Unit) {
         disposeFns.add(f)
-
-        if (!isFresh()) return
-
-        viewModelScope.launch {
-            state.subscriptionCount.collect { count ->
-                if (count == 0) {
-                    if (!isFresh()) // last subscriber just disappeared
-                        onCleared()
-                    else isFresh.reset(false) // first subscriber just appeared
-                }
-            }
-        }
     }
 }
 
