@@ -35,6 +35,7 @@ fun regCofx(
 /*
 ------------- Interceptor ---------------
  */
+// TODO: Consider adding an optional second argument
 fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
     id = coeffects,
     before = { context ->

@@ -12,5 +12,6 @@ enum class Keys {
     startTicks,
     timeticker,
     materialThemeColors,
-    statusBarDarkIcons
+    statusBarDarkIcons,
+    now
 }

@@ -24,6 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.whyrising.recompose.Keys
+import com.github.whyrising.recompose.Keys.db
+import com.github.whyrising.recompose.cofx.injectCofx
+import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.events.event
 import com.github.whyrising.recompose.regEventDb
@@ -32,6 +35,7 @@ import com.github.whyrising.recompose.regFx
 import com.github.whyrising.recompose.regSub
 import com.github.whyrising.recompose.sample.Keys.formattedTime
 import com.github.whyrising.recompose.sample.Keys.materialThemeColors
+import com.github.whyrising.recompose.sample.Keys.now
 import com.github.whyrising.recompose.sample.Keys.primaryColor
 import com.github.whyrising.recompose.sample.Keys.startTicks
 import com.github.whyrising.recompose.sample.Keys.statusBarDarkIcons
@@ -44,8 +48,10 @@ import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subs.watch
 import com.github.whyrising.recompose.subscribe
+import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.map.IPersistentMap
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,8 +64,17 @@ import java.util.Locale
 const val HH_MM_SS = "HH:mm:ss"
 
 fun reg(lifecycleScope: CoroutineScope) {
-    regEventDb<AppSchema>(timer) { db, (_, newTime) ->
-        db.copy(time = newTime as Date)
+    regCofx(now) {
+        it.assoc(now, Date())
+    }
+
+    regEventFx(
+        id = timer,
+        interceptors = l(injectCofx(now))
+    ) { cofx: IPersistentMap<Any, Any>, _ ->
+        val db = get(cofx, db) as AppSchema
+
+        m(Keys.db to db.copy(time = get(cofx, now) as Date))
     }
 
     regEventDb<AppSchema>(timeColorChange) { db, (_, color) ->
@@ -73,7 +88,7 @@ fun reg(lifecycleScope: CoroutineScope) {
     regFx(timeticker) {
         lifecycleScope.launch(Dispatchers.Default) {
             while (true) {
-                dispatch(event(timer, Date()))
+                dispatch(event(timer))
                 delay(1000)
             }
         }

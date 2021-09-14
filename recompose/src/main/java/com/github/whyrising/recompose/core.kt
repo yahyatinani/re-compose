@@ -104,7 +104,7 @@ fun <T> regEventDb(
 
 fun regEventFx(
     id: Any,
-    interceptors: List<Any> = l(),
+    interceptors: List<IPersistentMap<Keys, Any>> = l(),
     handler: (
         cofx: IPersistentMap<Any, Any>,
         event: List<Any>
