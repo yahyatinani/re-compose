@@ -26,9 +26,8 @@ val kind: Kinds = Cofx
  */
 fun regCofx(
     id: Any,
-    handler: (coeffects: IPersistentMap<Any, Any>) -> IPersistentMap<Any, Any>
+    handler: suspend (coeffects: IPersistentMap<Any, Any>) -> IPersistentMap<Any, Any>
 ) {
-    println("regCofx registered $id")
     registerHandler(id, kind, handler)
 }
 
@@ -39,7 +38,7 @@ fun regCofx(
 fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
     id = coeffects,
     before = { context ->
-        val injectCofx = getHandler(kind, id) as ((Any) -> Any)?
+        val injectCofx = getHandler(kind, id) as (suspend (Any) -> Any)?
         if (injectCofx != null) {
             val cofx = get(context, coeffects) ?: m<Any, Any>()
             val newCofx = injectCofx(cofx)
