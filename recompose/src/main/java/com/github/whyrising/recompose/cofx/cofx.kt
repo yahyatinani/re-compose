@@ -26,7 +26,9 @@ val kind: Kinds = Cofx
  */
 fun regCofx(
     id: Any,
-    handler: suspend (coeffects: IPersistentMap<Any, Any>) -> IPersistentMap<Any, Any>
+    handler: suspend (
+        coeffects: IPersistentMap<Any, Any>
+    ) -> IPersistentMap<Any, Any>
 ) {
     registerHandler(id, kind, handler)
 }
