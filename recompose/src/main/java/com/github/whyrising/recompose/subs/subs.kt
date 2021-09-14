@@ -7,67 +7,36 @@ import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
 import kotlinx.coroutines.Dispatchers
-import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KProperty
 
 val kind: Kinds = Sub
 
 // -- cache ---------------------------------------------------------------------
-// TODO: Needs thread synchronization? and remove dead cache?
-class SoftReferenceDelegate<T : Any>(
-    val initialization: () -> T
-) {
-    private var reference: SoftReference<T>? = null
-
-    operator fun getValue(
-        thisRef: Any?,
-        property: KProperty<*>
-    ): T {
-        val stored = reference?.get()
-        if (stored != null)
-            return stored
-
-        val new = initialization()
-        reference = SoftReference(new)
-        return new
-    }
-}
-
-val subsCache by SoftReferenceDelegate { ConcurrentHashMap<Any, Any>() }
-
-val queryReaction = atom(m<Any, Any>())
+internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 
 // -- subscribe -----------------------------------------------------------------
 internal const val TAG = "re-compose"
 
 private fun <T> cacheReaction(
-    cacheKey: IPersistentVector<Any>,
+    key: IPersistentVector<Any>,
     reaction: Reaction<T>
 ): Reaction<T> {
     reaction.addOnDispose { r: Reaction<T> ->
-        queryReaction.swap { cache ->
-            if (cache.containsKey(cacheKey) && r === get(cache, cacheKey)) {
-                Log.i(
-                    "cacheReaction",
-                    "${get(cacheKey, 0)} got removed from cache."
-                )
-                cache.dissoc(cacheKey)
-            } else cache
+        if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
+            Log.i(
+                "reactionsCache",
+                "${get(key, 0)} got removed from cache."
+            )
+            reactionsCache.remove(key)
         }
     }
 
-    queryReaction.swap { qCache ->
-        qCache.assoc(cacheKey, reaction)
-    }
-
+    reactionsCache[key] = reaction
     return reaction
 }
 
@@ -83,7 +52,7 @@ internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
         )
     }
     val cacheKey = v(qvec, v<Any>())
-    val cachedReaction = get(queryReaction(), cacheKey)
+    val cachedReaction = reactionsCache[cacheKey]
 
     if (cachedReaction != null) {
         Log.i(TAG, "cache was found for subscription `$cacheKey`")
