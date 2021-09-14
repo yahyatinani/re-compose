@@ -73,7 +73,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
         disposeFns.forEach { disposeFn ->
             disposeFn(this)
         }
-        viewModelScope.cancel()
+        viewModelScope.cancel("This Reaction was collected due to inactivity")
     }
 
     internal fun addOnDispose(f: (Reaction<T>) -> Unit) {
