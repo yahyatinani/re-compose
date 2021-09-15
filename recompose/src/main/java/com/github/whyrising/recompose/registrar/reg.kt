@@ -7,6 +7,8 @@ import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 
+typealias Register = IPersistentMap<Any, IPersistentMap<Any, Any>?>
+
 /**
  * This atom contains a register of all handlers.
  * It's a two layer map, keyed first by `Kinds` (of handler), and then `id` of
@@ -17,21 +19,22 @@ import com.github.whyrising.y.concurrency.atom
  *  Sub to { id to handler } }
  * Leaf nodes are handlers.
  */
-internal var register: Atom<IPersistentMap<Any, Any>> = atom(m())
+internal var register: Atom<Register> = atom(m())
 
 enum class Kinds { Event, Fx, Cofx, Sub }
 
 fun getHandler(kind: Kinds, id: Any): Any? = register().valAt(kind).let {
-    (it as IPersistentMap<Any, Any>?)?.valAt(id)
+    it?.valAt(id)
 }
 
+@Suppress("UNCHECKED_CAST")
 internal fun registerHandler(
     id: Any,
     kind: Kinds,
     handlerFn: Any
 ): Any {
     register.swap(l(kind, id), handlerFn) { currentVal, ks, v ->
-        assocIn(currentVal, ks, v) as IPersistentMap<Any, Any>
+        assocIn(currentVal, ks, v) as Register
     }
     return handlerFn
 }
