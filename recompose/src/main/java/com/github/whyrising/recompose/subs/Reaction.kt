@@ -39,6 +39,13 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
 
     val id: String by lazy { str("rx", hashCode()) }
 
+    override fun onCleared() {
+        super.onCleared()
+
+        disposeFns.forEach { disposeFn -> disposeFn(this) }
+        viewModelScope.cancel("This reaction `$id` got cleared")
+    }
+
     override fun deref(): T = state.value
 
     override fun reset(newValue: T): T = state.updateAndGet { newValue }
@@ -79,15 +86,6 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
             if (state.compareAndSet(currentVal, newVal))
                 return newVal
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-
-        disposeFns.forEach { disposeFn ->
-            disposeFn(this)
-        }
-        viewModelScope.cancel("This Reaction was collected due to inactivity")
     }
 
     internal fun addOnDispose(f: (Reaction<T>) -> Unit) {

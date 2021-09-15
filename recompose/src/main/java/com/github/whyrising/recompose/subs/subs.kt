@@ -30,7 +30,7 @@ private fun <T> cacheReaction(
         if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
             Log.i(
                 "reactionsCache",
-                "${get(key, 0)} got removed from cache."
+                "${get(key, 0)} got removed from cache. ${appDb.watches.count}"
             )
             reactionsCache.remove(key)
         }
@@ -72,6 +72,10 @@ internal fun <T, R> regSub(
             val nodeOutput = extractor(newAppDbVal)
             reaction.swap { nodeOutput }
             key
+        }
+
+        reaction.addOnDispose {
+            db.removeWatch(reaction.id)
         }
 
         reaction
