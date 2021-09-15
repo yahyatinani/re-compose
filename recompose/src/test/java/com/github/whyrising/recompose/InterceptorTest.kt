@@ -66,11 +66,12 @@ class InterceptorTest : FreeSpec({
             context.assoc(queue, q)
         }
 
-        val g: (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
-            { context ->
-                val q = (get(context, queue) as List<Any>).plus(1)
-                context.assoc(queue, q)
-            }
+        val g: suspend (
+            IPersistentMap<Keys, Any>
+        ) -> IPersistentMap<Keys, Any> = { context ->
+            val q = (get(context, queue) as List<Any>).plus(1)
+            context.assoc(queue, q)
+        }
 
         val addToQAfter = toInterceptor(
             id = ":add-to-queue",
@@ -120,15 +121,17 @@ class InterceptorTest : FreeSpec({
             It should make a new context by invoking all interceptors in :queue
             and stack them in :stack while emptying the queue
         """ {
-            val f1: (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
-                { context ->
-                    context.assoc(db, (get(context, db) as Int).inc())
-                }
+            val f1: suspend (
+                IPersistentMap<Keys, Any>
+            ) -> IPersistentMap<Keys, Any> = { context ->
+                context.assoc(db, (get(context, db) as Int).inc())
+            }
 
-            val f2: (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any> =
-                { context ->
-                    context.assoc(db, (get(context, db) as Int) + 2)
-                }
+            val f2: suspend (
+                IPersistentMap<Keys, Any>
+            ) -> IPersistentMap<Keys, Any> = { context ->
+                context.assoc(db, (get(context, db) as Int) + 2)
+            }
 
             val incBy1 = toInterceptor(id = ":incBy1", before = f1)
             val incBy2 = toInterceptor(id = ":incBy2", before = f2)

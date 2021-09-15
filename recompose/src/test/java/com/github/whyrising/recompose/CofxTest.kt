@@ -17,7 +17,8 @@ class CofxTest : FreeSpec({
         val coeffects = m("db" to 0)
         regCofx("id") { it }
 
-        val cofxHandler = getHandler(Kinds.Cofx, "id") as ((Any) -> Any)
+        val cofxHandler = getHandler(Kinds.Cofx, "id")
+            as suspend ((Any) -> Any)
 
         cofxHandler(coeffects) shouldBeSameInstanceAs coeffects
     }
@@ -26,7 +27,7 @@ class CofxTest : FreeSpec({
         appDb.reset(-22)
         val coeffects = m(db to -1)
 
-        val cofxDbHandler = getHandler(Kinds.Cofx, db) as ((Any) -> Any)
+        val cofxDbHandler = getHandler(Kinds.Cofx, db) as suspend ((Any) -> Any)
         val newCofx = cofxDbHandler(coeffects) as IPersistentMap<Keys, Any>
 
         get(newCofx, db) shouldBe -22
