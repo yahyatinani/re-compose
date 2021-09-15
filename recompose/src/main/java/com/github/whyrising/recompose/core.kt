@@ -150,5 +150,3 @@ fun <T, R> regSub(
 fun regFx(id: Any, handler: suspend (value: Any?) -> Unit) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }
-
-// -- Framework ----------------------------------------------------------------
