@@ -15,8 +15,8 @@ import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.map.IPersistentMap
 
-typealias InterceptorFn = suspend
-    (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any>
+typealias InterceptorFn =
+    suspend (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any>
 
 typealias Interceptor = IPersistentMap<Keys, Any>
 
