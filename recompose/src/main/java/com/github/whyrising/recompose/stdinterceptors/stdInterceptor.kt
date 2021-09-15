@@ -11,34 +11,32 @@ import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.map.IPersistentMap
 
 /*
--- Interceptor Factories -----------------------------------------------------
+-- Interceptor Factories -------------------------------------------------------
 
 These 2 factories wrap the 2 kinds of event handlers.
-
- */
+*/
 
 fun <T> dbHandlerToInterceptor(
-    handlerFn: (db: T, vec: List<Any>) -> Any
+    eventDbHandler: (db: T, vec: List<Any>) -> Any
 ): IPersistentMap<Keys, Any> = toInterceptor(
     id = ":db-handler",
     before = { context: IPersistentMap<Keys, Any> ->
         val cofx = get(context, coeffects) as IPersistentMap<*, *>
-        val oldDb = get(cofx, db)
+        val oldDb = get(cofx, db) as T
         val event = get(cofx, event) as List<Any>
 
-        val newDb = handlerFn(oldDb as T, event)
-
-        val fx = (get(context, effects) ?: m<Any, Any>())
+        val effectsMap = (get(context, effects) ?: m<Any, Any>())
             as IPersistentMap<Keys, Any>
 
-        val newFx = fx.assoc(db, newDb)
-
-        context.assoc(effects, newFx)
+        context.assoc(
+            effects,
+            effectsMap.assoc(db, eventDbHandler(oldDb, event))
+        )
     }
 )
 
 fun fxHandlerToInterceptor(
-    handlerFn: (
+    eventFxHandler: (
         cofx: IPersistentMap<Any, Any>,
         event: List<Any>
     ) -> IPersistentMap<Any, Any>
@@ -48,6 +46,6 @@ fun fxHandlerToInterceptor(
         val cofx = get(context, coeffects) as IPersistentMap<Any, Any>
         val event = get(cofx, event) as List<Any>
 
-        context.assoc(effects, handlerFn(cofx, event))
+        context.assoc(effects, eventFxHandler(cofx, event))
     }
 )
