@@ -37,7 +37,6 @@ import com.github.whyrising.recompose.sample.Keys.formattedTime
 import com.github.whyrising.recompose.sample.Keys.materialThemeColors
 import com.github.whyrising.recompose.sample.Keys.now
 import com.github.whyrising.recompose.sample.Keys.primaryColor
-import com.github.whyrising.recompose.sample.Keys.startTicks
 import com.github.whyrising.recompose.sample.Keys.statusBarDarkIcons
 import com.github.whyrising.recompose.sample.Keys.time
 import com.github.whyrising.recompose.sample.Keys.timeColorChange
@@ -63,7 +62,20 @@ import java.util.Locale
 
 const val HH_MM_SS = "HH:mm:ss"
 
-fun reg(lifecycleScope: CoroutineScope) {
+fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
+    regFx(timeticker) {
+        scope.launch(Dispatchers.Default) {
+            while (true) {
+                dispatch(event(timer))
+                delay(1000)
+            }
+        }
+    }
+
+    regEventFx(com.github.whyrising.recompose.sample.Keys.startTicks) { _, _ ->
+        m(Keys.fx to l(l(timeticker, null)))
+    }
+
     regCofx(now) {
         it.assoc(now, Date())
     }
@@ -79,19 +91,6 @@ fun reg(lifecycleScope: CoroutineScope) {
 
     regEventDb<AppSchema>(timeColorChange) { db, (_, color) ->
         db.copy(timeColor = (color as String))
-    }
-
-    regEventFx(startTicks) { _, _ ->
-        m(Keys.fx to l(l(timeticker, null)))
-    }
-
-    regFx(timeticker) {
-        lifecycleScope.launch(Dispatchers.Default) {
-            while (true) {
-                dispatch(event(timer))
-                delay(1000)
-            }
-        }
     }
 
     regSub(time) { db: AppSchema, _ ->
@@ -224,7 +223,7 @@ fun TimeApp() {
 fun DefaultPreview() {
     RecomposeTheme {
         initialize()
-        reg(CoroutineScope(Dispatchers.Main))
+        reg()
         TimeApp()
     }
 }
@@ -237,7 +236,7 @@ fun DefaultPreview() {
 fun DefaultDarkPreview() {
     RecomposeTheme {
         initialize()
-        reg(CoroutineScope(Dispatchers.Main))
+        reg()
         TimeApp()
     }
 }

@@ -13,72 +13,58 @@ import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.map.IPersistentMap
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-// -- Dispatch -----------------------------------------------------------------
+fun measureTime(action: () -> Unit) {
+    val start = System.nanoTime()
+    action()
+    val finish = System.nanoTime()
+    val timeElapsed = finish - start
 
-/* Statics:
-* 1. app-db         | App lifetime
-* 2. register       | App lifetime
-* 3. subs-cache     | App lifetime
-* 4. events-channel | App lifetime
-* 5. viewModelScope | App lifetime
-* 6. fx-scope       | fx  lifetime
-*/
-
-fun dispatch(event: List<Any>) {
-    Recompose.viewModelScope.launch(Dispatchers.Main.immediate) {
-        Recompose.eventQueue.send(event)
-        Log.i(Recompose.TAG, "Event ${event[0]} queued.")
-    }.invokeOnCompletion {
-        Log.i(Recompose.TAG, "Event ${event[0]} dispatch completed.")
-    }
+    Log.i("timeElapsed", "$timeElapsed")
 }
 
+// -- Dispatch -----------------------------------------------------------------
+
+fun dispatch(event: List<Any>) {
+    Recompose.send(event)
+}
+
+/**
+ * This is a blocking function normally used to initialize the appDb.
+ */
 fun dispatchSync(event: List<Any>) {
     runBlocking {
         handle(event)
     }
 }
 
-val applicationScope = CoroutineScope(SupervisorJob())
-
 object Recompose : ViewModel() {
-    const val TAG = "Recompose"
-    internal val eventQueue = Channel<List<Any>>()
+    private const val TAG = "re-compose"
+    private val eventQueue = Channel<List<Any>>()
 
     init {
-        // TODO: make sure to start it from the main dispatcher!
+        startEventReceiver()
+    }
+
+    private fun startEventReceiver() {
         viewModelScope.launch {
+            Log.i(TAG, "event receiver is listening...")
             while (true) {
                 val eventVec: List<Any> = eventQueue.receive()
                 when {
                     eventVec.isEmpty() -> continue
-                    else -> handle(eventVec)
+                    else -> viewModelScope.launch { handle(eventVec) }
                 }
             }
-        }.invokeOnCompletion {
-            Log.i(TAG, "Queue receiver completed.")
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-
-        Log.i(TAG, "onCleared() got called.")
-        viewModelScope.cancel()
-        eventQueue.close()
+    internal fun send(event: List<Any>) {
+        eventQueue.trySend(event)
     }
-}
-
-fun recomposeFactory(): Recompose {
-    TODO()
 }
 
 // -- Events ---------------------------------------------------

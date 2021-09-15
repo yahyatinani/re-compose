@@ -40,29 +40,23 @@ private fun <T> cacheReaction(
     return reaction
 }
 
-internal fun <T> subscribe(qvec: List<Any>): Reaction<T> {
-    val queryId = qvec[0]
+internal fun <T> subscribe(query: List<Any>): Reaction<T> {
+    val cacheKey = v(query, v<Any>())
+    val cachedReaction = reactionsCache[cacheKey] as Reaction<T>?
+
+    if (cachedReaction != null)
+        return cachedReaction
+
+    val queryId = query[0]
     val handlerFn = getHandler(kind, queryId)
         as ((db: Atom<*>, qvec: List<Any>) -> Reaction<T>)?
-
-    if (handlerFn == null) {
-        Log.e(TAG, "no subscription handler registered for id: `$queryId`")
-        throw IllegalArgumentException(
+        ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )
-    }
-    val cacheKey = v(qvec, v<Any>())
-    val cachedReaction = reactionsCache[cacheKey]
 
-    if (cachedReaction != null) {
-        Log.i(TAG, "cache was found for subscription `$cacheKey`")
-        return cachedReaction as Reaction<T>
-    }
+    Log.i(TAG, "No cached reaction was found for subscription `$cacheKey`")
 
-    Log.i(TAG, "No cache was found for subscription `$cacheKey`")
-    val reaction = handlerFn(appDb, qvec)
-
-    return cacheReaction(cacheKey, reaction)
+    return cacheReaction(cacheKey, handlerFn(appDb, query))
 }
 
 // -- regSub -----------------------------------------------------------------
