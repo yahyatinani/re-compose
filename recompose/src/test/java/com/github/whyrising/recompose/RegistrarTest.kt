@@ -7,7 +7,9 @@ import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.register
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.types.shouldBeSameInstanceAs
@@ -32,7 +34,7 @@ class RegistrarTest : FreeSpec({
 
         "Event kind" {
             val id = ":event"
-            val interceptors = listOf<Any>()
+            val interceptors = v<Any>()
             registerHandler(id, Event, interceptors)
 
             val handler = getHandler(Event, id)
@@ -53,7 +55,7 @@ class RegistrarTest : FreeSpec({
 
         "Sub kind" {
             val id = ":sub"
-            val handlerFn: (Any, ArrayList<Any>) -> Any = { _, _ -> }
+            val handlerFn: (Any, PersistentVector<Any>) -> Any = { _, _ -> }
             registerHandler(id, Sub, handlerFn)
 
             val handler = getHandler(Sub, id)

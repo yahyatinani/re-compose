@@ -6,6 +6,7 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
@@ -40,16 +41,16 @@ private fun <T> cacheReaction(
     return reaction
 }
 
-internal fun <T> subscribe(query: List<Any>): Reaction<T> {
-    val cacheKey = v(query, v<Any>())
+internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
+    val cacheKey = v(query, v())
     val cachedReaction = reactionsCache[cacheKey] as Reaction<T>?
 
     if (cachedReaction != null)
         return cachedReaction
 
-    val queryId = query[0]
+    val queryId = (query as PersistentVector)[0]
     val handlerFn = getHandler(kind, queryId)
-        as ((db: Atom<*>, qvec: List<Any>) -> Reaction<T>)?
+        as ((db: Atom<*>, qvec: IPersistentVector<Any>) -> Reaction<T>)?
         ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )
@@ -62,9 +63,9 @@ internal fun <T> subscribe(query: List<Any>): Reaction<T> {
 // -- regSub -----------------------------------------------------------------
 internal fun <T, R> regSub(
     queryId: Any,
-    extractorFn: (db: T, queryVec: List<Any>) -> R,
+    extractorFn: (db: T, queryVec: IPersistentVector<Any>) -> R,
 ) {
-    val subsHandlerFn = { db: Atom<T>, queryVec: List<Any> ->
+    val subsHandlerFn = { db: Atom<T>, queryVec: IPersistentVector<Any> ->
         val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
         val reaction = Reaction { extractor(db()) }
 
@@ -86,11 +87,11 @@ internal fun <T, R> regSub(
 
 internal fun <T, R> regSub(
     queryId: Any,
-    signalsFn: (queryVec: List<Any>) -> Reaction<T>,
-    computationFn: (input: T, queryVec: List<Any>) -> R,
+    signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    val subsHandlerFn = { _: Atom<Any>, queryVec: List<Any> ->
+    val subsHandlerFn = { _: Atom<Any>, queryVec: PersistentVector<Any> ->
         val inputNode = signalsFn(queryVec)
         val materialisedView = { input: T -> computationFn(input, queryVec) }
         val reaction = Reaction { materialisedView(inputNode.deref()) }

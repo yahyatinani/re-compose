@@ -6,9 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.Surface
 import androidx.lifecycle.lifecycleScope
 import com.github.whyrising.recompose.dispatch
-import com.github.whyrising.recompose.events.event
 import com.github.whyrising.recompose.sample.Keys.startTicks
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
+import com.github.whyrising.y.collections.core.v
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
 
         reg(lifecycleScope)
 
-        dispatch(event(startTicks))
+        dispatch(v(startTicks))
 
         setContent {
             RecomposeTheme {

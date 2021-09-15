@@ -28,7 +28,6 @@ import com.github.whyrising.recompose.Keys.db
 import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.dispatch
-import com.github.whyrising.recompose.events.event
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.regFx
@@ -37,6 +36,7 @@ import com.github.whyrising.recompose.sample.Keys.formattedTime
 import com.github.whyrising.recompose.sample.Keys.materialThemeColors
 import com.github.whyrising.recompose.sample.Keys.now
 import com.github.whyrising.recompose.sample.Keys.primaryColor
+import com.github.whyrising.recompose.sample.Keys.startTicks
 import com.github.whyrising.recompose.sample.Keys.statusBarDarkIcons
 import com.github.whyrising.recompose.sample.Keys.time
 import com.github.whyrising.recompose.sample.Keys.timeColorChange
@@ -47,9 +47,10 @@ import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subs.watch
 import com.github.whyrising.recompose.subscribe
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
@@ -66,14 +67,14 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
     regFx(timeticker) {
         scope.launch(Dispatchers.Default) {
             while (true) {
-                dispatch(event(timer))
+                dispatch(v(timer))
                 delay(1000)
             }
         }
     }
 
-    regEventFx(com.github.whyrising.recompose.sample.Keys.startTicks) { _, _ ->
-        m(Keys.fx to l(l(timeticker, null)))
+    regEventFx(startTicks) { _, _ ->
+        m(Keys.fx to v(v(timeticker, null)))
     }
 
     regCofx(now) {
@@ -82,7 +83,7 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 
     regEventFx(
         id = timer,
-        interceptors = l(injectCofx(now))
+        interceptors = v(injectCofx(now))
     ) { cofx: IPersistentMap<Any, Any>, _ ->
         val db = get(cofx, db) as AppSchema
 
@@ -103,7 +104,7 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 
     regSub(
         primaryColor,
-        { subscribe<String>(l(timeColorName)) }
+        { subscribe<String>(v(timeColorName)) }
     ) { colorStr, (_, defaultColor) ->
         Log.i("MainActivity", "`primaryColor` compFn did run")
 
@@ -115,10 +116,10 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 
     regSub(
         materialThemeColors,
-        { (_, _, defaultColor): List<Any> ->
-            subscribe(event(primaryColor, defaultColor))
+        { (_, _, defaultColor) ->
+            subscribe(v(primaryColor, defaultColor))
         }
-    ) { primaryColor: Color, (_, colors): List<Any> ->
+    ) { primaryColor: Color, (_, colors) ->
         Log.i("MainActivity", "`materialThemeColors` compFn did run")
 
         (colors as Colors).copy(primary = primaryColor)
@@ -127,15 +128,15 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
     regSub(
         formattedTime,
-        { subscribe(event(time)) }
+        { subscribe(v(time)) }
     ) { date: Date, _ ->
         simpleDateFormat.format(date)
     }
 
     regSub(
         statusBarDarkIcons,
-        { (_, defaultColor): List<Any> ->
-            subscribe(event(primaryColor, defaultColor))
+        { (_, defaultColor): PersistentVector<Any> ->
+            subscribe(v(primaryColor, defaultColor))
         }
     ) { primaryColor: Color, _ ->
         Log.i("MainActivity", "`statusBarDarkIcons` compFn did run")
@@ -147,11 +148,11 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 @Composable
 fun Clock() {
     Text(
-        text = subscribe<String>(l(formattedTime)).watch(),
+        text = subscribe<String>(v(formattedTime)).watch(),
         style = MaterialTheme.typography.h1,
         fontWeight = FontWeight.SemiBold,
         color = subscribe<Color>(
-            l(primaryColor, MaterialTheme.colors.onSurface)
+            v(primaryColor, MaterialTheme.colors.onSurface)
         ).watch()
     )
 }
@@ -166,11 +167,11 @@ fun ColorInput() {
             )
             Spacer(modifier = Modifier.width(4.dp))
             OutlinedTextField(
-                value = subscribe<String>(l(timeColorName)).watch(),
+                value = subscribe<String>(v(timeColorName)).watch(),
                 singleLine = true,
                 maxLines = 1,
                 onValueChange = {
-                    dispatch(event(timeColorChange, it))
+                    dispatch(v(timeColorChange, it))
                 }
             )
         }
@@ -189,14 +190,14 @@ fun TimeApp() {
         val defaultColor = MaterialTheme.colors.onSurface
         MaterialTheme(
             colors = subscribe<Colors>(
-                l(materialThemeColors, MaterialTheme.colors, defaultColor)
+                v(materialThemeColors, MaterialTheme.colors, defaultColor)
             ).watch()
         ) {
             val systemUiController = rememberSystemUiController()
 
-            val color = subscribe<Color>(l(primaryColor, defaultColor)).watch()
+            val color = subscribe<Color>(v(primaryColor, defaultColor)).watch()
             val areStatusBarIconsDark = subscribe<Boolean>(
-                l(statusBarDarkIcons, defaultColor)
+                v(statusBarDarkIcons, defaultColor)
             ).watch()
 
             SideEffect {

@@ -14,8 +14,10 @@ import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.vector.IPersistentVector
 
 /*
 -- Registration ----------------------------------------------------------------
@@ -63,7 +65,7 @@ val doFx: IPersistentMap<Keys, Any> = toInterceptor(
 -- Builtin Effect Handlers ----------------------------------------------------
  */
 val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
-    if (listOfEffects !is List<*>) {
+    if (listOfEffects !is IPersistentVector<*>) {
         Log.e(
             "regFx",
             "\":fx\" effect expects a list, but was given " +
@@ -73,9 +75,9 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
         return@regFx
     }
 
-    val effects: List<List<Any>> = listOfEffects as List<List<Any>>
+    val effects = listOfEffects as PersistentVector<PersistentVector<Any>>
 
-    effects.forEach { effect: List<Any?> ->
+    effects.forEach { effect: PersistentVector<Any?> ->
         val (effectKey, effectValue) = effect
 
         if (effectKey == db)
@@ -100,19 +102,19 @@ val updateDbFx: Unit = regFx(id = db) { newAppDb ->
 }
 
 val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
-    if (event !is ArrayList<*>) {
+    if (event !is IPersistentVector<*>) {
         Log.e(
             "regFx",
-            "ignoring bad :dispatch value. Expected ArrayList, but got: $event"
+            "ignoring bad :dispatch value. Expected Vector, but got: $event"
         )
         return@regFx
     }
 
-    dispatch(event)
+    dispatch(event as IPersistentVector<Any>)
 }
 
 val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
-    if (events !is List<*>) {
+    if (events !is PersistentVector<*>) {
         Log.e(
             "regFx",
             "ignoring bad :dispatchN value. Expected a list, but got: $events"
@@ -121,6 +123,6 @@ val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
     }
 
     events.forEach { event: Any? ->
-        dispatch(event as List<Any>)
+        dispatch(event as IPersistentVector<Any>)
     }
 }

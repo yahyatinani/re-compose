@@ -11,8 +11,10 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Reaction
-import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
+import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.vector.IPersistentVector
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -28,14 +30,14 @@ fun measureTime(action: () -> Unit) {
 
 // -- Dispatch -----------------------------------------------------------------
 
-fun dispatch(event: List<Any>) {
+fun dispatch(event: IPersistentVector<Any>) {
     Recompose.send(event)
 }
 
 /**
  * This is a blocking function normally used to initialize the appDb.
  */
-fun dispatchSync(event: List<Any>) {
+fun dispatchSync(event: IPersistentVector<Any>) {
     runBlocking {
         handle(event)
     }
@@ -43,7 +45,7 @@ fun dispatchSync(event: List<Any>) {
 
 object Recompose : ViewModel() {
     private const val TAG = "re-compose"
-    private val eventQueue = Channel<List<Any>>()
+    private val eventQueue = Channel<IPersistentVector<Any>>()
 
     init {
         startEventReceiver()
@@ -53,16 +55,16 @@ object Recompose : ViewModel() {
         viewModelScope.launch {
             Log.i(TAG, "event receiver is listening...")
             while (true) {
-                val eventVec: List<Any> = eventQueue.receive()
-                when {
-                    eventVec.isEmpty() -> continue
+                val eventVec: IPersistentVector<Any> = eventQueue.receive()
+                when (eventVec.count) {
+                    0 -> continue
                     else -> viewModelScope.launch { handle(eventVec) }
                 }
             }
         }
     }
 
-    internal fun send(event: List<Any>) {
+    internal fun send(event: IPersistentVector<Any>) {
         eventQueue.trySend(event)
     }
 }
@@ -74,12 +76,12 @@ object Recompose : ViewModel() {
  */
 fun <T> regEventDb(
     id: Any,
-    interceptors: List<Any> = l(),
-    handler: (db: T, vec: List<Any>) -> Any
+    interceptors: IPersistentVector<Any> = v(),
+    handler: (db: T, vec: PersistentVector<Any>) -> Any
 ) {
     register(
         id = id,
-        interceptors = l(
+        interceptors = v(
             injectDb,
             doFx,
             interceptors,
@@ -90,15 +92,15 @@ fun <T> regEventDb(
 
 fun regEventFx(
     id: Any,
-    interceptors: List<IPersistentMap<Keys, Any>> = l(),
+    interceptors: IPersistentVector<IPersistentMap<Keys, Any>> = v(),
     handler: (
         cofx: IPersistentMap<Any, Any>,
-        event: List<Any>
+        event: IPersistentVector<Any>
     ) -> IPersistentMap<Any, Any>
 ) {
     register(
         id = id,
-        interceptors = l(
+        interceptors = v(
             injectDb,
             doFx,
             interceptors,
@@ -109,7 +111,7 @@ fun regEventFx(
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: List<Any>): Reaction<T> {
+fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
     return com.github.whyrising.recompose.subs.subscribe(qvec)
 }
 
@@ -120,7 +122,7 @@ fun <T> subscribe(qvec: List<Any>): Reaction<T> {
  */
 fun <T, R> regSub(
     queryId: Any,
-    extractor: (db: T, queryVec: List<Any>) -> R,
+    extractor: (db: T, queryVec: IPersistentVector<Any>) -> R,
 ) = com.github.whyrising.recompose.subs.regSub(queryId, extractor)
 
 /**
@@ -131,8 +133,8 @@ fun <T, R> regSub(
  */
 fun <T, R> regSub(
     queryId: Any,
-    signalsFn: (queryVec: List<Any>) -> Reaction<T>,
-    computationFn: (input: T, queryVec: List<Any>) -> R,
+    signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
 ) = com.github.whyrising.recompose.subs.regSub(
     queryId,
     signalsFn,
@@ -150,3 +152,13 @@ fun <T, R> regSub(
 fun regFx(id: Any, handler: suspend (value: Any?) -> Unit) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }
+
+// TODO: Move to y lib
+operator fun <E> IPersistentVector<E>.component1(): E = this.nth(1)
+
+operator fun <E> IPersistentVector<E>.component2(): E = this.nth(1)
+
+operator fun <E> IPersistentVector<E>.component3(): E = this.nth(2)
+
+operator fun <E> IPersistentVector<E>.get(index: Int): E =
+    this.nth(index)
