@@ -1,5 +1,6 @@
 package com.github.whyrising.recompose.subs
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
@@ -41,6 +42,10 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
 
         disposeFns.forEach { disposeFn -> disposeFn(this) }
         viewModelScope.cancel("This reaction `$id` got cleared")
+        Log.i(
+            TAG,
+            "This reaction `$id` got cleared ${appDb.subscriptionCount.value}"
+        )
     }
 
     override fun deref(): T = state.value
@@ -101,12 +106,12 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
  * derived data from it.
  */
 inline fun <T, R> Reaction<R>.reactTo(
-    inputNode: Reaction<T>,
+    inputNode: MutableStateFlow<T>,
     context: CoroutineContext,
     crossinline computation: suspend (newInput: T) -> R
 ) {
     viewModelScope.launch(context) {
-        inputNode.state.collect { newInput: T ->
+        inputNode.collect { newInput: T ->
             // Evaluate this only once by leaving it out of swap,
             // since swap can run f multiple times, the output is the same for
             // the same input

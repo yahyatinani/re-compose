@@ -94,6 +94,7 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
         db.copy(timeColor = (color as String))
     }
 
+
     regSub(time) { db: AppSchema, _ ->
         db.time
     }

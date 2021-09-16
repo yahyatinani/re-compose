@@ -1,7 +1,6 @@
 package com.github.whyrising.recompose.subs
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
@@ -13,8 +12,6 @@ import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -75,11 +72,9 @@ inline fun <T, R> regExtractor(
             val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
             val reaction = Reaction { extractor(db.value) }
 
-            reaction.viewModelScope.launch(context) {
-                db.collect { newAppDbVal ->
-                    val nodeOutput = extractor(newAppDbVal)
-                    reaction.swap { nodeOutput }
-                }
+            reaction.reactTo(db, context) { newAppDbVal ->
+                val nodeOutput = extractor(newAppDbVal)
+                reaction.swap { nodeOutput }
             }
 
             reaction
@@ -101,7 +96,7 @@ inline fun <T, R> regMaterialisedView(
                 { input: T -> computationFn(input, queryVec) }
             val reaction = Reaction { materialisedView(inputNode.deref()) }
 
-            reaction.reactTo(inputNode, context) { newInput ->
+            reaction.reactTo(inputNode.state, context) { newInput ->
                 materialisedView(newInput)
             }
 
