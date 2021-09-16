@@ -28,7 +28,7 @@ fun getHandler(kind: Kinds, id: Any): Any? = register().valAt(kind).let {
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun registerHandler(
+fun registerHandler(
     id: Any,
     kind: Kinds,
     handlerFn: Any

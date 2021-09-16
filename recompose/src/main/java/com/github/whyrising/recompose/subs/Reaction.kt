@@ -1,7 +1,5 @@
 package com.github.whyrising.recompose.subs
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
@@ -16,7 +14,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
@@ -24,7 +21,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     // this flag is used to track the last subscriber of this reaction
     private var isFresh = true
 
-    internal val state: MutableStateFlow<T> by lazy {
+    val state: MutableStateFlow<T> by lazy {
         val mutableStateFlow = MutableStateFlow(f())
         mutableStateFlow.subscriptionCount
             .onEach { count ->
@@ -88,7 +85,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
         }
     }
 
-    internal fun addOnDispose(f: (Reaction<T>) -> Unit) {
+    fun addOnDispose(f: (Reaction<T>) -> Unit) {
         disposeFns.add(f)
     }
 }
@@ -103,7 +100,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
  * @param computation a function that obtains data from [inputNode], and compute
  * derived data from it.
  */
-internal inline fun <T, R> Reaction<R>.reactTo(
+inline fun <T, R> Reaction<R>.reactTo(
     inputNode: Reaction<T>,
     context: CoroutineContext,
     crossinline computation: suspend (newInput: T) -> R
@@ -118,8 +115,3 @@ internal inline fun <T, R> Reaction<R>.reactTo(
         }
     }
 }
-
-@Composable
-fun <T> Reaction<T>.watch(
-    context: CoroutineContext = EmptyCoroutineContext
-): T = state.collectAsState(context = context).value

@@ -45,8 +45,8 @@ import com.github.whyrising.recompose.sample.Keys.timer
 import com.github.whyrising.recompose.sample.Keys.timeticker
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
-import com.github.whyrising.recompose.subs.watch
 import com.github.whyrising.recompose.subscribe
+import com.github.whyrising.recompose.watch
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m

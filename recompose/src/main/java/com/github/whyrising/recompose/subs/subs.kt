@@ -61,9 +61,9 @@ internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
 }
 
 // -- regSub -----------------------------------------------------------------
-internal fun <T, R> regSub(
+inline fun <T, R> regExtractor(
     queryId: Any,
-    extractorFn: (db: T, queryVec: IPersistentVector<Any>) -> R,
+    crossinline extractorFn: (db: T, queryVec: IPersistentVector<Any>) -> R,
 ) {
     val subsHandlerFn = { db: Atom<T>, queryVec: IPersistentVector<Any> ->
         val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
@@ -85,10 +85,10 @@ internal fun <T, R> regSub(
     registerHandler(queryId, kind, subsHandlerFn)
 }
 
-internal fun <T, R> regSub(
+inline fun <T, R> regMaterialisedView(
     queryId: Any,
-    signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
-    computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
+    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
     val subsHandlerFn = { _: Atom<Any>, queryVec: PersistentVector<Any> ->

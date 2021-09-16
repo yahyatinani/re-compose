@@ -1,6 +1,8 @@
 package com.github.whyrising.recompose
 
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.cofx.injectDb
@@ -11,6 +13,8 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Reaction
+import com.github.whyrising.recompose.subs.regExtractor
+import com.github.whyrising.recompose.subs.regMaterialisedView
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
@@ -18,6 +22,8 @@ import com.github.whyrising.y.collections.vector.IPersistentVector
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 fun measureTime(action: () -> Unit) {
     val start = System.nanoTime()
@@ -74,10 +80,10 @@ object Recompose : ViewModel() {
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
-fun <T> regEventDb(
+inline fun <T> regEventDb(
     id: Any,
     interceptors: IPersistentVector<Any> = v(),
-    handler: (db: T, vec: PersistentVector<Any>) -> Any
+    crossinline handler: (db: T, vec: PersistentVector<Any>) -> Any
 ) {
     register(
         id = id,
@@ -90,10 +96,10 @@ fun <T> regEventDb(
     )
 }
 
-fun regEventFx(
+inline fun regEventFx(
     id: Any,
     interceptors: IPersistentVector<IPersistentMap<Keys, Any>> = v(),
-    handler: (
+    crossinline handler: (
         cofx: IPersistentMap<Any, Any>,
         event: IPersistentVector<Any>
     ) -> IPersistentMap<Any, Any>
@@ -120,10 +126,10 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
  * @param extractor a function which extract data directly from [appDb], with no
  * further computation.
  */
-fun <T, R> regSub(
+inline fun <T, R> regSub(
     queryId: Any,
-    extractor: (db: T, queryVec: IPersistentVector<Any>) -> R,
-) = com.github.whyrising.recompose.subs.regSub(queryId, extractor)
+    crossinline extractor: (db: T, queryVec: IPersistentVector<Any>) -> R,
+) = regExtractor(queryId, extractor)
 
 /**
  * @param queryId a unique id for the subscription.
@@ -131,15 +137,20 @@ fun <T, R> regSub(
  * @param computationFn a function that obtains data from [signalsFn], and
  * compute derived data from it.
  */
-fun <T, R> regSub(
+inline fun <T, R> regSub(
     queryId: Any,
-    signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
-    computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
-) = com.github.whyrising.recompose.subs.regSub(
+    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
+) = regMaterialisedView(
     queryId,
     signalsFn,
     computationFn
 )
+
+@Composable
+fun <T> Reaction<T>.watch(
+    context: CoroutineContext = EmptyCoroutineContext
+): T = state.collectAsState(context = context).value
 
 // -- Effects ------------------------------------------------------------------
 

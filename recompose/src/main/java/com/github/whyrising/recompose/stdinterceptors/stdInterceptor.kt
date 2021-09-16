@@ -18,8 +18,8 @@ import com.github.whyrising.y.collections.vector.IPersistentVector
 These 2 factories wrap the 2 kinds of event handlers.
 */
 
-fun <T> dbHandlerToInterceptor(
-    eventDbHandler: (db: T, vec: PersistentVector<Any>) -> Any
+inline fun <T> dbHandlerToInterceptor(
+    crossinline eventDbHandler: (db: T, vec: PersistentVector<Any>) -> Any
 ): IPersistentMap<Keys, Any> = toInterceptor(
     id = ":db-handler",
     before = { context: IPersistentMap<Keys, Any> ->
@@ -37,8 +37,8 @@ fun <T> dbHandlerToInterceptor(
     }
 )
 
-fun fxHandlerToInterceptor(
-    eventFxHandler: (
+inline fun fxHandlerToInterceptor(
+    crossinline eventFxHandler: (
         cofx: IPersistentMap<Any, Any>,
         event: IPersistentVector<Any>
     ) -> IPersistentMap<Any, Any>
