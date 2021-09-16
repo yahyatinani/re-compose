@@ -88,8 +88,8 @@ internal suspend fun invokeInterceptors(
             0 -> context
             else -> {
                 val interceptor: Interceptor = que.first()
-                val stk = (get(context, stack)
-                    ?: l<Any>()) as PersistentList<Any>
+                val stk =
+                    (get(context, stack) ?: l<Any>()) as PersistentList<Any>
 
                 val c = context
                     .assoc(queue, que.rest())
