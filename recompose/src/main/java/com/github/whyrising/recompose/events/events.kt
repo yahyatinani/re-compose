@@ -7,8 +7,9 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
-import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
@@ -24,12 +25,12 @@ lists of interceptors (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
  */
 internal fun flatten(
     interceptors: PersistentVector<Any>
-): IPersistentVector<Any> = interceptors.fold(v()) { vec, interceptor ->
+): PersistentList<Any> = interceptors.foldRight(l()) { interceptor, list ->
     when (interceptor) {
-        is PersistentVector<*> -> interceptor.fold(vec) { v, intr ->
-            v.conj(intr!!)
+        is PersistentVector<*> -> interceptor.foldRight(list) { intr, l ->
+            l.conj(intr!!)
         }
-        else -> vec.conj(interceptor)
+        else -> list.conj(interceptor)
     }
 }
 
@@ -46,11 +47,10 @@ fun register(id: Any, interceptors: IPersistentVector<Any>) {
 
 @Suppress("UNCHECKED_CAST")
 suspend fun handle(eventVec: IPersistentVector<Any>) {
-    val handler: Any =
-        getHandler(kind, eventVec[0]) ?: return
+    val interceptors: Any = getHandler(kind, eventVec[0]) ?: return
 
     execute(
         eventVec,
-        handler as PersistentVector<IPersistentMap<Keys, Any>>
+        interceptors as PersistentList<IPersistentMap<Keys, Any>>
     )
 }

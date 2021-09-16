@@ -12,8 +12,10 @@ import com.github.whyrising.recompose.interceptor.context
 import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptors
 import com.github.whyrising.recompose.interceptor.toInterceptor
+import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
+import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
@@ -27,7 +29,7 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 class InterceptorTest : FreeSpec({
     "context(event, interceptors) should return a fresh context" {
         val eventVec = v<Any>(":id", 12)
-        val interceptors = v<IPersistentMap<Keys, Any>>()
+        val interceptors = l<IPersistentMap<Keys, Any>>()
 
         val context = context(eventVec, interceptors)
 
@@ -109,8 +111,8 @@ class InterceptorTest : FreeSpec({
     "invokeInterceptors(context)" - {
         "should return the same given context when the :queue is empty" {
             val context = m<Keys, Any>(
-                queue to v<Any>(),
-                stack to v<Any>()
+                queue to l<Any>(),
+                stack to l<Any>()
             )
 
             val newContext = invokeInterceptors(context, before)
@@ -120,7 +122,7 @@ class InterceptorTest : FreeSpec({
 
         """
             It should make a new context by invoking all interceptors in :queue
-            and stack them in :stack while emptying the queue
+            and stack then in :stack while emptying the queue
         """ {
             val f1: suspend (
                 IPersistentMap<Keys, Any>
@@ -137,8 +139,8 @@ class InterceptorTest : FreeSpec({
             val incBy1 = toInterceptor(id = ":incBy1", before = f1)
             val incBy2 = toInterceptor(id = ":incBy2", before = f2)
 
-            val qu = v<Any>(incBy1, incBy2) as PersistentVector
-            val stck = v<Any>()
+            val qu = l<Any>(incBy1, incBy2)
+            val stck = l<Any>()
 
             val context = m(
                 db to 0,
@@ -149,9 +151,9 @@ class InterceptorTest : FreeSpec({
             val newContext = invokeInterceptors(context, before)
 
             get(newContext, db) as Int shouldBeExactly 3
-            (get(newContext, queue) as PersistentVector<*>).shouldBeEmpty()
-            (get(newContext, stack) as PersistentVector<*>) shouldContainExactly
-                qu
+            (get(newContext, queue) as PersistentList<*>).shouldBeEmpty()
+            (get(newContext, stack) as PersistentList<*>) shouldContainExactly
+                qu.reversed()
         }
     }
 

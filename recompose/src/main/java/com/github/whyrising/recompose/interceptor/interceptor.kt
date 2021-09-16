@@ -8,13 +8,11 @@ import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.Keys.originalEvent
 import com.github.whyrising.recompose.Keys.queue
 import com.github.whyrising.recompose.Keys.stack
-import com.github.whyrising.recompose.get
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
+import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
-import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
@@ -51,7 +49,7 @@ private fun enqueue(
  */
 internal fun context(
     eventVec: Any,
-    interceptors: IPersistentVector<Interceptor>
+    interceptors: PersistentList<Interceptor>
 ): Context {
     val context0 = m<Keys, Any>()
     val context1 = assocCofx(context0, event, eventVec)
@@ -84,17 +82,17 @@ internal suspend fun invokeInterceptors(
     tailrec suspend fun invokeInterceptors(
         context: Context
     ): Context {
-        val qu = get(context, queue) as IPersistentVector<Interceptor>
+        val que = get(context, queue) as PersistentList<Interceptor>
 
-        return when (qu.count) {
+        return when (que.count) {
             0 -> context
             else -> {
-                val interceptor: Interceptor = qu[0]
-                val stk =
-                    (get(context, stack) ?: v<Any>()) as PersistentVector<Any>
+                val interceptor: Interceptor = que.first()
+                val stk = (get(context, stack)
+                    ?: l<Any>()) as PersistentList<Any>
 
                 val c = context
-                    .assoc(queue, qu.subvec(1, qu.count))
+                    .assoc(queue, que.rest())
                     .assoc(stack, stk.conj(interceptor))
 
                 invokeInterceptors(
@@ -112,7 +110,7 @@ internal fun changeDirection(context: Context): Context =
 
 suspend fun execute(
     eventVec: IPersistentVector<Any>,
-    interceptors: IPersistentVector<Interceptor>
+    interceptors: PersistentList<Interceptor>
 ) {
     val context0 = context(eventVec, interceptors)
     val context1 = invokeInterceptors(context0, before)
