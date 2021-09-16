@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose.subs
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
@@ -10,8 +11,10 @@ import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.concurrency.Atom
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -29,9 +32,10 @@ private fun <T> cacheReaction(
 ): Reaction<T> {
     reaction.addOnDispose { r: Reaction<T> ->
         if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
+            val value = appDb.subscriptionCount.value
             Log.i(
                 "reactionsCache",
-                "${get(key, 0)} got removed from cache. ${appDb.watches.count}"
+                "${get(key, 0)} got removed from cache. $value"
             )
             reactionsCache.remove(key)
         }
@@ -50,7 +54,7 @@ internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
 
     val queryId = (query as PersistentVector)[0]
     val handlerFn = getHandler(kind, queryId)
-        as ((db: Atom<*>, qvec: IPersistentVector<Any>) -> Reaction<T>)?
+        as ((db: MutableStateFlow<*>, qvec: IPersistentVector<Any>) -> Reaction<T>)?
         ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )
@@ -64,23 +68,22 @@ internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
 inline fun <T, R> regExtractor(
     queryId: Any,
     crossinline extractorFn: (db: T, queryVec: IPersistentVector<Any>) -> R,
+    context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    val subsHandlerFn = { db: Atom<T>, queryVec: IPersistentVector<Any> ->
-        val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
-        val reaction = Reaction { extractor(db()) }
+    val subsHandlerFn =
+        { db: MutableStateFlow<T>, queryVec: IPersistentVector<Any> ->
+            val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
+            val reaction = Reaction { extractor(db.value) }
 
-        db.addWatch(reaction.id) { key, _, _, newAppDbVal ->
-            val nodeOutput = extractor(newAppDbVal)
-            reaction.swap { nodeOutput }
-            key
+            reaction.viewModelScope.launch(context) {
+                db.collect { newAppDbVal ->
+                    val nodeOutput = extractor(newAppDbVal)
+                    reaction.swap { nodeOutput }
+                }
+            }
+
+            reaction
         }
-
-        reaction.addOnDispose {
-            db.removeWatch(reaction.id)
-        }
-
-        reaction
-    }
 
     registerHandler(queryId, kind, subsHandlerFn)
 }
@@ -91,17 +94,19 @@ inline fun <T, R> regMaterialisedView(
     crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    val subsHandlerFn = { _: Atom<Any>, queryVec: PersistentVector<Any> ->
-        val inputNode = signalsFn(queryVec)
-        val materialisedView = { input: T -> computationFn(input, queryVec) }
-        val reaction = Reaction { materialisedView(inputNode.deref()) }
+    val subsHandlerFn =
+        { _: MutableStateFlow<Any>, queryVec: PersistentVector<Any> ->
+            val inputNode = signalsFn(queryVec)
+            val materialisedView =
+                { input: T -> computationFn(input, queryVec) }
+            val reaction = Reaction { materialisedView(inputNode.deref()) }
 
-        reaction.reactTo(inputNode, context) { newInput ->
-            materialisedView(newInput)
+            reaction.reactTo(inputNode, context) { newInput ->
+                materialisedView(newInput)
+            }
+
+            reaction
         }
-
-        reaction
-    }
 
     registerHandler(queryId, kind, subsHandlerFn)
 }
