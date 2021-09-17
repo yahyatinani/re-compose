@@ -42,6 +42,7 @@ private fun <T> cacheReaction(
     return reaction
 }
 
+@Suppress("UNCHECKED_CAST")
 internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
     val cacheKey = v(query, v())
     val cachedReaction = reactionsCache[cacheKey] as Reaction<T>?
@@ -51,7 +52,7 @@ internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
 
     val queryId = (query as PersistentVector)[0]
     val handlerFn = getHandler(kind, queryId)
-        as ((db: MutableStateFlow<*>, qvec: IPersistentVector<Any>) -> Reaction<T>)?
+        as ((MutableStateFlow<*>, IPersistentVector<Any>) -> Reaction<T>)?
         ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )

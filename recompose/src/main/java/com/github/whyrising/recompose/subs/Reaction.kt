@@ -1,6 +1,5 @@
 package com.github.whyrising.recompose.subs
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
@@ -42,10 +41,6 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
 
         disposeFns.forEach { disposeFn -> disposeFn(this) }
         viewModelScope.cancel("This reaction `$id` got cleared")
-        Log.i(
-            TAG,
-            "This reaction `$id` got cleared ${appDb.subscriptionCount.value}"
-        )
     }
 
     override fun deref(): T = state.value
@@ -93,30 +88,30 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     fun addOnDispose(f: (Reaction<T>) -> Unit) {
         disposeFns.add(f)
     }
-}
 
-/**
- * This function runs the [computation] function every time the [inputNode]
- * changes.
- *
- * @param inputNode reaction which extract data directly from [appDb],
- * but do no further computation.
- * @param context for the coroutines running under [viewModelScope].
- * @param computation a function that obtains data from [inputNode], and compute
- * derived data from it.
- */
-inline fun <T, R> Reaction<R>.reactTo(
-    inputNode: MutableStateFlow<T>,
-    context: CoroutineContext,
-    crossinline computation: suspend (newInput: T) -> R
-) {
-    viewModelScope.launch(context) {
-        inputNode.collect { newInput: T ->
-            // Evaluate this only once by leaving it out of swap,
-            // since swap can run f multiple times, the output is the same for
-            // the same input
-            val materializedView = computation(newInput)
-            swap { materializedView }
+    /**
+     * This function runs the [computation] function every time the [inputNode]
+     * changes.
+     *
+     * @param inputNode reaction which extract data directly from [appDb],
+     * but do no further computation.
+     * @param context for the coroutines running under [viewModelScope].
+     * @param computation a function that obtains data from [inputNode], and compute
+     * derived data from it.
+     */
+    inline fun <R> reactTo(
+        inputNode: MutableStateFlow<R>,
+        context: CoroutineContext,
+        crossinline computation: suspend (newInput: R) -> T
+    ) {
+        viewModelScope.launch(context) {
+            inputNode.collect { newInput: R ->
+                // Evaluate this only once by leaving it out of swap,
+                // since swap can run f multiple times, the output is the same
+                // for the same input
+                val materializedView = computation(newInput)
+                swap { materializedView }
+            }
         }
     }
 }
