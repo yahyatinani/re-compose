@@ -29,12 +29,12 @@ private fun <T> cacheReaction(
 ): Reaction<T> {
     reaction.addOnDispose { r: Reaction<T> ->
         if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
+            reactionsCache.remove(key)
             val value = appDb.subscriptionCount.value
             Log.i(
                 "reactionsCache",
                 "${get(key, 0)} got removed from cache. $value"
             )
-            reactionsCache.remove(key)
         }
     }
 
@@ -74,8 +74,7 @@ inline fun <T, R> regExtractor(
             val reaction = Reaction { extractor(db.value) }
 
             reaction.reactTo(db, context) { newAppDbVal ->
-                val nodeOutput = extractor(newAppDbVal)
-                reaction.swap { nodeOutput }
+                extractor(newAppDbVal)
             }
 
             reaction
