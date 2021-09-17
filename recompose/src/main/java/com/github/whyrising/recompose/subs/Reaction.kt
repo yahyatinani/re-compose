@@ -15,7 +15,11 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
+interface React<T> : IDeref<T> {
+    suspend fun collect(action: suspend (T) -> Unit)
+}
+
+class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
 
     // this flag is used to track the last subscriber of this reaction
@@ -89,6 +93,10 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
         disposeFns.add(f)
     }
 
+    override suspend fun collect(action: suspend (T) -> Unit) {
+        state.collect { action(it) }
+    }
+
     /**
      * This function runs the [computation] function every time the [inputNode]
      * changes.
@@ -100,7 +108,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
      * derived data from it.
      */
     inline fun <R> reactTo(
-        inputNode: MutableStateFlow<R>,
+        inputNode: React<R>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: R) -> T
     ) {

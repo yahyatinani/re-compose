@@ -13,7 +13,7 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Reaction
-import com.github.whyrising.recompose.subs.regExtractor
+import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regMaterialisedView
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
@@ -129,7 +129,7 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
 inline fun <T, R> regSub(
     queryId: Any,
     crossinline extractor: (db: T, queryVec: IPersistentVector<Any>) -> R,
-) = regExtractor(queryId, extractor)
+) = regDbExtractor(queryId, extractor)
 
 /**
  * @param queryId a unique id for the subscription.

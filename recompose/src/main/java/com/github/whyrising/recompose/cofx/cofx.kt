@@ -61,7 +61,7 @@ fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
  Adds to coeffects the value in `appDdb`, under the key `Db`
  */
 val cofxDb = regCofx(id = db) { coeffects ->
-    coeffects.assoc(db, appDb.value)
+    coeffects.assoc(db, appDb.deref())
 }
 
 // Because this interceptor is used so much, we reify it

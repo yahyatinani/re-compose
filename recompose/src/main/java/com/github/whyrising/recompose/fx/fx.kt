@@ -96,7 +96,7 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
 
 val updateDbFx: Unit = regFx(id = db) { newAppDb ->
     // emit() doesn't set if the newVal == the currentVal
-    appDb.emit(newAppDb)
+    appDb.state.emit(newAppDb)
 }
 
 val dispatchEventFx: Unit = regFx(id = dispatch) { event ->

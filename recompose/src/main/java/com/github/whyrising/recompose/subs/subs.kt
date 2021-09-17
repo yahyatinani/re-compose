@@ -11,7 +11,6 @@ import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -30,7 +29,7 @@ private fun <T> cacheReaction(
     reaction.addOnDispose { r: Reaction<T> ->
         if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
             reactionsCache.remove(key)
-            val value = appDb.subscriptionCount.value
+            val value = appDb.state.subscriptionCount.value
             Log.i(
                 "reactionsCache",
                 "${get(key, 0)} got removed from cache. $value"
@@ -52,7 +51,7 @@ internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
 
     val queryId = (query as PersistentVector)[0]
     val handlerFn = getHandler(kind, queryId)
-        as ((MutableStateFlow<*>, IPersistentVector<Any>) -> Reaction<T>)?
+        as ((React<*>, IPersistentVector<Any>) -> Reaction<T>)?
         ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )
@@ -63,45 +62,48 @@ internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
 }
 
 // -- regSub -----------------------------------------------------------------
-inline fun <T, R> regExtractor(
+
+fun <R, T> reaction(
+    inputNode: React<T>,
+    context: CoroutineContext,
+    f: (T) -> R
+): Reaction<R> {
+    val reaction = Reaction { f(inputNode.deref()) }
+    reaction.reactTo(inputNode, context) { newInput ->
+        f(newInput)
+    }
+    return reaction
+}
+
+inline fun <T, R> regDbExtractor(
     queryId: Any,
     crossinline extractorFn: (db: T, queryVec: IPersistentVector<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    val subsHandlerFn =
-        { db: MutableStateFlow<T>, queryVec: IPersistentVector<Any> ->
-            val extractor = { appDb: T -> extractorFn(appDb, queryVec) }
-            val reaction = Reaction { extractor(db.value) }
-
-            reaction.reactTo(db, context) { newAppDbVal ->
-                extractor(newAppDbVal)
+    registerHandler(
+        queryId,
+        kind,
+        { db: React<T>, queryVec: IPersistentVector<Any> ->
+            reaction(db, context) { inputSignal: T ->
+                extractorFn(inputSignal, queryVec)
             }
-
-            reaction
         }
-
-    registerHandler(queryId, kind, subsHandlerFn)
+    )
 }
 
 inline fun <T, R> regMaterialisedView(
     queryId: Any,
-    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> React<T>,
     crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    val subsHandlerFn =
-        { _: MutableStateFlow<Any>, queryVec: PersistentVector<Any> ->
-            val inputNode = signalsFn(queryVec)
-            val materialisedView =
-                { input: T -> computationFn(input, queryVec) }
-            val reaction = Reaction { materialisedView(inputNode.deref()) }
-
-            reaction.reactTo(inputNode.state, context) { newInput ->
-                materialisedView(newInput)
+    registerHandler(
+        queryId,
+        kind,
+        { _: React<Any>, queryVec: PersistentVector<Any> ->
+            reaction(signalsFn(queryVec), context) { inputSignal: T ->
+                computationFn(inputSignal, queryVec)
             }
-
-            reaction
         }
-
-    registerHandler(queryId, kind, subsHandlerFn)
+    )
 }
