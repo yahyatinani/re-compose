@@ -83,10 +83,38 @@ inline fun <T, R> regDbExtractor(
     registerHandler(
         queryId,
         kind,
-        { db: React<T>, queryVec: IPersistentVector<Any> ->
-            reaction(db, context) { inputSignal: T ->
+        { appDb: React<T>, queryVec: IPersistentVector<Any> ->
+            reaction(appDb, context) { inputSignal: T ->
                 extractorFn(inputSignal, queryVec)
             }
+        }
+    )
+}
+
+inline fun <T, R> regSubscription(
+    queryId: Any,
+    crossinline signalsFn: (
+        queryVec: PersistentVector<Any>
+    ) -> PersistentVector<React<T>>,
+    crossinline computationFn: (
+        subscriptions: PersistentVector<T>,
+        queryVec: PersistentVector<Any>
+    ) -> R,
+    context: CoroutineContext = Dispatchers.Main.immediate,
+) {
+    registerHandler(
+        queryId,
+        kind,
+        { _: React<Any>, queryVec: PersistentVector<Any> ->
+            val subscriptions = signalsFn(queryVec)
+            val reaction = Reaction {
+                val deref = deref(subscriptions)
+                computationFn(deref, queryVec)
+            }
+            reaction.reactTo(subscriptions, context) { newSubscriptions ->
+                computationFn(newSubscriptions, queryVec)
+            }
+            reaction
         }
     )
 }
@@ -97,13 +125,10 @@ inline fun <T, R> regMaterialisedView(
     crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
-    registerHandler(
+    regSubscription(
         queryId,
-        kind,
-        { _: React<Any>, queryVec: PersistentVector<Any> ->
-            reaction(signalsFn(queryVec), context) { inputSignal: T ->
-                computationFn(inputSignal, queryVec)
-            }
-        }
+        { queryVec -> v(signalsFn(queryVec)) as PersistentVector<React<T>> },
+        { persistentVector, qVec -> computationFn(persistentVector[0], qVec) },
+        context
     )
 }

@@ -12,9 +12,11 @@ import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regMaterialisedView
+import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
@@ -133,7 +135,8 @@ inline fun <T, R> regSub(
 
 /**
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that
+ * @param signalsFn a function that returns a Reaction by subscribing to other
+ * nodes.
  * @param computationFn a function that obtains data from [signalsFn], and
  * compute derived data from it.
  */
@@ -141,11 +144,18 @@ inline fun <T, R> regSub(
     queryId: Any,
     crossinline signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
     crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
-) = regMaterialisedView(
-    queryId,
-    signalsFn,
-    computationFn
-)
+) = regMaterialisedView(queryId, signalsFn, computationFn)
+
+inline fun <T, R> regSubM(
+    queryId: Any,
+    crossinline signalsFn: (
+        queryVec: PersistentVector<Any>
+    ) -> PersistentVector<React<T>>,
+    crossinline computationFn: (
+        subscriptions: PersistentVector<T>,
+        queryVec: PersistentVector<Any>,
+    ) -> R,
+) = regSubscription(queryId, signalsFn, computationFn)
 
 @Composable
 fun <T> Reaction<T>.watch(
