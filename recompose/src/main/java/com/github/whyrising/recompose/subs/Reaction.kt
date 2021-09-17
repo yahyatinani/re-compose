@@ -130,8 +130,8 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
         context: CoroutineContext,
         crossinline computation: suspend (newInput: PersistentVector<R>) -> T
     ) {
-        viewModelScope.launch(context) {
-            for ((i, s) in subscriptions.withIndex()) {
+        for ((i, s) in subscriptions.withIndex()) {
+            viewModelScope.launch(context) {
                 s.collect { newInput: R ->
                     val derefs = deref(subscriptions)
                         .assoc(i, newInput) as PersistentVector<R>
