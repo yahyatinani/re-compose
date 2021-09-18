@@ -5,4 +5,6 @@ import java.util.Date
 data class AppSchema(
     val time: Date,
     val timeColor: String,
+    val a: Int? = null,
+    val b: Int? = null,
 )

@@ -3,6 +3,8 @@ package com.github.whyrising.recompose.subs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
+import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.concurrency.IAtom
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.str
@@ -15,7 +17,11 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
+interface React<T> : IDeref<T> {
+    suspend fun collect(action: suspend (T) -> Unit)
+}
+
+class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
 
     // this flag is used to track the last subscriber of this reaction
@@ -88,30 +94,61 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IDeref<T>, IAtom<T> {
     fun addOnDispose(f: (Reaction<T>) -> Unit) {
         disposeFns.add(f)
     }
-}
 
-/**
- * This function runs the [computation] function every time the [inputNode]
- * changes.
- *
- * @param inputNode reaction which extract data directly from [appDb],
- * but do no further computation.
- * @param context for the coroutines running under [viewModelScope].
- * @param computation a function that obtains data from [inputNode], and compute
- * derived data from it.
- */
-inline fun <T, R> Reaction<R>.reactTo(
-    inputNode: Reaction<T>,
-    context: CoroutineContext,
-    crossinline computation: suspend (newInput: T) -> R
-) {
-    viewModelScope.launch(context) {
-        inputNode.state.collect { newInput: T ->
-            // Evaluate this only once by leaving it out of swap,
-            // since swap can run f multiple times, the output is the same for
-            // the same input
-            val materializedView = computation(newInput)
-            swap { materializedView }
+    override suspend fun collect(action: suspend (T) -> Unit) {
+        state.collect { action(it) }
+    }
+
+    /**
+     * This function runs the [computation] function every time the [inputNode]
+     * changes.
+     *
+     * @param inputNode reaction which extract data directly from [appDb],
+     * but do no further computation.
+     * @param context for the coroutines running under [viewModelScope].
+     * @param computation a function that obtains data from [inputNode], and compute
+     * derived data from it.
+     */
+    inline fun <R> reactTo(
+        inputNode: React<R>,
+        context: CoroutineContext,
+        crossinline computation: suspend (newInput: R) -> T
+    ) {
+        viewModelScope.launch(context) {
+            inputNode.collect { newInput: R ->
+                // Evaluate this only once by leaving it out of swap,
+                // since swap can run f multiple times, the output is the same
+                // for the same input
+                val materializedView = computation(newInput)
+                swap { materializedView }
+            }
         }
     }
+
+    inline fun <R> reactTo(
+        subscriptions: PersistentVector<React<R>>,
+        context: CoroutineContext,
+        crossinline computation: suspend (newInput: PersistentVector<R>) -> T
+    ) {
+        for ((i, s) in subscriptions.withIndex()) {
+            viewModelScope.launch(context) {
+                s.collect { newInput: R ->
+                    val derefs = deref(subscriptions)
+                        .assoc(i, newInput) as PersistentVector<R>
+
+                    // Evaluate this only once by leaving it out of swap,
+                    // since swap can run f multiple times, the output is the
+                    // same for the same input
+                    val materializedView = computation(derefs)
+                    swap { materializedView }
+                }
+            }
+        }
+    }
+}
+
+fun <T> deref(subscriptions: PersistentVector<React<T>>): PersistentVector<T> {
+    return subscriptions.fold(v<T>()) { vec, reaction ->
+        vec.conj(reaction.deref())
+    } as PersistentVector<T>
 }

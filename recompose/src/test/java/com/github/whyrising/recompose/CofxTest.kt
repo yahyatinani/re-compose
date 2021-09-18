@@ -12,6 +12,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
+@Suppress("UNCHECKED_CAST")
 class CofxTest : FreeSpec({
     "regCofx(id, handler)" {
         val coeffects = m("db" to 0)
@@ -24,7 +25,7 @@ class CofxTest : FreeSpec({
     }
 
     "cofxDb" {
-        appDb.reset(-22)
+        appDb.state.value = -22
         val coeffects = m(db to -1)
 
         val cofxDbHandler = getHandler(Kinds.Cofx, db) as suspend ((Any) -> Any)

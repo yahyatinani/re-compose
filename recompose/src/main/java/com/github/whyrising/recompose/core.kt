@@ -12,9 +12,11 @@ import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subs.Reaction
-import com.github.whyrising.recompose.subs.regExtractor
+import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regMaterialisedView
+import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
@@ -129,26 +131,42 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
 inline fun <T, R> regSub(
     queryId: Any,
     crossinline extractor: (db: T, queryVec: IPersistentVector<Any>) -> R,
-) = regExtractor(queryId, extractor)
+) = regDbExtractor(queryId, extractor)
 
 /**
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that
+ * @param signalsFn a function that returns a Reaction by subscribing to other
+ * nodes.
  * @param computationFn a function that obtains data from [signalsFn], and
  * compute derived data from it.
  */
 inline fun <T, R> regSub(
     queryId: Any,
-    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> React<T>,
     crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
-) = regMaterialisedView(
-    queryId,
-    signalsFn,
-    computationFn
-)
+) = regMaterialisedView(queryId, signalsFn, computationFn)
 
+inline fun <T, R> regSubM(
+    queryId: Any,
+    crossinline signalsFn: (
+        queryVec: PersistentVector<Any>
+    ) -> PersistentVector<React<T>>,
+    crossinline computationFn: (
+        subscriptions: PersistentVector<T>,
+        queryVec: PersistentVector<Any>,
+    ) -> R,
+) = regSubscription(queryId, signalsFn, computationFn)
+
+/**
+ * Collects values from this Reaction and represents its latest value.
+ *
+ * @param context CoroutineContext to use for collecting.
+ *
+ * @return returns the current value of this reaction. Every time there would be
+ * new value posted into the Reaction it's going to cause a recomposition.
+ */
 @Composable
-fun <T> Reaction<T>.watch(
+fun <T> Reaction<T>.w(
     context: CoroutineContext = EmptyCoroutineContext
 ): T = state.collectAsState(context = context).value
 
