@@ -142,7 +142,7 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
     queryId: Any,
-    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> Reaction<T>,
+    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> React<T>,
     crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
 ) = regMaterialisedView(queryId, signalsFn, computationFn)
 
@@ -157,8 +157,16 @@ inline fun <T, R> regSubM(
     ) -> R,
 ) = regSubscription(queryId, signalsFn, computationFn)
 
+/**
+ * Collects values from this Reaction and represents its latest value.
+ *
+ * @param context CoroutineContext to use for collecting.
+ *
+ * @return returns the current value of this reaction. Every time there would be
+ * new value posted into the Reaction it's going to cause a recomposition.
+ */
 @Composable
-fun <T> Reaction<T>.watch(
+fun <T> Reaction<T>.w(
     context: CoroutineContext = EmptyCoroutineContext
 ): T = state.collectAsState(context = context).value
 

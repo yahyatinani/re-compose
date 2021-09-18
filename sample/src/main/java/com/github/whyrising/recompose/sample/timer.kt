@@ -52,7 +52,7 @@ import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subscribe
-import com.github.whyrising.recompose.watch
+import com.github.whyrising.recompose.w
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
@@ -207,12 +207,12 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 @Composable
 fun Clock() {
     Text(
-        text = subscribe<String>(v(formattedTime)).watch(),
+        text = subscribe<String>(v(formattedTime)).w(),
         style = MaterialTheme.typography.h1,
         fontWeight = FontWeight.SemiBold,
         color = subscribe<Color>(
             v(primaryColor, MaterialTheme.colors.onSurface)
-        ).watch()
+        ).w()
     )
 }
 
@@ -226,7 +226,7 @@ fun ColorInput() {
             )
             Spacer(modifier = Modifier.width(4.dp))
             OutlinedTextField(
-                value = subscribe<String>(v(timeColorName)).watch(),
+                value = subscribe<String>(v(timeColorName)).w(),
                 singleLine = true,
                 maxLines = 1,
                 onValueChange = {
@@ -250,14 +250,14 @@ fun TimeApp() {
         MaterialTheme(
             colors = subscribe<Colors>(
                 v(materialThemeColors, MaterialTheme.colors, defaultColor)
-            ).watch()
+            ).w()
         ) {
             val systemUiController = rememberSystemUiController()
 
-            val color = subscribe<Color>(v(primaryColor, defaultColor)).watch()
+            val color = subscribe<Color>(v(primaryColor, defaultColor)).w()
             val areStatusBarIconsDark = subscribe<Boolean>(
                 v(statusBarDarkIcons, defaultColor)
-            ).watch()
+            ).w()
 
             SideEffect {
                 systemUiController.setSystemBarsColor(
@@ -283,7 +283,7 @@ fun TimeApp() {
                 horizontalArrangement = Arrangement.Start
             ) {
                 OutlinedTextField(
-                    value = subscribe<String>(v(":a-str")).watch(),
+                    value = subscribe<String>(v(":a-str")).w(),
                     onValueChange = { dispatch(v(":a", it)) },
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
@@ -301,7 +301,7 @@ fun TimeApp() {
                 )
 
                 OutlinedTextField(
-                    value = subscribe<String>(v(":b-str")).watch(),
+                    value = subscribe<String>(v(":b-str")).w(),
                     onValueChange = { dispatch(v(":b", it)) },
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
@@ -319,7 +319,7 @@ fun TimeApp() {
                 )
 
                 OutlinedTextField(
-                    value = subscribe<String>(v(":sum-a-b")).watch(),
+                    value = subscribe<String>(v(":sum-a-b")).w(),
                     onValueChange = {},
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
