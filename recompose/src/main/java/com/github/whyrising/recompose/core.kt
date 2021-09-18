@@ -183,11 +183,10 @@ fun regFx(id: Any, handler: suspend (value: Any?) -> Unit) {
 }
 
 // TODO: Move to y lib
-operator fun <E> IPersistentVector<E>.component1(): E = this.nth(1)
+operator fun <E> IPersistentVector<E>.component1(): E = this.nth(0)
 
 operator fun <E> IPersistentVector<E>.component2(): E = this.nth(1)
 
 operator fun <E> IPersistentVector<E>.component3(): E = this.nth(2)
 
-operator fun <E> IPersistentVector<E>.get(index: Int): E =
-    this.nth(index)
+operator fun <E> IPersistentVector<E>.get(index: Int): E = this.nth(index)
