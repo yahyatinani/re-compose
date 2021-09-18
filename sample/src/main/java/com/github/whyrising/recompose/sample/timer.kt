@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
@@ -21,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.whyrising.recompose.Keys
@@ -32,6 +36,7 @@ import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.regFx
 import com.github.whyrising.recompose.regSub
+import com.github.whyrising.recompose.regSubM
 import com.github.whyrising.recompose.sample.Keys.formattedTime
 import com.github.whyrising.recompose.sample.Keys.materialThemeColors
 import com.github.whyrising.recompose.sample.Keys.now
@@ -45,6 +50,7 @@ import com.github.whyrising.recompose.sample.Keys.timer
 import com.github.whyrising.recompose.sample.Keys.timeticker
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.sample.util.toColor
+import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.watch
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
@@ -86,7 +92,6 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
         interceptors = v(injectCofx(now))
     ) { cofx: IPersistentMap<Any, Any>, _ ->
         val db = get(cofx, db) as AppSchema
-
         m(Keys.db to db.copy(time = get(cofx, now) as Date))
     }
 
@@ -142,6 +147,60 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
         Log.i("MainActivity", "`statusBarDarkIcons` compFn did run")
 
         primaryColor.luminance() >= 0.5f
+    }
+
+    regEventDb<AppSchema>(":a") { db, (_, a) ->
+        // TODO: validator?
+        val s = a as String
+        when {
+            s.isEmpty() || s.isBlank() -> db.copy(a = null)
+            else -> db.copy(a = s.toInt())
+        }
+    }
+
+    regEventDb<AppSchema>(":b") { db, (_, b) ->
+        val s = b as String
+        when {
+            s.isEmpty() || s.isBlank() -> db.copy(b = null)
+            else -> db.copy(b = s.toInt())
+        }
+    }
+
+    regSub(":a") { db: AppSchema, _ ->
+        db.a
+    }
+
+    regSub(":b") { db: AppSchema, _ ->
+        db.b
+    }
+
+    regSub(":a-str") { db: AppSchema, _ ->
+        when (db.a) {
+            null -> ""
+            else -> "${db.a}"
+        }
+    }
+
+    regSub(":b-str") { db: AppSchema, _ ->
+        when (db.b) {
+            null -> ""
+            else -> "${db.b}"
+        }
+    }
+
+    regSubM(
+        ":sum-a-b",
+        {
+            v<React<Int?>>(
+                subscribe(v(":a")),
+                subscribe(v(":b"))
+            ) as PersistentVector<React<Int?>>
+        }
+    ) { (a, b), _ ->
+        when {
+            a != null && b != null -> "${a + b}"
+            else -> ""
+        }
     }
 }
 
@@ -214,7 +273,61 @@ fun TimeApp() {
                 color = MaterialTheme.colors.primary
             )
             Clock()
+            Spacer(modifier = Modifier.height(16.dp))
             ColorInput()
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                OutlinedTextField(
+                    value = subscribe<String>(v(":a-str")).watch(),
+                    onValueChange = { dispatch(v(":a", it)) },
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    singleLine = true,
+                    label = { Text(text = "a") },
+                    keyboardOptions = KeyboardOptions
+                        .Default
+                        .copy(keyboardType = KeyboardType.Number),
+                )
+
+                Text(
+                    text = "+",
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                OutlinedTextField(
+                    value = subscribe<String>(v(":b-str")).watch(),
+                    onValueChange = { dispatch(v(":b", it)) },
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    singleLine = true,
+                    label = { Text(text = "b") },
+                    keyboardOptions = KeyboardOptions
+                        .Default
+                        .copy(keyboardType = KeyboardType.Number),
+                )
+
+                Text(
+                    text = "=",
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                OutlinedTextField(
+                    value = subscribe<String>(v(":sum-a-b")).watch(),
+                    onValueChange = {},
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    singleLine = true,
+                    label = { Text(text = "sum") },
+                    enabled = false,
+                )
+            }
         }
     }
 }
