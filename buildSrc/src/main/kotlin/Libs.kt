@@ -2,14 +2,14 @@ object Libs {
     const val jvmTarget = "1.8"
 
     object Kotlin {
-        const val version = "1.5.21"
+        const val version = "1.5.30"
 
         const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:$version"
     }
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.2"
+        const val version = "1.0.3"
 
         const val ui = "$gr.ui:ui:$version"
 
