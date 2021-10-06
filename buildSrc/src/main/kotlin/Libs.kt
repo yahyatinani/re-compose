@@ -47,28 +47,29 @@ object Libs {
         const val appcompat = "androidx.appcompat:appcompat:1.3.1"
 
         const val navigationCompose =
-            "androidx.navigation:navigation-compose:2.4.0-alpha07"
+            "androidx.navigation:navigation-compose:2.4.0-alpha10"
 
         const val constraintLayoutCompose =
-            "androidx.constraintlayout:constraintlayout-compose:1.0.0-beta02"
+            "androidx.constraintlayout:constraintlayout-compose:1.0.0-rc01"
 
         const val coreKtx = "androidx.core:core-ktx:1.6.0"
     }
 
     object Coroutines {
         private const val group = "org.jetbrains.kotlinx"
-        private const val version = "1.5.1"
+        private const val version = "1.5.2"
 
         const val core = "$group:kotlinx-coroutines-core:$version"
         const val android = "$group:kotlinx-coroutines-android:$version"
         const val coroutinesTest = "$group:kotlinx-coroutines-test:$version"
 
-        const val vmLifecycle = "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+        const val vmLifecycle =
+            "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
     }
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.6"
+        private const val version = "0.0.7"
 
         const val core = "$group:y-core:$version"
         const val collections = "$group:y-collections:$version"
@@ -76,7 +77,7 @@ object Libs {
     }
 
     object Kotest {
-        private const val version = "4.6.1"
+        private const val version = "4.6.3"
 
         const val runner = "io.kotest:kotest-runner-junit5:$version"
         const val assertions = "io.kotest:kotest-assertions-core:$version"
