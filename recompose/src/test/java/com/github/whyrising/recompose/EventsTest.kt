@@ -1,20 +1,22 @@
 package com.github.whyrising.recompose
 
 import com.github.whyrising.recompose.events.flatten
-import com.github.whyrising.y.collections.concretions.list.PersistentList
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.collections.seq.LazySeq
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.reflection.shouldBeSubtypeOf
+import io.kotest.matchers.shouldBe
 
 class EventsTest : FreeSpec({
     "flatten(interceptors)" {
         val items = v(1, 2, v("3", false))
 
-        val r = flatten(items as PersistentVector<Any>)
+        val r = flatten(items)
 
-        r shouldContainExactly v(1, 2, "3", false) as PersistentVector
-        r::class.shouldBeSubtypeOf<PersistentList<*>>()
+        r.first() shouldBe 1
+        r.rest().first() shouldBe 2
+        r.rest().rest().first() shouldBe "3"
+        r.rest().rest().rest().first() shouldBe false
+        r::class.shouldBeSubtypeOf<LazySeq<*>>()
     }
 })

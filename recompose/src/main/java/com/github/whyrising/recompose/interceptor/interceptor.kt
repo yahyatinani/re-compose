@@ -8,12 +8,12 @@ import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.Keys.originalEvent
 import com.github.whyrising.recompose.Keys.queue
 import com.github.whyrising.recompose.Keys.stack
-import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 typealias InterceptorFn =
@@ -49,7 +49,7 @@ private fun enqueue(
  */
 internal fun context(
     eventVec: Any,
-    interceptors: PersistentList<Interceptor>
+    interceptors: ISeq<Interceptor>
 ): Context {
     val context0 = m<Keys, Any>()
     val context1 = assocCofx(context0, event, eventVec)
@@ -82,14 +82,13 @@ internal suspend fun invokeInterceptors(
     tailrec suspend fun invokeInterceptors(
         context: Context
     ): Context {
-        val que = context[queue] as PersistentList<Interceptor>
+        val que = context[queue] as ISeq<Interceptor>
 
         return when (que.count) {
             0 -> context
             else -> {
                 val interceptor: Interceptor = que.first()
-                val stk =
-                    (context[stack] ?: l<Any>()) as PersistentList<Any>
+                val stk = (context[stack] ?: l<Any>()) as ISeq<Any>
 
                 val c = context
                     .assoc(queue, que.rest())
@@ -110,7 +109,7 @@ internal fun changeDirection(context: Context): Context =
 
 suspend fun execute(
     eventVec: IPersistentVector<Any>,
-    interceptors: PersistentList<Interceptor>
+    interceptors: ISeq<Interceptor>
 ) {
     val context0 = context(eventVec, interceptors)
     val context1 = invokeInterceptors(context0, before)

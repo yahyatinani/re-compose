@@ -6,32 +6,32 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
-import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.collections.core.concat
+import com.github.whyrising.y.collections.core.conj
+import com.github.whyrising.y.collections.core.lazySeq
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 val kind: Kinds = Event
 
-// TODO: Make it lazy.
-// TODO: Move to y
+// TODO: Move flatten to y library?
 /**
- * Returns a flat list of interceptors, since `interceptors` can be nested as
-lists of interceptors (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
+ * Returns a flat nested seq of interceptors.
+ * (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
 
  * It preserves the order of `interceptors`.
  */
-internal fun flatten(
-    interceptors: PersistentVector<Any>
-): PersistentList<Any> = interceptors.foldRight(l()) { interceptor, list ->
-    when (interceptor) {
-        is PersistentVector<*> -> interceptor.foldRight(list) { intr, l ->
-            l.conj(intr!!)
+internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
+    lazySeq {
+        interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
+            when (interceptor) {
+                is PersistentVector<*> -> concat(interceptor, seq)
+                else -> conj(seq, interceptor) as ISeq<Any>
+            }
         }
-        else -> list.conj(interceptor)
     }
-}
 
 /***
  * Associate the given event `id` with the given collection of `interceptors`.
@@ -46,10 +46,8 @@ fun register(id: Any, interceptors: IPersistentVector<Any>) {
 
 @Suppress("UNCHECKED_CAST")
 suspend fun handle(eventVec: IPersistentVector<Any>) {
-    val interceptors: Any = getHandler(kind, eventVec[0]) ?: return
+    val interceptors = getHandler(kind, eventVec[0])
+        as ISeq<IPersistentMap<Keys, Any>>?
 
-    execute(
-        eventVec,
-        interceptors as PersistentList<IPersistentMap<Keys, Any>>
-    )
+    execute(eventVec, interceptors ?: return)
 }
