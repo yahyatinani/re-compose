@@ -27,10 +27,11 @@ class CofxTest : FreeSpec({
     "cofxDb" {
         appDb.state.value = -22
         val coeffects = m(db to -1)
+        regCofx("id") { it }
 
         val cofxDbHandler = getHandler(Kinds.Cofx, db) as suspend ((Any) -> Any)
         val newCofx = cofxDbHandler(coeffects) as IPersistentMap<Keys, Any>
 
-        get(newCofx, db) shouldBe -22
+        newCofx[db] shouldBe -22
     }
 })
