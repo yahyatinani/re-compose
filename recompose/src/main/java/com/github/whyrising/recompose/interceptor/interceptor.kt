@@ -108,8 +108,8 @@ suspend fun execute(
     eventVec: IPersistentVector<Any>,
     interceptors: ISeq<Interceptor>
 ) {
-    val context0 = context(eventVec, interceptors)
-    val context1 = invokeInterceptors(context0, before)
-    val context2 = changeDirection(context1)
-    invokeInterceptors(context2, after)
+    context(eventVec, interceptors)
+        .let { invokeInterceptors(it, before) }
+        .let { changeDirection(it) }
+        .let { invokeInterceptors(it, after) }
 }
