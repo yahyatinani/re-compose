@@ -9,6 +9,7 @@ import com.github.whyrising.recompose.Keys.originalEvent
 import com.github.whyrising.recompose.Keys.queue
 import com.github.whyrising.recompose.Keys.stack
 import com.github.whyrising.y.collections.core.assocIn
+import com.github.whyrising.y.collections.core.conj
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
@@ -79,24 +80,20 @@ internal suspend fun invokeInterceptors(
     context: Context,
     direction: Keys
 ): Context {
-    tailrec suspend fun invokeInterceptors(
-        context: Context
-    ): Context {
+    tailrec suspend fun invokeInterceptors(context: Context): Context {
         val que = context[queue] as ISeq<Interceptor>
-
         return when (que.count) {
             0 -> context
             else -> {
                 val interceptor: Interceptor = que.first()
-                val stk = (context[stack] ?: l<Any>()) as ISeq<Any>
+                val stk = context[stack] as ISeq<Any>?
 
-                val c = context
+                val newContext = context
                     .assoc(queue, que.rest())
-                    .assoc(stack, stk.conj(interceptor))
+                    .assoc(stack, conj(stk, interceptor))
+                    .let { invokeInterceptorFn(it, interceptor, direction) }
 
-                invokeInterceptors(
-                    context = invokeInterceptorFn(c, interceptor, direction)
-                )
+                invokeInterceptors(newContext)
             }
         }
     }
