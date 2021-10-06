@@ -23,11 +23,11 @@ inline fun <T> dbHandlerToInterceptor(
 ): IPersistentMap<Keys, Any> = toInterceptor(
     id = ":db-handler",
     before = { context: IPersistentMap<Keys, Any> ->
-        val cofx = get(context, coeffects) as IPersistentMap<*, *>
-        val oldDb = get(cofx, db) as T
-        val event = get(cofx, event) as PersistentVector<Any>
+        val cofx = context[coeffects] as IPersistentMap<*, *>
+        val oldDb = cofx[db] as T
+        val event = cofx[event] as PersistentVector<Any>
 
-        val effectsMap = (get(context, effects) ?: m<Any, Any>())
+        val effectsMap = (context[effects] ?: m<Any, Any>())
             as IPersistentMap<Keys, Any>
 
         context.assoc(
@@ -45,8 +45,8 @@ inline fun fxHandlerToInterceptor(
 ): Any = toInterceptor(
     id = ":fx-handler",
     before = { context ->
-        val cofx = get(context, coeffects) as IPersistentMap<Any, Any>
-        val event = get(cofx, event) as IPersistentVector<Any>
+        val cofx = context[coeffects] as IPersistentMap<Any, Any>
+        val event = cofx[event] as IPersistentVector<Any>
 
         context.assoc(effects, eventFxHandler(cofx, event))
     }

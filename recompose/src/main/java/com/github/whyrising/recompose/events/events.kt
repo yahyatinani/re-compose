@@ -1,7 +1,6 @@
 package com.github.whyrising.recompose.events
 
 import com.github.whyrising.recompose.Keys
-import com.github.whyrising.recompose.get
 import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event

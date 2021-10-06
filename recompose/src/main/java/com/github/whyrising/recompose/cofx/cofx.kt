@@ -42,7 +42,7 @@ fun injectCofx(id: Any): IPersistentMap<Keys, Any> = toInterceptor(
     before = { context ->
         val injectCofx = getHandler(kind, id) as (suspend (Any) -> Any)?
         if (injectCofx != null) {
-            val cofx = get(context, coeffects) ?: m<Any, Any>()
+            val cofx = context[coeffects] ?: m<Any, Any>()
             val newCofx = injectCofx(cofx)
 
             context.assoc(coeffects, newCofx)

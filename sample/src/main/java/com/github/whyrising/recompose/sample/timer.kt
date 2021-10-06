@@ -91,8 +91,8 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
         id = timer,
         interceptors = v(injectCofx(now))
     ) { cofx: IPersistentMap<Any, Any>, _ ->
-        val db = get(cofx, db) as AppSchema
-        m(Keys.db to db.copy(time = get(cofx, now) as Date))
+        val db = cofx[db] as AppSchema
+        m(Keys.db to db.copy(time = cofx[now] as Date))
     }
 
     regEventDb<AppSchema>(timeColorChange) { db, (_, color) ->

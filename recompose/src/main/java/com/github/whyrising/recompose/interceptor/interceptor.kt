@@ -65,7 +65,7 @@ internal suspend fun invokeInterceptorFn(
     context: Context,
     interceptor: Interceptor,
     direction: Keys
-) = when (val interceptorFn = get(interceptor, direction) as InterceptorFn?) {
+) = when (val interceptorFn = interceptor[direction] as InterceptorFn?) {
     null -> context
     else -> interceptorFn(context)
 }
@@ -82,14 +82,14 @@ internal suspend fun invokeInterceptors(
     tailrec suspend fun invokeInterceptors(
         context: Context
     ): Context {
-        val que = get(context, queue) as PersistentList<Interceptor>
+        val que = context[queue] as PersistentList<Interceptor>
 
         return when (que.count) {
             0 -> context
             else -> {
                 val interceptor: Interceptor = que.first()
                 val stk =
-                    (get(context, stack) ?: l<Any>()) as PersistentList<Any>
+                    (context[stack] ?: l<Any>()) as PersistentList<Any>
 
                 val c = context
                     .assoc(queue, que.rest())
@@ -106,7 +106,7 @@ internal suspend fun invokeInterceptors(
 }
 
 internal fun changeDirection(context: Context): Context =
-    enqueue(context, get(context, stack)!!)
+    enqueue(context, context[stack]!!)
 
 suspend fun execute(
     eventVec: IPersistentVector<Any>,

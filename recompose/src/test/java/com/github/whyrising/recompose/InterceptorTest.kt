@@ -65,14 +65,14 @@ class InterceptorTest : FreeSpec({
         val f: suspend (
             IPersistentMap<Keys, Any>
         ) -> IPersistentMap<Keys, Any> = { context ->
-            val q = (get(context, queue) as PersistentVector<Any>).conj(1)
+            val q = (context[queue] as PersistentVector<Any>).conj(1)
             context.assoc(queue, q)
         }
 
         val g: suspend (
             IPersistentMap<Keys, Any>
         ) -> IPersistentMap<Keys, Any> = { context ->
-            val q = (get(context, queue) as PersistentVector<Any>).plus(1)
+            val q = (context[queue] as PersistentVector<Any>).plus(1)
             context.assoc(queue, q)
         }
 
@@ -127,13 +127,13 @@ class InterceptorTest : FreeSpec({
             val f1: suspend (
                 IPersistentMap<Keys, Any>
             ) -> IPersistentMap<Keys, Any> = { context ->
-                context.assoc(db, (get(context, db) as Int).inc())
+                context.assoc(db, (context[db] as Int).inc())
             }
 
             val f2: suspend (
                 IPersistentMap<Keys, Any>
             ) -> IPersistentMap<Keys, Any> = { context ->
-                context.assoc(db, (get(context, db) as Int) + 2)
+                context.assoc(db, (context[db] as Int) + 2)
             }
 
             val incBy1 = toInterceptor(id = ":incBy1", before = f1)
@@ -150,9 +150,9 @@ class InterceptorTest : FreeSpec({
 
             val newContext = invokeInterceptors(context, before)
 
-            get(newContext, db) as Int shouldBeExactly 3
-            (get(newContext, queue) as PersistentList<*>).shouldBeEmpty()
-            (get(newContext, stack) as PersistentList<*>) shouldContainExactly
+            newContext[db] as Int shouldBeExactly 3
+            (newContext[queue] as PersistentList<*>).shouldBeEmpty()
+            (newContext[stack] as PersistentList<*>) shouldContainExactly
                 qu.reversed()
         }
     }
@@ -167,7 +167,7 @@ class InterceptorTest : FreeSpec({
 
         val newContext = changeDirection(context)
 
-        (get(newContext, queue) as PersistentVector<*>) shouldContainExactly s
-        (get(newContext, stack) as PersistentVector<*>) shouldContainExactly s
+        (newContext[queue] as PersistentVector<*>) shouldContainExactly s
+        (newContext[stack] as PersistentVector<*>) shouldContainExactly s
     }
 })

@@ -35,10 +35,10 @@ fun regFx(id: Any, handler: suspend (value: Any) -> Unit) {
 val doFx: IPersistentMap<Keys, Any> = toInterceptor(
     id = dofx,
     after = { context: IPersistentMap<Keys, Any> ->
-        val effects = get(context, effects) as IPersistentMap<Any, Any>
+        val effects = context[effects] as IPersistentMap<Any, Any>
         val effectsWithoutDb: IPersistentMap<Any, Any> = effects.dissoc(db)
 
-        val newDb = get(effects, db)
+        val newDb = effects[db]
         if (newDb != null) {
             val dbFxHandler =
                 getHandler(kind, db) as suspend (newDb: Any) -> Unit

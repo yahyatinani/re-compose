@@ -32,7 +32,7 @@ private fun <T> cacheReaction(
             val value = appDb.state.subscriptionCount.value
             Log.i(
                 "reactionsCache",
-                "${get(key, 0)} got removed from cache. $value"
+                "${key[0]} got removed from cache. $value"
             )
         }
     }
