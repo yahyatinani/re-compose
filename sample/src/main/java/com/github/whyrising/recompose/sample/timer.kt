@@ -149,21 +149,18 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
         primaryColor.luminance() >= 0.5f
     }
 
+    fun toIntOrNull(n: String): Int? = try {
+        n.toInt()
+    } catch (e: NumberFormatException) {
+        null
+    }
+
     regEventDb<AppSchema>(":a") { db, (_, a) ->
-        // TODO: validator?
-        val s = a as String
-        when {
-            s.isEmpty() || s.isBlank() -> db.copy(a = null)
-            else -> db.copy(a = s.toInt())
-        }
+        db.copy(a = toIntOrNull(a as String))
     }
 
     regEventDb<AppSchema>(":b") { db, (_, b) ->
-        val s = b as String
-        when {
-            s.isEmpty() || s.isBlank() -> db.copy(b = null)
-            else -> db.copy(b = s.toInt())
-        }
+        db.copy(b = toIntOrNull(b as String))
     }
 
     regSub(":a") { db: AppSchema, _ ->
