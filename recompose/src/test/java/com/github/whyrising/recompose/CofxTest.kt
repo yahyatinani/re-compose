@@ -1,6 +1,6 @@
 package com.github.whyrising.recompose
 
-import com.github.whyrising.recompose.Framework.db
+import com.github.whyrising.recompose.RKeys.db
 import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds

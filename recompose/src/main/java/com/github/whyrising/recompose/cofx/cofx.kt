@@ -1,9 +1,9 @@
 package com.github.whyrising.recompose.cofx
 
 import android.util.Log
-import com.github.whyrising.recompose.Framework
-import com.github.whyrising.recompose.Framework.coeffects
-import com.github.whyrising.recompose.Framework.db
+import com.github.whyrising.recompose.RKeys
+import com.github.whyrising.recompose.RKeys.coeffects
+import com.github.whyrising.recompose.RKeys.db
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
@@ -37,7 +37,7 @@ fun regCofx(
 ------------- Interceptor ---------------
  */
 // TODO: Consider adding an optional second argument
-fun injectCofx(id: Any): IPersistentMap<Framework, Any> = toInterceptor(
+fun injectCofx(id: Any): IPersistentMap<RKeys, Any> = toInterceptor(
     id = coeffects,
     before = { context ->
         val injectCofx = getHandler(kind, id) as (suspend (Any) -> Any)?

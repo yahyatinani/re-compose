@@ -15,10 +15,10 @@ import kotlin.coroutines.CoroutineContext
 
 val kind: Kinds = Sub
 
-// -- cache ---------------------------------------------------------------------
+// -- cache --------------------------------------------------------------------
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 
-// -- subscribe -----------------------------------------------------------------
+// -- subscribe ----------------------------------------------------------------
 internal const val TAG = "re-compose"
 
 private fun <T> cacheReaction(

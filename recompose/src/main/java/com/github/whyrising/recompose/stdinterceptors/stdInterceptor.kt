@@ -1,10 +1,10 @@
 package com.github.whyrising.recompose.stdinterceptors
 
-import com.github.whyrising.recompose.Framework
-import com.github.whyrising.recompose.Framework.coeffects
-import com.github.whyrising.recompose.Framework.db
-import com.github.whyrising.recompose.Framework.effects
-import com.github.whyrising.recompose.Framework.event
+import com.github.whyrising.recompose.RKeys
+import com.github.whyrising.recompose.RKeys.coeffects
+import com.github.whyrising.recompose.RKeys.db
+import com.github.whyrising.recompose.RKeys.effects
+import com.github.whyrising.recompose.RKeys.event
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
@@ -19,15 +19,15 @@ These 2 factories wrap the 2 kinds of event handlers.
 
 inline fun <T> dbHandlerToInterceptor(
     crossinline eventDbHandler: (db: T, vec: IPersistentVector<Any>) -> Any
-): IPersistentMap<Framework, Any> = toInterceptor(
+): IPersistentMap<RKeys, Any> = toInterceptor(
     id = ":db-handler",
-    before = { context: IPersistentMap<Framework, Any> ->
+    before = { context: IPersistentMap<RKeys, Any> ->
         val cofx = context[coeffects] as IPersistentMap<*, *>
         val oldDb = cofx[db] as T
         val event = cofx[event] as IPersistentVector<Any>
 
         val effectsMap = (context[effects] ?: m<Any, Any>())
-            as IPersistentMap<Framework, Any>
+            as IPersistentMap<RKeys, Any>
 
         context.assoc(
             effects,

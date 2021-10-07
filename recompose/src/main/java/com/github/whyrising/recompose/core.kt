@@ -99,7 +99,7 @@ inline fun <T> regEventDb(
 
 inline fun regEventFx(
     id: Any,
-    interceptors: IPersistentVector<IPersistentMap<Framework, Any>> = v(),
+    interceptors: IPersistentVector<IPersistentMap<RKeys, Any>> = v(),
     crossinline handler: (
         cofx: IPersistentMap<Any, Any>,
         event: IPersistentVector<Any>

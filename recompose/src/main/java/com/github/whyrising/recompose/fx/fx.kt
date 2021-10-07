@@ -1,13 +1,13 @@
 package com.github.whyrising.recompose.fx
 
 import android.util.Log
-import com.github.whyrising.recompose.Framework
-import com.github.whyrising.recompose.Framework.db
-import com.github.whyrising.recompose.Framework.dispatch
-import com.github.whyrising.recompose.Framework.dispatchN
-import com.github.whyrising.recompose.Framework.dofx
-import com.github.whyrising.recompose.Framework.effects
-import com.github.whyrising.recompose.Framework.fx
+import com.github.whyrising.recompose.RKeys
+import com.github.whyrising.recompose.RKeys.db
+import com.github.whyrising.recompose.RKeys.dispatch
+import com.github.whyrising.recompose.RKeys.dispatchN
+import com.github.whyrising.recompose.RKeys.dofx
+import com.github.whyrising.recompose.RKeys.effects
+import com.github.whyrising.recompose.RKeys.fx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.interceptor.toInterceptor
@@ -31,9 +31,9 @@ fun regFx(id: Any, handler: suspend (value: Any) -> Unit) {
 -- Interceptor -----------------------------------------------------------------
  */
 
-val doFx: IPersistentMap<Framework, Any> = toInterceptor(
+val doFx: IPersistentMap<RKeys, Any> = toInterceptor(
     id = dofx,
-    after = { context: IPersistentMap<Framework, Any> ->
+    after = { context: IPersistentMap<RKeys, Any> ->
         val effects = context[effects] as IPersistentMap<Any, Any>
         val effectsWithoutDb: IPersistentMap<Any, Any> = effects.dissoc(db)
 

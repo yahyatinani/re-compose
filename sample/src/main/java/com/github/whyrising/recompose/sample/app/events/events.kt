@@ -1,6 +1,6 @@
 package com.github.whyrising.recompose.sample.app.events
 
-import com.github.whyrising.recompose.Framework
+import com.github.whyrising.recompose.RKeys
 import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
@@ -25,7 +25,7 @@ fun regEvents() {
     }
 
     regEventFx(Keys.startTicks) { _, _ ->
-        m(Framework.fx to v(v(Keys.timeticker, null)))
+        m(RKeys.fx to v(v(Keys.timeticker, null)))
     }
 
     regEventFx(
@@ -33,8 +33,8 @@ fun regEvents() {
         interceptors = v(injectCofx(Keys.now))
     ) { cofx: IPersistentMap<Any, Any>, _ ->
         val db =
-            cofx[Framework.db] as AppSchema
-        m(Framework.db to db.copy(time = cofx[Keys.now] as Date))
+            cofx[RKeys.db] as AppSchema
+        m(RKeys.db to db.copy(time = cofx[Keys.now] as Date))
     }
 
     regEventDb<AppSchema>(
