@@ -17,7 +17,6 @@ import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regMaterialisedView
 import com.github.whyrising.recompose.subs.regSubscription
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
@@ -85,7 +84,7 @@ object Recompose : ViewModel() {
 inline fun <T> regEventDb(
     id: Any,
     interceptors: IPersistentVector<Any> = v(),
-    crossinline handler: (db: T, vec: PersistentVector<Any>) -> Any
+    crossinline handler: (db: T, vec: IPersistentVector<Any>) -> Any
 ) {
     register(
         id = id,
@@ -142,18 +141,18 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
     queryId: Any,
-    crossinline signalsFn: (queryVec: PersistentVector<Any>) -> React<T>,
-    crossinline computationFn: (input: T, queryVec: PersistentVector<Any>) -> R,
+    crossinline signalsFn: (queryVec: IPersistentVector<Any>) -> React<T>,
+    crossinline computationFn: (input: T, queryVec: IPersistentVector<Any>) -> R,
 ) = regMaterialisedView(queryId, signalsFn, computationFn)
 
 inline fun <T, R> regSubM(
     queryId: Any,
     crossinline signalsFn: (
-        queryVec: PersistentVector<Any>
-    ) -> PersistentVector<React<T>>,
+        queryVec: IPersistentVector<Any>
+    ) -> IPersistentVector<React<T>>,
     crossinline computationFn: (
-        subscriptions: PersistentVector<T>,
-        queryVec: PersistentVector<Any>,
+        subscriptions: IPersistentVector<T>,
+        queryVec: IPersistentVector<Any>,
     ) -> R,
 ) = regSubscription(queryId, signalsFn, computationFn)
 

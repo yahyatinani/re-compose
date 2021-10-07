@@ -3,8 +3,8 @@ package com.github.whyrising.recompose.subs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.concurrency.IAtom
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.str
@@ -126,15 +126,15 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     }
 
     inline fun <R> reactTo(
-        subscriptions: PersistentVector<React<R>>,
+        subscriptions: IPersistentVector<React<R>>,
         context: CoroutineContext,
-        crossinline computation: suspend (newInput: PersistentVector<R>) -> T
+        crossinline computation: suspend (newInput: IPersistentVector<R>) -> T
     ) {
         for ((i, s) in subscriptions.withIndex()) {
             viewModelScope.launch(context) {
                 s.collect { newInput: R ->
                     val derefs = deref(subscriptions)
-                        .assoc(i, newInput) as PersistentVector<R>
+                        .assoc(i, newInput) as IPersistentVector<R>
 
                     // Evaluate this only once by leaving it out of swap,
                     // since swap can run f multiple times, the output is the
@@ -147,8 +147,8 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     }
 }
 
-fun <T> deref(subscriptions: PersistentVector<React<T>>): PersistentVector<T> {
-    return subscriptions.fold(v<T>()) { vec, reaction ->
-        vec.conj(reaction.deref())
-    } as PersistentVector<T>
+fun <T> deref(
+    subscriptions: IPersistentVector<React<T>>
+): IPersistentVector<T> = subscriptions.fold(v()) { vec, reaction ->
+    vec.conj(reaction.deref())
 }

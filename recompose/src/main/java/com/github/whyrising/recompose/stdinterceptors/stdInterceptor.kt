@@ -6,7 +6,6 @@ import com.github.whyrising.recompose.Keys.db
 import com.github.whyrising.recompose.Keys.effects
 import com.github.whyrising.recompose.Keys.event
 import com.github.whyrising.recompose.interceptor.toInterceptor
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.map.IPersistentMap
@@ -19,13 +18,13 @@ These 2 factories wrap the 2 kinds of event handlers.
 */
 
 inline fun <T> dbHandlerToInterceptor(
-    crossinline eventDbHandler: (db: T, vec: PersistentVector<Any>) -> Any
+    crossinline eventDbHandler: (db: T, vec: IPersistentVector<Any>) -> Any
 ): IPersistentMap<Keys, Any> = toInterceptor(
     id = ":db-handler",
     before = { context: IPersistentMap<Keys, Any> ->
         val cofx = context[coeffects] as IPersistentMap<*, *>
         val oldDb = cofx[db] as T
-        val event = cofx[event] as PersistentVector<Any>
+        val event = cofx[event] as IPersistentVector<Any>
 
         val effectsMap = (context[effects] ?: m<Any, Any>())
             as IPersistentMap<Keys, Any>

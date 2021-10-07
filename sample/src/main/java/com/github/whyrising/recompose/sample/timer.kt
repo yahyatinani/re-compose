@@ -53,11 +53,11 @@ import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -140,7 +140,7 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 
     regSub(
         statusBarDarkIcons,
-        { (_, defaultColor): PersistentVector<Any> ->
+        { (_, defaultColor): IPersistentVector<Any> ->
             subscribe(v(primaryColor, defaultColor))
         }
     ) { primaryColor: Color, _ ->
@@ -190,12 +190,7 @@ fun reg(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
 
     regSubM(
         ":sum-a-b",
-        {
-            v<React<Int?>>(
-                subscribe(v(":a")),
-                subscribe(v(":b"))
-            ) as PersistentVector<React<Int?>>
-        }
+        { v<React<Int?>>(subscribe(v(":a")), subscribe(v(":b"))) }
     ) { (a, b), _ ->
         when {
             a != null && b != null -> "${a + b}"

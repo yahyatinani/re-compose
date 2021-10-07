@@ -13,12 +13,12 @@ import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptors
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.y.collections.concretions.list.PersistentList
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.vector.IPersistentVector
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -65,14 +65,14 @@ class InterceptorTest : FreeSpec({
         val f: suspend (
             IPersistentMap<Keys, Any>
         ) -> IPersistentMap<Keys, Any> = { context ->
-            val q = (context[queue] as PersistentVector<Any>).conj(1)
+            val q = (context[queue] as IPersistentVector<Any>).conj(1)
             context.assoc(queue, q)
         }
 
         val g: suspend (
             IPersistentMap<Keys, Any>
         ) -> IPersistentMap<Keys, Any> = { context ->
-            val q = (context[queue] as PersistentVector<Any>).plus(1)
+            val q = (context[queue] as IPersistentVector<Any>).plus(1)
             context.assoc(queue, q)
         }
 
@@ -158,7 +158,7 @@ class InterceptorTest : FreeSpec({
     }
 
     "changeDirection(context) should fill the queue from the stack" {
-        val s = v<Any>(1, 2, 3) as PersistentVector
+        val s = v<Any>(1, 2, 3)
 
         val context = m(
             queue to v(),
@@ -167,7 +167,7 @@ class InterceptorTest : FreeSpec({
 
         val newContext = changeDirection(context)
 
-        (newContext[queue] as PersistentVector<*>) shouldContainExactly s
-        (newContext[stack] as PersistentVector<*>) shouldContainExactly s
+        (newContext[queue] as IPersistentVector<*>) shouldContainExactly s
+        (newContext[stack] as IPersistentVector<*>) shouldContainExactly s
     }
 })

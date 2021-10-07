@@ -6,7 +6,6 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.concat
 import com.github.whyrising.y.collections.core.conj
 import com.github.whyrising.y.collections.core.lazySeq
@@ -27,7 +26,7 @@ internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
     lazySeq {
         interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
             when (interceptor) {
-                is PersistentVector<*> -> concat(interceptor, seq)
+                is IPersistentVector<*> -> concat(interceptor, seq)
                 else -> conj(seq, interceptor) as ISeq<Any>
             }
         }
@@ -37,7 +36,7 @@ internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
  * Associate the given event `id` with the given collection of `interceptors`.
  */
 fun register(id: Any, interceptors: IPersistentVector<Any>) {
-    registerHandler(id, kind, flatten(interceptors as PersistentVector))
+    registerHandler(id, kind, flatten(interceptors))
 }
 
 /*

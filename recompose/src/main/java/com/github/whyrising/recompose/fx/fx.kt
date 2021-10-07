@@ -14,7 +14,6 @@ import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
@@ -75,9 +74,9 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
         return@regFx
     }
 
-    val effects = listOfEffects as PersistentVector<PersistentVector<Any>>
+    val effects = listOfEffects as IPersistentVector<IPersistentVector<Any>>
 
-    effects.forEach { effect: PersistentVector<Any?> ->
+    effects.forEach { effect: IPersistentVector<Any?> ->
         val (effectKey, effectValue) = effect
 
         if (effectKey == db)
@@ -112,7 +111,7 @@ val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
 }
 
 val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
-    if (events !is PersistentVector<*>) {
+    if (events !is IPersistentVector<*>) {
         Log.e(
             "regFx",
             "ignoring bad :dispatchN value. Expected a list, but got: $events"

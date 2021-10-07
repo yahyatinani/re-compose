@@ -73,7 +73,7 @@ internal suspend fun invokeInterceptorFn(
 
 /**
  * :queue and :stack in context should be lists/interceptors of type
- * PersistentVector<*>.
+ * IPersistentVector<*>.
  */
 @Suppress("UNCHECKED_CAST")
 internal suspend fun invokeInterceptors(
