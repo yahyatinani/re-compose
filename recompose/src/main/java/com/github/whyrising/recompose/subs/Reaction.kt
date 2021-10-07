@@ -106,8 +106,8 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
      * @param inputNode reaction which extract data directly from [appDb],
      * but do no further computation.
      * @param context for the coroutines running under [viewModelScope].
-     * @param computation a function that obtains data from [inputNode], and compute
-     * derived data from it.
+     * @param computation a function that obtains data from [inputNode], and
+     * compute derived data from it.
      */
     inline fun <R> reactTo(
         inputNode: React<R>,
