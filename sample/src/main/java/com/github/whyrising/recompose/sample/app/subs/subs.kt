@@ -25,6 +25,8 @@ fun toFloatOrNull(n: String): Float? = try {
     null
 }
 
+fun add(n: Float, m: Float) = n + m
+
 fun regSubs() {
     regEventDb<Any>(Keys.initialize) { _, _ ->
         defaultAppDB
@@ -96,7 +98,7 @@ fun regSubs() {
         val m = toFloatOrNull(b)
 
         when {
-            n != null && m != null -> "${n + m}"
+            n != null && m != null -> "${add(n, m)}"
             else -> ""
         }
     }
