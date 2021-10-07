@@ -99,7 +99,7 @@ inline fun <T> regEventDb(
 
 inline fun regEventFx(
     id: Any,
-    interceptors: IPersistentVector<IPersistentMap<Keys, Any>> = v(),
+    interceptors: IPersistentVector<IPersistentMap<Framework, Any>> = v(),
     crossinline handler: (
         cofx: IPersistentMap<Any, Any>,
         event: IPersistentVector<Any>
@@ -142,7 +142,10 @@ inline fun <T, R> regSub(
 inline fun <T, R> regSub(
     queryId: Any,
     crossinline signalsFn: (queryVec: IPersistentVector<Any>) -> React<T>,
-    crossinline computationFn: (input: T, queryVec: IPersistentVector<Any>) -> R,
+    crossinline computationFn: (
+        input: T,
+        queryVec: IPersistentVector<Any>
+    ) -> R,
 ) = regMaterialisedView(queryId, signalsFn, computationFn)
 
 inline fun <T, R> regSubM(

@@ -1,12 +1,12 @@
 package com.github.whyrising.recompose
 
-import com.github.whyrising.recompose.Keys.before
-import com.github.whyrising.recompose.Keys.coeffects
-import com.github.whyrising.recompose.Keys.db
-import com.github.whyrising.recompose.Keys.event
-import com.github.whyrising.recompose.Keys.originalEvent
-import com.github.whyrising.recompose.Keys.queue
-import com.github.whyrising.recompose.Keys.stack
+import com.github.whyrising.recompose.Framework.before
+import com.github.whyrising.recompose.Framework.coeffects
+import com.github.whyrising.recompose.Framework.db
+import com.github.whyrising.recompose.Framework.event
+import com.github.whyrising.recompose.Framework.originalEvent
+import com.github.whyrising.recompose.Framework.queue
+import com.github.whyrising.recompose.Framework.stack
 import com.github.whyrising.recompose.interceptor.changeDirection
 import com.github.whyrising.recompose.interceptor.context
 import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
@@ -29,7 +29,7 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 class InterceptorTest : FreeSpec({
     "context(event, interceptors) should return a fresh context" {
         val eventVec = v<Any>(":id", 12)
-        val interceptors = l<IPersistentMap<Keys, Any>>()
+        val interceptors = l<IPersistentMap<Framework, Any>>()
 
         val context = context(eventVec, interceptors)
 
@@ -43,35 +43,35 @@ class InterceptorTest : FreeSpec({
     }
 
     "changeDirection(context) should put the stack into a new the queue" {
-        val context = m<Keys, Any>(
+        val context = m<Framework, Any>(
             queue to v<Any>(),
             stack to v(1, 2, 3)
         )
 
         val c = changeDirection(context)
 
-        c shouldBe m<Keys, Any>(
+        c shouldBe m<Framework, Any>(
             queue to v<Any>(1, 2, 3),
             stack to v(1, 2, 3)
         )
     }
 
     "invokeInterceptorFn() should call the interceptor fun based direction" - {
-        val context0 = m<Keys, Any>(
+        val context0 = m<Framework, Any>(
             queue to v<Any>(),
             stack to v(1, 2, 3)
         )
 
         val f: suspend (
-            IPersistentMap<Keys, Any>
-        ) -> IPersistentMap<Keys, Any> = { context ->
+            IPersistentMap<Framework, Any>
+        ) -> IPersistentMap<Framework, Any> = { context ->
             val q = (context[queue] as IPersistentVector<Any>).conj(1)
             context.assoc(queue, q)
         }
 
         val g: suspend (
-            IPersistentMap<Keys, Any>
-        ) -> IPersistentMap<Keys, Any> = { context ->
+            IPersistentMap<Framework, Any>
+        ) -> IPersistentMap<Framework, Any> = { context ->
             val q = (context[queue] as IPersistentVector<Any>).plus(1)
             context.assoc(queue, q)
         }
@@ -86,16 +86,17 @@ class InterceptorTest : FreeSpec({
 
             val context = invokeInterceptorFn(context0, addToQ, before)
 
-            context shouldBe m<Keys, Any>(
+            context shouldBe m<Framework, Any>(
                 queue to v(1),
                 stack to v(1, 2, 3)
             )
         }
 
         "should call :after and add to the context" {
-            val context = invokeInterceptorFn(context0, addToQAfter, Keys.after)
+            val context =
+                invokeInterceptorFn(context0, addToQAfter, Framework.after)
 
-            context shouldBe m<Keys, Any>(
+            context shouldBe m<Framework, Any>(
                 queue to v(1),
                 stack to v(1, 2, 3)
             )
@@ -110,7 +111,7 @@ class InterceptorTest : FreeSpec({
 
     "invokeInterceptors(context)" - {
         "should return the same given context when the :queue is empty" {
-            val context = m<Keys, Any>(
+            val context = m<Framework, Any>(
                 queue to l<Any>(),
                 stack to l<Any>()
             )
@@ -125,14 +126,14 @@ class InterceptorTest : FreeSpec({
             and stack then in :stack while emptying the queue
         """ {
             val f1: suspend (
-                IPersistentMap<Keys, Any>
-            ) -> IPersistentMap<Keys, Any> = { context ->
+                IPersistentMap<Framework, Any>
+            ) -> IPersistentMap<Framework, Any> = { context ->
                 context.assoc(db, (context[db] as Int).inc())
             }
 
             val f2: suspend (
-                IPersistentMap<Keys, Any>
-            ) -> IPersistentMap<Keys, Any> = { context ->
+                IPersistentMap<Framework, Any>
+            ) -> IPersistentMap<Framework, Any> = { context ->
                 context.assoc(db, (context[db] as Int) + 2)
             }
 

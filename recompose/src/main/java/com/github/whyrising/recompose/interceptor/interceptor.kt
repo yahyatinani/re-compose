@@ -1,13 +1,13 @@
 package com.github.whyrising.recompose.interceptor
 
-import com.github.whyrising.recompose.Keys
-import com.github.whyrising.recompose.Keys.after
-import com.github.whyrising.recompose.Keys.before
-import com.github.whyrising.recompose.Keys.coeffects
-import com.github.whyrising.recompose.Keys.event
-import com.github.whyrising.recompose.Keys.originalEvent
-import com.github.whyrising.recompose.Keys.queue
-import com.github.whyrising.recompose.Keys.stack
+import com.github.whyrising.recompose.Framework
+import com.github.whyrising.recompose.Framework.after
+import com.github.whyrising.recompose.Framework.before
+import com.github.whyrising.recompose.Framework.coeffects
+import com.github.whyrising.recompose.Framework.event
+import com.github.whyrising.recompose.Framework.originalEvent
+import com.github.whyrising.recompose.Framework.queue
+import com.github.whyrising.recompose.Framework.stack
 import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.conj
 import com.github.whyrising.y.collections.core.get
@@ -18,25 +18,25 @@ import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 typealias InterceptorFn =
-    suspend (IPersistentMap<Keys, Any>) -> IPersistentMap<Keys, Any>
+    suspend (IPersistentMap<Framework, Any>) -> IPersistentMap<Framework, Any>
 
-typealias Interceptor = IPersistentMap<Keys, Any>
+typealias Interceptor = IPersistentMap<Framework, Any>
 
-typealias Context = IPersistentMap<Keys, Any>
+typealias Context = IPersistentMap<Framework, Any>
 
 fun toInterceptor(
     id: Any,
     before: suspend (context: Context) -> Context = { it },
     after: suspend (context: Context) -> Context = { it }
 ): Interceptor = m(
-    Keys.id to id,
-    Keys.before to before,
-    Keys.after to after,
+    Framework.id to id,
+    Framework.before to before,
+    Framework.after to after,
 )
 
 fun assocCofx(
     context: Context,
-    key: Keys,
+    key: Framework,
     value: Any
 ): Context = assocIn(context, l(coeffects, key), value) as Context
 
@@ -52,7 +52,7 @@ internal fun context(
     eventVec: Any,
     interceptors: ISeq<Interceptor>
 ): Context {
-    val context0 = m<Keys, Any>()
+    val context0 = m<Framework, Any>()
     val context1 = assocCofx(context0, event, eventVec)
     val context2 = assocCofx(context1, originalEvent, eventVec)
 
@@ -65,7 +65,7 @@ internal fun context(
 internal suspend fun invokeInterceptorFn(
     context: Context,
     interceptor: Interceptor,
-    direction: Keys
+    direction: Framework
 ) = when (val interceptorFn = interceptor[direction] as InterceptorFn?) {
     null -> context
     else -> interceptorFn(context)
@@ -78,7 +78,7 @@ internal suspend fun invokeInterceptorFn(
 @Suppress("UNCHECKED_CAST")
 internal suspend fun invokeInterceptors(
     context: Context,
-    direction: Keys
+    direction: Framework
 ): Context {
     tailrec suspend fun invokeInterceptors(context: Context): Context {
         val que = context[queue] as ISeq<Interceptor>
@@ -89,6 +89,7 @@ internal suspend fun invokeInterceptors(
                 val stk = context[stack] as ISeq<Any>?
 
                 val newContext = context
+                    .assoc(queue, que.rest())
                     .assoc(queue, que.rest())
                     .assoc(stack, conj(stk, interceptor))
                     .let { invokeInterceptorFn(it, interceptor, direction) }

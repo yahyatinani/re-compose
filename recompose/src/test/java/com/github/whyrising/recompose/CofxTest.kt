@@ -1,6 +1,6 @@
 package com.github.whyrising.recompose
 
-import com.github.whyrising.recompose.Keys.db
+import com.github.whyrising.recompose.Framework.db
 import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds
@@ -30,7 +30,7 @@ class CofxTest : FreeSpec({
         regCofx("id") { it }
 
         val cofxDbHandler = getHandler(Kinds.Cofx, db) as suspend ((Any) -> Any)
-        val newCofx = cofxDbHandler(coeffects) as IPersistentMap<Keys, Any>
+        val newCofx = cofxDbHandler(coeffects) as IPersistentMap<Recompose, Any>
 
         newCofx[db] shouldBe -22
     }

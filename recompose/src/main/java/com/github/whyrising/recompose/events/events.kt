@@ -1,6 +1,6 @@
 package com.github.whyrising.recompose.events
 
-import com.github.whyrising.recompose.Keys
+import com.github.whyrising.recompose.Framework
 import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
@@ -46,7 +46,7 @@ fun register(id: Any, interceptors: IPersistentVector<Any>) {
 @Suppress("UNCHECKED_CAST")
 suspend fun handle(eventVec: IPersistentVector<Any>) {
     val interceptors = getHandler(kind, eventVec[0])
-        as ISeq<IPersistentMap<Keys, Any>>?
+        as ISeq<IPersistentMap<Framework, Any>>?
 
     execute(eventVec, interceptors ?: return)
 }

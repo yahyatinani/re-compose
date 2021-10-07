@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose
 
 @Suppress("EnumEntryName")
-enum class Keys {
+enum class Framework {
     effects,
     coeffects,
     db,
