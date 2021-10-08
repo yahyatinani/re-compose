@@ -37,15 +37,16 @@ fun regCofx(id: Any, handler: CofxHandler) {
 fun injectCofx(id: Any) = toInterceptor(
     id = coeffects,
     before = { context ->
-        val injectCofx = getHandler(kind, id) as CofxHandler?
-        if (injectCofx != null) {
-            val cofx: Coeffects = context[coeffects] as Coeffects? ?: m()
-            val newCofx = injectCofx(cofx)
-            context.assoc(coeffects, newCofx)
-        } else {
+        val cofxHandler = getHandler(kind, id) as CofxHandler?
+
+        if (cofxHandler == null) {
             Log.e("injectCofx", "No cofx handler registered for id: $id")
-            context
+            return@toInterceptor context
         }
+
+        val cofx: Coeffects = context[coeffects] as Coeffects? ?: m()
+        val newCofx = cofxHandler(cofx)
+        context.assoc(coeffects, newCofx)
     }
 )
 
