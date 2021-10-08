@@ -20,15 +20,19 @@ val kind: Kinds = Cofx
 
 typealias Coeffects = IPersistentMap<Any, Any>
 
-typealias CofxHandler =
-    suspend (coeffects: Coeffects) -> IPersistentMap<Any, Any>
+typealias CofxHandler1 = suspend (coeffects: Coeffects) -> Coeffects
+typealias CofxHandler2 = suspend (coeffects: Coeffects, value: Any) -> Coeffects
 
 /**
  * @param id for the given cofx handler.
  * @param handler is a function that takes a coeffects map and returns a
  * modified one.
  */
-fun regCofx(id: Any, handler: CofxHandler) {
+fun regCofx(id: Any, handler: CofxHandler1) {
+    registerHandler(id, kind, handler)
+}
+
+fun regCofx(id: Any, handler: CofxHandler2) {
     registerHandler(id, kind, handler)
 }
 
@@ -37,7 +41,7 @@ fun regCofx(id: Any, handler: CofxHandler) {
 fun injectCofx(id: Any) = toInterceptor(
     id = coeffects,
     before = { context ->
-        val cofxHandler = getHandler(kind, id) as CofxHandler?
+        val cofxHandler = getHandler(kind, id) as CofxHandler1?
 
         if (cofxHandler == null) {
             Log.e("injectCofx", "No cofx handler registered for id: $id")
