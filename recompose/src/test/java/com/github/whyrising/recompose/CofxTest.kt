@@ -1,11 +1,18 @@
 package com.github.whyrising.recompose
 
+import com.github.whyrising.recompose.RKeys.after
+import com.github.whyrising.recompose.RKeys.before
 import com.github.whyrising.recompose.RKeys.db
 import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.CofxHandler
-import com.github.whyrising.recompose.cofx.cofxDb
+import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.cofx.regCofx
+import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.interceptor.Context
+import com.github.whyrising.recompose.interceptor.Interceptor
+import com.github.whyrising.recompose.interceptor.InterceptorFn
+import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.y.collections.core.get
@@ -26,13 +33,56 @@ class CofxTest : FreeSpec({
     }
 
     "when `cofxDb` loaded, it should register the appDb injector cofx" {
-        cofxDb
         appDb.state.value = -22
+        registerDbInjectorCofx
         val coeffects: Coeffects = m(db to -1)
 
         val dbInjectorCofx = getHandler(Kinds.Cofx, db) as CofxHandler
         val newCofx = dbInjectorCofx(coeffects) as Coeffects
 
         newCofx[db] shouldBe -22
+    }
+
+    "injectCofx(..)" - {
+        """
+            injectCofx(id: Any) should return an Interceptor with before func 
+            that inject db value in coeffects.
+        """ {
+            appDb.state.value = -22
+            registerDbInjectorCofx
+            val context: Context = m(RKeys.coeffects to m(db to 10))
+
+            val dbInjectorCofx: Interceptor = injectCofx(db)
+
+            val beforeFn = dbInjectorCofx[before] as InterceptorFn
+            beforeFn(context) shouldBe m(RKeys.coeffects to m(db to -22))
+            dbInjectorCofx[after] shouldBeSameInstanceAs defaultInterceptorFn
+        }
+
+        """
+            injectCofx(id: Any) should return an Interceptor with before func 
+            that inject db value in coeffects, if coeffects doesn't exist in 
+            passed context, add one.
+        """ {
+            appDb.state.value = -22
+            registerDbInjectorCofx
+
+            val dbInjectorCofx: Interceptor = injectCofx(db)
+
+            val beforeFn = dbInjectorCofx[before] as InterceptorFn
+            beforeFn(m()) shouldBe m(RKeys.coeffects to m(db to -22))
+            dbInjectorCofx[after] shouldBeSameInstanceAs defaultInterceptorFn
+        }
+
+        "when no cofx handler registered for `id`, return the passed context" {
+            appDb.state.value = -22
+            val context: Context = m(RKeys.coeffects to m(db to 10))
+
+            val dbInjectorCofx: Interceptor = injectCofx("non-existent-id")
+
+            val beforeFn = dbInjectorCofx[before] as InterceptorFn
+            beforeFn(context) shouldBeSameInstanceAs context
+            dbInjectorCofx[after] shouldBeSameInstanceAs defaultInterceptorFn
+        }
     }
 })

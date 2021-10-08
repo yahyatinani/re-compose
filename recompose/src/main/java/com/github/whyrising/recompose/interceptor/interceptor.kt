@@ -17,17 +17,18 @@ import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
-typealias InterceptorFn =
-    suspend (IPersistentMap<RKeys, Any>) -> IPersistentMap<RKeys, Any>
+typealias Context = IPersistentMap<RKeys, Any>
 
 typealias Interceptor = IPersistentMap<RKeys, Any>
 
-typealias Context = IPersistentMap<RKeys, Any>
+typealias InterceptorFn = suspend (context: Context) -> Context
+
+internal val defaultInterceptorFn: InterceptorFn = { it }
 
 fun toInterceptor(
     id: Any,
-    before: suspend (context: Context) -> Context = { it },
-    after: suspend (context: Context) -> Context = { it }
+    before: InterceptorFn = defaultInterceptorFn,
+    after: InterceptorFn = defaultInterceptorFn
 ): Interceptor = m(
     RKeys.id to id,
     RKeys.before to before,
