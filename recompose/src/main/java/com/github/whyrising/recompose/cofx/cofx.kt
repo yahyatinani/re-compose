@@ -19,17 +19,17 @@ import com.github.whyrising.y.collections.map.IPersistentMap
  */
 val kind: Kinds = Cofx
 
+typealias Coeffects = IPersistentMap<RKeys, Any>
+
+typealias CofxHandler =
+    suspend (coeffects: Coeffects) -> IPersistentMap<Any, Any>
+
 /**
  * @param id for the given cofx handler.
  * @param handler is a function that takes a coeffects map and returns a
  * modified one.
  */
-fun regCofx(
-    id: Any,
-    handler: suspend (
-        coeffects: IPersistentMap<Any, Any>
-    ) -> IPersistentMap<Any, Any>
-) {
+fun regCofx(id: Any, handler: CofxHandler) {
     registerHandler(id, kind, handler)
 }
 
@@ -37,12 +37,12 @@ fun regCofx(
 ------------- Interceptor ---------------
  */
 // TODO: Consider adding an optional second argument
-fun injectCofx(id: Any): IPersistentMap<RKeys, Any> = toInterceptor(
+fun injectCofx(id: Any) = toInterceptor(
     id = coeffects,
     before = { context ->
-        val injectCofx = getHandler(kind, id) as (suspend (Any) -> Any)?
+        val injectCofx = getHandler(kind, id) as CofxHandler?
         if (injectCofx != null) {
-            val cofx = context[coeffects] ?: m<Any, Any>()
+            val cofx: Coeffects = context[coeffects] as Coeffects? ?: m()
             val newCofx = injectCofx(cofx)
 
             context.assoc(coeffects, newCofx)
@@ -57,8 +57,8 @@ fun injectCofx(id: Any): IPersistentMap<RKeys, Any> = toInterceptor(
 ------------ Builtin CoEffects Handlers --------------
  */
 
-/*
- Adds to coeffects the value in `appDdb`, under the key `Db`
+/**
+ * Adds to coeffects the value in `appDdb`, under the key [db]
  */
 val cofxDb = regCofx(id = db) { coeffects ->
     coeffects.assoc(db, appDb.deref())
