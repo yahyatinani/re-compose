@@ -57,45 +57,50 @@ class CofxTest : FreeSpec({
     }
 
     "injectCofx(..)" - {
-        """
+        "injectCofx(id: Any)" - {
+            """
             injectCofx(id: Any) should return an Interceptor with before func 
             that inject db value in coeffects.
-        """ {
-            appDb.state.value = -22
-            registerDbInjectorCofx
-            val context: Context = m(RKeys.coeffects to m(db to 10))
+            """ {
+                appDb.state.value = -22
+                registerDbInjectorCofx
+                val context: Context = m(RKeys.coeffects to m(db to 10))
 
-            val dbInjectorCofx: Interceptor = injectCofx(db)
+                val dbInjector: Interceptor = injectCofx(db)
 
-            val beforeFn = dbInjectorCofx[before] as InterceptorFn
-            beforeFn(context) shouldBe m(RKeys.coeffects to m(db to -22))
-            dbInjectorCofx[after] shouldBeSameInstanceAs defaultInterceptorFn
-        }
+                val beforeFn = dbInjector[before] as InterceptorFn
+                beforeFn(context) shouldBe m(RKeys.coeffects to m(db to -22))
+                dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
+            }
 
-        """
+            """
             injectCofx(id: Any) should return an Interceptor with before func 
             that inject db value in coeffects, if coeffects doesn't exist in 
             passed context, add one.
-        """ {
-            appDb.state.value = -22
-            registerDbInjectorCofx
+            """ {
+                appDb.state.value = -22
+                registerDbInjectorCofx
 
-            val dbInjectorCofx: Interceptor = injectCofx(db)
+                val dbInjector: Interceptor = injectCofx(db)
 
-            val beforeFn = dbInjectorCofx[before] as InterceptorFn
-            beforeFn(m()) shouldBe m(RKeys.coeffects to m(db to -22))
-            dbInjectorCofx[after] shouldBeSameInstanceAs defaultInterceptorFn
-        }
+                val beforeFn = dbInjector[before] as InterceptorFn
+                beforeFn(m()) shouldBe m(RKeys.coeffects to m(db to -22))
+                dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
+            }
 
-        "when no cofx handler registered for `id`, return the passed context" {
-            appDb.state.value = -22
-            val context: Context = m(RKeys.coeffects to m(db to 10))
+            """
+                when no cofx handler registered for `id`, return the passed
+                 context
+            """ {
+                appDb.state.value = -22
+                val context: Context = m(RKeys.coeffects to m(db to 10))
 
-            val dbInjectorCofx: Interceptor = injectCofx("non-existent-id")
+                val dbInjector: Interceptor = injectCofx("non-existent-id")
 
-            val beforeFn = dbInjectorCofx[before] as InterceptorFn
-            beforeFn(context) shouldBeSameInstanceAs context
-            dbInjectorCofx[after] shouldBeSameInstanceAs defaultInterceptorFn
+                val beforeFn = dbInjector[before] as InterceptorFn
+                beforeFn(context) shouldBeSameInstanceAs context
+                dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
+            }
         }
     }
 })
