@@ -102,5 +102,54 @@ class CofxTest : FreeSpec({
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
         }
+
+        "injectCofx(id: Any, value: Any)" - {
+            """
+                when no cofx handler registered for `id`, return the passed 
+                context
+            """ {
+                appDb.state.value = -22
+                val context: Context = m(RKeys.coeffects to m(db to 10))
+
+                val dbInjector: Interceptor = injectCofx("non-existent-id", 0)
+
+                val beforeFn = dbInjector[before] as InterceptorFn
+                beforeFn(context) shouldBeSameInstanceAs context
+                dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
+            }
+
+            """
+                should return an Interceptor with before func that inject db 
+                value in coeffects.
+            """ {
+                val context: Context = m(RKeys.coeffects to m(db to 10))
+                regCofx("id") { cofx: Coeffects, value: Any ->
+                    val dbVal = cofx[db]!! as Int
+                    cofx.assoc(db, dbVal + value as Int)
+                }
+
+                val dbInjector: Interceptor = injectCofx("id", 20)
+
+                val beforeFn = dbInjector[before] as InterceptorFn
+                beforeFn(context) shouldBe m(RKeys.coeffects to m(db to 30))
+                dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
+            }
+
+            """
+                should return an Interceptor with before func that inject db
+                value in coeffects, if coeffects doesn't exist in passed
+                context, add one.
+            """ {
+                regCofx("id") { cofx: Coeffects, value: Any ->
+                    cofx.assoc(db, value as Int)
+                }
+
+                val dbInjector: Interceptor = injectCofx("id", 20)
+
+                val beforeFn = dbInjector[before] as InterceptorFn
+                beforeFn(m()) shouldBe m(RKeys.coeffects to m(db to 20))
+                dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
+            }
+        }
     }
 })

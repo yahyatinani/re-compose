@@ -54,7 +54,22 @@ fun injectCofx(id: Any) = toInterceptor(
     }
 )
 
-fun injectCofx(id: Any, value: Any): Interceptor = TODO()
+fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
+    id = coeffects,
+    before = { context ->
+        val cofxHandler = getHandler(kind, id) as CofxHandler2?
+
+        if (cofxHandler == null) {
+            Log.e("injectCofx", "No cofx handler registered for id: $id")
+            return@toInterceptor context
+        }
+
+        val cofx: Coeffects = context[coeffects] as Coeffects? ?: m()
+        val newCofx = cofxHandler(cofx, value)
+        context.assoc(coeffects, newCofx)
+    }
+)
+
 
 //-- Builtin CoEffects Handlers ------------------------------------------------
 
