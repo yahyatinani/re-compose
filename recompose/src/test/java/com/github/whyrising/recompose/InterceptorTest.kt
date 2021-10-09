@@ -1,14 +1,19 @@
 package com.github.whyrising.recompose
 
+import com.github.whyrising.recompose.RKeys.after
 import com.github.whyrising.recompose.RKeys.before
 import com.github.whyrising.recompose.RKeys.coeffects
 import com.github.whyrising.recompose.RKeys.db
 import com.github.whyrising.recompose.RKeys.event
+import com.github.whyrising.recompose.RKeys.id
 import com.github.whyrising.recompose.RKeys.originalEvent
 import com.github.whyrising.recompose.RKeys.queue
 import com.github.whyrising.recompose.RKeys.stack
+import com.github.whyrising.recompose.interceptor.Context
+import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.interceptor.changeDirection
 import com.github.whyrising.recompose.interceptor.context
+import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptors
 import com.github.whyrising.recompose.interceptor.toInterceptor
@@ -27,6 +32,37 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 class InterceptorTest : FreeSpec({
+    "toInterceptor()" - {
+        "return a map with default functions" {
+            val expectedInterceptor = m(
+                id to ":test",
+                before to defaultInterceptorFn,
+                after to defaultInterceptorFn
+            )
+
+            val toInterceptor = toInterceptor(":test")
+
+            toInterceptor shouldBe expectedInterceptor
+        }
+
+        "return a map of the passed values" {
+            val f1: InterceptorFn = { context: Context -> context }
+            val f2: InterceptorFn = { context: Context -> context }
+
+            val interceptor = toInterceptor(
+                id = ":test",
+                before = f1,
+                after = f2
+            )
+
+            interceptor shouldBe m(
+                id to ":test",
+                before to f1,
+                after to f2
+            )
+        }
+    }
+
     "context(event, interceptors) should return a fresh context" {
         val eventVec = v<Any>(":id", 12)
         val interceptors = l<IPersistentMap<RKeys, Any>>()
@@ -42,18 +78,34 @@ class InterceptorTest : FreeSpec({
         )
     }
 
-    "changeDirection(context) should put the stack into a new the queue" {
-        val context = m<RKeys, Any>(
-            queue to v<Any>(),
-            stack to v(1, 2, 3)
-        )
+    "changeDirection(context)" - {
+        "should put the stack into a new the queue" {
+            val context = m<RKeys, Any>(
+                queue to v<Any>(),
+                stack to v(1, 2, 3)
+            )
 
-        val c = changeDirection(context)
+            val c = changeDirection(context)
 
-        c shouldBe m<RKeys, Any>(
-            queue to v<Any>(1, 2, 3),
-            stack to v(1, 2, 3)
-        )
+            c shouldBe m<RKeys, Any>(
+                queue to v<Any>(1, 2, 3),
+                stack to v(1, 2, 3)
+            )
+        }
+
+        "should fill the queue from the stack" {
+            val s = v<Any>(1, 2, 3)
+
+            val context = m(
+                queue to v(),
+                stack to s
+            )
+
+            val newContext = changeDirection(context)
+
+            (newContext[queue] as IPersistentVector<*>) shouldContainExactly s
+            (newContext[stack] as IPersistentVector<*>) shouldContainExactly s
+        }
     }
 
     "invokeInterceptorFn() should call the interceptor fun based direction" - {
@@ -94,7 +146,7 @@ class InterceptorTest : FreeSpec({
 
         "should call :after and add to the context" {
             val context =
-                invokeInterceptorFn(context0, addToQAfter, RKeys.after)
+                invokeInterceptorFn(context0, addToQAfter, after)
 
             context shouldBe m<RKeys, Any>(
                 queue to v(1),
@@ -156,19 +208,5 @@ class InterceptorTest : FreeSpec({
             (newContext[stack] as PersistentList<*>) shouldContainExactly
                 qu.reversed()
         }
-    }
-
-    "changeDirection(context) should fill the queue from the stack" {
-        val s = v<Any>(1, 2, 3)
-
-        val context = m(
-            queue to v(),
-            stack to s
-        )
-
-        val newContext = changeDirection(context)
-
-        (newContext[queue] as IPersistentVector<*>) shouldContainExactly s
-        (newContext[stack] as IPersistentVector<*>) shouldContainExactly s
     }
 })
