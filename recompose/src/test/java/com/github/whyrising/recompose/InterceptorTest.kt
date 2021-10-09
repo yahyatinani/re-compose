@@ -11,6 +11,7 @@ import com.github.whyrising.recompose.RKeys.queue
 import com.github.whyrising.recompose.RKeys.stack
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.InterceptorFn
+import com.github.whyrising.recompose.interceptor.assocCofx
 import com.github.whyrising.recompose.interceptor.changeDirection
 import com.github.whyrising.recompose.interceptor.context
 import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
@@ -61,6 +62,14 @@ class InterceptorTest : FreeSpec({
                 after to f2
             )
         }
+    }
+
+    "assocCofx()" {
+        assocCofx(m(), event, 14) shouldBe m(coeffects to m(event to 14))
+        assocCofx(m(stack to l<Any>()), event, 14) shouldBe m(
+            stack to l<Any>(),
+            coeffects to m(event to 14)
+        )
     }
 
     "context(event, interceptors) should return a fresh context" {
