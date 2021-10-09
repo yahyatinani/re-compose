@@ -14,7 +14,7 @@ import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.map.IPersistentMap
 
-//-- Registration --------------------------------------------------------------
+// -- Registration -------------------------------------------------------------
 
 val kind: Kinds = Cofx
 
@@ -36,7 +36,7 @@ fun regCofx(id: Any, handler: CofxHandler2) {
     registerHandler(id, kind, handler)
 }
 
-//-- Interceptor ---------------------------------------------------------------
+// -- Interceptor --------------------------------------------------------------
 
 fun injectCofx(id: Any) = toInterceptor(
     id = coeffects,
@@ -70,8 +70,7 @@ fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
     }
 )
 
-
-//-- Builtin CoEffects Handlers ------------------------------------------------
+// -- Builtin CoEffects Handlers -----------------------------------------------
 
 /**
  * Register [appDb] cofx handler under the key [db]
