@@ -13,12 +13,6 @@ import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
 import java.util.Date
 
-fun toIntOrNull(n: String): Int? = try {
-    n.toInt()
-} catch (e: NumberFormatException) {
-    null
-}
-
 fun regEvents() {
     regEventDb<Any>(Keys.initialize) { _, _ ->
         defaultAppDB
@@ -44,10 +38,10 @@ fun regEvents() {
     }
 
     regEventDb<AppSchema>(":a") { db, (_, a) ->
-        db.copy(a = toIntOrNull(a as String))
+        db.copy(a = a as String)
     }
 
     regEventDb<AppSchema>(":b") { db, (_, b) ->
-        db.copy(b = toIntOrNull(b as String))
+        db.copy(b = b as String)
     }
 }

@@ -19,6 +19,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+fun toFloatOrNull(n: String): Float? = try {
+    n.toFloat()
+} catch (e: NumberFormatException) {
+    null
+}
+
+fun add(n: Float, m: Float) = n + m
+
 fun regSubs() {
     regEventDb<Any>(Keys.initialize) { _, _ ->
         defaultAppDB
@@ -75,33 +83,22 @@ fun regSubs() {
     }
 
     regSub(":a") { AppSchema: AppSchema, _ ->
-        AppSchema.a
+        AppSchema.a.trim()
     }
 
     regSub(":b") { AppSchema: AppSchema, _ ->
-        AppSchema.b
-    }
-
-    regSub(":a-str") { AppSchema: AppSchema, _ ->
-        when (AppSchema.a) {
-            null -> ""
-            else -> "${AppSchema.a}"
-        }
-    }
-
-    regSub(":b-str") { AppSchema: AppSchema, _ ->
-        when (AppSchema.b) {
-            null -> ""
-            else -> "${AppSchema.b}"
-        }
+        AppSchema.b.trim()
     }
 
     regSubM(
         ":sum-a-b",
-        { v(subscribe<Int?>(v(":a")), subscribe(v(":b"))) }
+        { v(subscribe<String>(v(":a")), subscribe(v(":b"))) }
     ) { (a, b), _ ->
+        val n = toFloatOrNull(a)
+        val m = toFloatOrNull(b)
+
         when {
-            a != null && b != null -> "${a + b}"
+            n != null && m != null -> "${add(n, m)}"
             else -> ""
         }
     }

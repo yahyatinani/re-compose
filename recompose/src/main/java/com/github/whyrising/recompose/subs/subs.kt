@@ -117,20 +117,3 @@ inline fun <T, R> regSubscription(
         }
     )
 }
-
-inline fun <T, R> regMaterialisedView(
-    queryId: Any,
-    crossinline signalsFn: (queryVec: IPersistentVector<Any>) -> React<T>,
-    crossinline computationFn: (
-        input: T,
-        queryVec: IPersistentVector<Any>
-    ) -> R,
-    context: CoroutineContext = Dispatchers.Main.immediate,
-) {
-    regSubscription(
-        queryId,
-        { queryVec -> v(signalsFn(queryVec)) },
-        { persistentVector, qVec -> computationFn(persistentVector[0], qVec) },
-        context
-    )
-}

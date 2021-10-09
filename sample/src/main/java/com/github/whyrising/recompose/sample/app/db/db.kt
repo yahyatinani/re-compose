@@ -1,14 +1,15 @@
 package com.github.whyrising.recompose.sample.app.db
 
+import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.sample.app.Keys
-import java.util.Date
+import java.util.*
 
 data class AppSchema(
     val time: Date,
     val timeColor: String,
-    val a: Int? = null,
-    val b: Int? = null,
+    val a: String = "",
+    val b: String = "",
 )
 
 val defaultAppDB = AppSchema(
@@ -17,7 +18,7 @@ val defaultAppDB = AppSchema(
 )
 
 fun regCofxs() {
-    regCofx(Keys.now) {
-        it.assoc(Keys.now, Date())
+    regCofx(Keys.now) { coeffects: Coeffects ->
+        coeffects.assoc(Keys.now, Date())
     }
 }

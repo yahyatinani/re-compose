@@ -15,7 +15,6 @@ import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.regDbExtractor
-import com.github.whyrising.recompose.subs.regMaterialisedView
 import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
@@ -146,8 +145,22 @@ inline fun <T, R> regSub(
         input: T,
         queryVec: IPersistentVector<Any>
     ) -> R,
-) = regMaterialisedView(queryId, signalsFn, computationFn)
+) = regSubscription(
+    queryId,
+    { queryVec -> v(signalsFn(queryVec)) },
+    { persistentVector, qVec -> computationFn(persistentVector[0], qVec) }
+)
 
+/**
+ * This is basically the multi-version of [regSub] since it takes multiple
+ * signal inputs in vector.
+ *
+ * @param queryId a unique id for the subscription.
+ * @param signalsFn a function that returns a vector of Reactions by subscribing
+ * to other nodes.
+ * @param computationFn a function that obtains data from [signalsFn], and
+ * compute derived data from it.
+ */
 inline fun <T, R> regSubM(
     queryId: Any,
     crossinline signalsFn: (

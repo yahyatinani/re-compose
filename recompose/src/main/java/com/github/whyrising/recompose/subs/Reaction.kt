@@ -106,8 +106,8 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
      * @param inputNode reaction which extract data directly from [appDb],
      * but do no further computation.
      * @param context for the coroutines running under [viewModelScope].
-     * @param computation a function that obtains data from [inputNode], and compute
-     * derived data from it.
+     * @param computation a function that obtains data from [inputNode], and
+     * compute derived data from it.
      */
     inline fun <R> reactTo(
         inputNode: React<R>,
@@ -136,9 +136,9 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
                     val derefs = deref(subscriptions)
                         .assoc(i, newInput) as IPersistentVector<R>
 
-                    // Evaluate this only once by leaving it out of swap,
-                    // since swap can run f multiple times, the output is the
-                    // same for the same input
+                    // Evaluate this only once by leaving it out of swap since
+                    // swap can run f multiple times, the output is the same for
+                    // the same input
                     val materializedView = computation(derefs)
                     swap { materializedView }
                 }

@@ -113,7 +113,7 @@ fun TimeApp() {
                 horizontalArrangement = Arrangement.Start
             ) {
                 OutlinedTextField(
-                    value = subscribe<String>(v(":a-str")).w(),
+                    value = subscribe<String>(v(":a")).w(),
                     onValueChange = { dispatch(v(":a", it)) },
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
@@ -131,7 +131,7 @@ fun TimeApp() {
                 )
 
                 OutlinedTextField(
-                    value = subscribe<String>(v(":b-str")).w(),
+                    value = subscribe<String>(v(":b")).w(),
                     onValueChange = { dispatch(v(":b", it)) },
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
