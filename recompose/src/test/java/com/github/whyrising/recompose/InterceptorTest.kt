@@ -33,7 +33,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 class InterceptorTest : FreeSpec({
-    "toInterceptor()" - {
+    "toInterceptor() should return a map interceptor" - {
         "return a map with default functions" {
             val expectedInterceptor = m(
                 id to ":test",
@@ -64,7 +64,7 @@ class InterceptorTest : FreeSpec({
         }
     }
 
-    "assocCofx()" {
+    "assocCofx() should inject key/val pair into `coeffects` into context" {
         assocCofx(m(), event, 14) shouldBe m(coeffects to m(event to 14))
         assocCofx(m(stack to l<Any>()), event, 14) shouldBe m(
             stack to l<Any>(),
