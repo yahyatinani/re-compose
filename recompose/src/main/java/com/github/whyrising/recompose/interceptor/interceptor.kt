@@ -41,10 +41,10 @@ fun assocCofx(
     value: Any
 ): Context = assocIn(context, l(coeffects, key), value) as Context
 
-private fun enqueue(
+internal fun enqueue(
     context: Context,
-    interceptors: Any
-): Context = context.assoc(queue, interceptors)
+    interceptors: ISeq<Interceptor>?
+): Context = context.assoc(queue, interceptors ?: l<Any>())
 
 /**
  * Create a fresh context.
@@ -103,8 +103,9 @@ internal suspend fun invokeInterceptors(
     return invokeInterceptors(context)
 }
 
+@Suppress("UNCHECKED_CAST")
 internal fun changeDirection(context: Context): Context =
-    enqueue(context, context[stack]!!)
+    enqueue(context, context[stack] as ISeq<Interceptor>?)
 
 suspend fun execute(
     eventVec: IPersistentVector<Any>,

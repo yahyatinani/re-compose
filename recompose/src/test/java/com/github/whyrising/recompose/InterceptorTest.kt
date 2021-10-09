@@ -10,11 +10,13 @@ import com.github.whyrising.recompose.RKeys.originalEvent
 import com.github.whyrising.recompose.RKeys.queue
 import com.github.whyrising.recompose.RKeys.stack
 import com.github.whyrising.recompose.interceptor.Context
+import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.interceptor.assocCofx
 import com.github.whyrising.recompose.interceptor.changeDirection
 import com.github.whyrising.recompose.interceptor.context
 import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
+import com.github.whyrising.recompose.interceptor.enqueue
 import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptors
 import com.github.whyrising.recompose.interceptor.toInterceptor
@@ -24,6 +26,7 @@ import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.map.IPersistentMap
+import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -72,6 +75,17 @@ class InterceptorTest : FreeSpec({
         )
     }
 
+    "enqueue()" - {
+        "when interceptors is null, use an empty vec instead" {
+            enqueue(m(), null) shouldBe m(queue to l<Any>())
+        }
+
+        "should inject key/val pair of queue/interceptors" {
+            val interceptors: ISeq<Interceptor> = l()
+            enqueue(m(), interceptors) shouldBe m(queue to interceptors)
+        }
+    }
+
     "context(event, interceptors) should return a fresh context" {
         val eventVec = v<Any>(":id", 12)
         val interceptors = l<IPersistentMap<RKeys, Any>>()
@@ -85,36 +99,6 @@ class InterceptorTest : FreeSpec({
             ),
             queue to interceptors
         )
-    }
-
-    "changeDirection(context)" - {
-        "should put the stack into a new the queue" {
-            val context = m<RKeys, Any>(
-                queue to v<Any>(),
-                stack to v(1, 2, 3)
-            )
-
-            val c = changeDirection(context)
-
-            c shouldBe m<RKeys, Any>(
-                queue to v<Any>(1, 2, 3),
-                stack to v(1, 2, 3)
-            )
-        }
-
-        "should fill the queue from the stack" {
-            val s = v<Any>(1, 2, 3)
-
-            val context = m(
-                queue to v(),
-                stack to s
-            )
-
-            val newContext = changeDirection(context)
-
-            (newContext[queue] as IPersistentVector<*>) shouldContainExactly s
-            (newContext[stack] as IPersistentVector<*>) shouldContainExactly s
-        }
     }
 
     "invokeInterceptorFn() should call the interceptor fun based direction" - {
@@ -216,6 +200,36 @@ class InterceptorTest : FreeSpec({
             (newContext[queue] as PersistentList<*>).shouldBeEmpty()
             (newContext[stack] as PersistentList<*>) shouldContainExactly
                 qu.reversed()
+        }
+    }
+
+    "changeDirection(context)" - {
+        "should put the stack into a new the queue" {
+            val context = m<RKeys, Any>(
+                queue to l<Any>(),
+                stack to l(1, 2, 3)
+            )
+
+            val c = changeDirection(context)
+
+            c shouldBe m<RKeys, Any>(
+                queue to l<Any>(1, 2, 3),
+                stack to l(1, 2, 3)
+            )
+        }
+
+        "should fill the queue from the stack" {
+            val s = l<Any>(1, 2, 3)
+
+            val context = m(
+                queue to l(),
+                stack to s
+            )
+
+            val newContext = changeDirection(context)
+
+            (newContext[queue] as PersistentList<*>) shouldContainExactly s
+            (newContext[stack] as PersistentList<*>) shouldContainExactly s
         }
     }
 })
