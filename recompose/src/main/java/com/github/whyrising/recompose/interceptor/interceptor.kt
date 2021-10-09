@@ -52,13 +52,11 @@ internal fun enqueue(
 internal fun context(
     eventVec: Any,
     interceptors: ISeq<Interceptor>
-): Context {
-    val context0 = m<RKeys, Any>()
-    val context1 = assocCofx(context0, event, eventVec)
-    val context2 = assocCofx(context1, originalEvent, eventVec)
-
-    return enqueue(context2, interceptors)
-}
+): Context = m<RKeys, Any>()
+    .let { assocCofx(it, event, eventVec) }
+    .let { assocCofx(it, event, eventVec) }
+    .let { assocCofx(it, originalEvent, eventVec) }
+    .let { enqueue(it, interceptors) }
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 
