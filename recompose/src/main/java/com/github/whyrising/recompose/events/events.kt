@@ -1,11 +1,11 @@
 package com.github.whyrising.recompose.events
 
-import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.collections.core.concat
 import com.github.whyrising.y.collections.core.conj
 import com.github.whyrising.y.collections.core.lazySeq
