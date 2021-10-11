@@ -54,7 +54,6 @@ internal fun context(
     interceptors: ISeq<Interceptor>
 ): Context = m<RKeys, Any>()
     .let { assocCofx(it, event, eventVec) }
-    .let { assocCofx(it, event, eventVec) }
     .let { assocCofx(it, originalEvent, eventVec) }
     .let { enqueue(it, interceptors) }
 
@@ -88,7 +87,6 @@ internal suspend fun invokeInterceptors(
                 val stk = context[stack] as ISeq<Any>?
 
                 val newContext = context
-                    .assoc(queue, que.rest())
                     .assoc(queue, que.rest())
                     .assoc(stack, conj(stk, interceptor))
                     .let { invokeInterceptorFn(it, interceptor, direction) }
