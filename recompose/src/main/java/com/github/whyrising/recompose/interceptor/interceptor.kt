@@ -83,9 +83,8 @@ internal suspend fun invokeInterceptors(
         return when (que.count) {
             0 -> context
             else -> {
-                val interceptor: Interceptor = que.first()
+                val interceptor = que.first()
                 val stk = context[stack] as ISeq<Any>?
-
                 val newContext = context
                     .assoc(queue, que.rest())
                     .assoc(stack, conj(stk, interceptor))
@@ -106,9 +105,7 @@ internal fun changeDirection(context: Context): Context =
 suspend fun execute(
     eventVec: IPersistentVector<Any>,
     interceptors: ISeq<Interceptor>
-) {
-    context(eventVec, interceptors)
-        .let { invokeInterceptors(it, before) }
-        .let { changeDirection(it) }
-        .let { invokeInterceptors(it, after) }
-}
+): Context = context(eventVec, interceptors)
+    .let { invokeInterceptors(it, before) }
+    .let { changeDirection(it) }
+    .let { invokeInterceptors(it, after) }

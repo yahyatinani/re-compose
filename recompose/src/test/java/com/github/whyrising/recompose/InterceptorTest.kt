@@ -17,6 +17,7 @@ import com.github.whyrising.recompose.interceptor.changeDirection
 import com.github.whyrising.recompose.interceptor.context
 import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
 import com.github.whyrising.recompose.interceptor.enqueue
+import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptors
 import com.github.whyrising.recompose.interceptor.toInterceptor
@@ -231,5 +232,32 @@ class InterceptorTest : FreeSpec({
             (newContext[queue] as PersistentList<*>) shouldContainExactly s
             (newContext[stack] as PersistentList<*>) shouldContainExactly s
         }
+    }
+
+    """
+        execute() should build context and run :before interceptors in the given 
+        order, then :after interceptors in reversed order
+    """ {
+        val eventV = v(":test")
+        val interceptor1 = toInterceptor(
+            ":i1",
+            before = { context: Context -> context.assoc(db, 3) }
+        )
+        val interceptor2 = toInterceptor(
+            ":i2",
+            after = { context: Context ->
+                val value = context[db] as Int * 4
+                context.assoc(db, value)
+            }
+        )
+
+        val context = execute(eventV, l(interceptor1, interceptor2))
+
+        context shouldBe m(
+            coeffects to m(event to eventV, originalEvent to eventV),
+            queue to l<Any>(),
+            stack to l(interceptor1, interceptor2, interceptor2, interceptor1),
+            db to 12
+        )
     }
 })
