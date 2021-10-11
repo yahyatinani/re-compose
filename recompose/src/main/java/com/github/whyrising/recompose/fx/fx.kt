@@ -58,7 +58,7 @@ val doFx: Interceptor = toInterceptor(
     }
 )
 
-//  -- Builtin Effect Handlers --------------------------------------------------
+// -- Builtin Effect Handlers --------------------------------------------------
 val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
     if (listOfEffects !is IPersistentVector<*>) {
         Log.e(
