@@ -41,10 +41,10 @@ fun assocCofx(
     value: Any
 ): Context = assocIn(context, l(coeffects, key), value) as Context
 
-private fun enqueue(
+internal fun enqueue(
     context: Context,
-    interceptors: Any
-): Context = context.assoc(queue, interceptors)
+    interceptors: ISeq<Interceptor>?
+): Context = context.assoc(queue, interceptors ?: l<Any>())
 
 /**
  * Create a fresh context.
@@ -52,13 +52,10 @@ private fun enqueue(
 internal fun context(
     eventVec: Any,
     interceptors: ISeq<Interceptor>
-): Context {
-    val context0 = m<RKeys, Any>()
-    val context1 = assocCofx(context0, event, eventVec)
-    val context2 = assocCofx(context1, originalEvent, eventVec)
-
-    return enqueue(context2, interceptors)
-}
+): Context = m<RKeys, Any>()
+    .let { assocCofx(it, event, eventVec) }
+    .let { assocCofx(it, originalEvent, eventVec) }
+    .let { enqueue(it, interceptors) }
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 
@@ -86,11 +83,9 @@ internal suspend fun invokeInterceptors(
         return when (que.count) {
             0 -> context
             else -> {
-                val interceptor: Interceptor = que.first()
+                val interceptor = que.first()
                 val stk = context[stack] as ISeq<Any>?
-
                 val newContext = context
-                    .assoc(queue, que.rest())
                     .assoc(queue, que.rest())
                     .assoc(stack, conj(stk, interceptor))
                     .let { invokeInterceptorFn(it, interceptor, direction) }
@@ -103,15 +98,14 @@ internal suspend fun invokeInterceptors(
     return invokeInterceptors(context)
 }
 
+@Suppress("UNCHECKED_CAST")
 internal fun changeDirection(context: Context): Context =
-    enqueue(context, context[stack]!!)
+    enqueue(context, context[stack] as ISeq<Interceptor>?)
 
 suspend fun execute(
     eventVec: IPersistentVector<Any>,
     interceptors: ISeq<Interceptor>
-) {
-    context(eventVec, interceptors)
-        .let { invokeInterceptors(it, before) }
-        .let { changeDirection(it) }
-        .let { invokeInterceptors(it, after) }
-}
+): Context = context(eventVec, interceptors)
+    .let { invokeInterceptors(it, before) }
+    .let { changeDirection(it) }
+    .let { invokeInterceptors(it, after) }
