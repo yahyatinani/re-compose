@@ -1,15 +1,16 @@
 package com.github.whyrising.recompose.fx
 
 import android.util.Log
-import com.github.whyrising.recompose.RKeys
-import com.github.whyrising.recompose.RKeys.db
-import com.github.whyrising.recompose.RKeys.dispatch
-import com.github.whyrising.recompose.RKeys.dispatchN
-import com.github.whyrising.recompose.RKeys.dofx
-import com.github.whyrising.recompose.RKeys.effects
-import com.github.whyrising.recompose.RKeys.fx
+import com.github.whyrising.recompose.schemas.ContextSchema.effects
+import com.github.whyrising.recompose.schemas.Schema.db
+import com.github.whyrising.recompose.schemas.Schema.dispatch
+import com.github.whyrising.recompose.schemas.Schema.dispatchN
+import com.github.whyrising.recompose.schemas.Schema.dofx
+import com.github.whyrising.recompose.schemas.Schema.fx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.dispatch
+import com.github.whyrising.recompose.interceptor.Context
+import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
@@ -18,12 +19,16 @@ import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
+typealias Effects = IPersistentMap<Any, Any>
+typealias EffectHandler = suspend (value: Any) -> Unit
+
 /*
 -- Registration ----------------------------------------------------------------
  */
 val kind: Kinds = Kinds.Fx
 
-fun regFx(id: Any, handler: suspend (value: Any) -> Unit) {
+
+fun regFx(id: Any, handler: EffectHandler) {
     registerHandler(id, kind, handler)
 }
 
@@ -31,29 +36,27 @@ fun regFx(id: Any, handler: suspend (value: Any) -> Unit) {
 -- Interceptor -----------------------------------------------------------------
  */
 
-val doFx: IPersistentMap<RKeys, Any> = toInterceptor(
+val doFx: Interceptor = toInterceptor(
     id = dofx,
-    after = { context: IPersistentMap<RKeys, Any> ->
-        val effects = context[effects] as IPersistentMap<Any, Any>
-        val effectsWithoutDb: IPersistentMap<Any, Any> = effects.dissoc(db)
+    after = { context: Context ->
+        val effects = context[effects] as Effects
+        val effectsWithoutDb: Effects = effects.dissoc(db)
 
         val newDb = effects[db]
         if (newDb != null) {
-            val dbFxHandler =
-                getHandler(kind, db) as suspend (newDb: Any) -> Unit
+            val dbFxHandler = getHandler(kind, db) as EffectHandler
             dbFxHandler(newDb)
         }
 
         for ((effectKey, effectValue) in effectsWithoutDb) {
-            val fxHandler =
-                getHandler(kind, effectKey) as (suspend (Any) -> Unit)?
-
-            if (fxHandler != null)
-                fxHandler(effectValue)
-            else Log.i(
-                "re-compose",
-                "no handler registered for effect: $effectKey. Ignoring."
-            )
+            val fxHandler = getHandler(kind, effectKey) as EffectHandler?
+            when {
+                fxHandler != null -> fxHandler(effectValue)
+                else -> Log.i(
+                    "re-compose",
+                    "no handler registered for effect: $effectKey. Ignoring."
+                )
+            }
         }
 
         context

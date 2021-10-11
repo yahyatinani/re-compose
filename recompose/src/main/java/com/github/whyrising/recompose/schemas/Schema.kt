@@ -1,14 +1,10 @@
-package com.github.whyrising.recompose
+package com.github.whyrising.recompose.schemas
 
 @Suppress("EnumEntryName")
-enum class RKeys {
-    effects,
-    coeffects,
-    db,
+enum class Schema {
     event,
     originalEvent,
-    queue,
-    stack,
+    db,
     fx,
     dispatch,
     dispatchN,

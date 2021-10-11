@@ -1,8 +1,8 @@
 package com.github.whyrising.recompose.cofx
 
 import android.util.Log
-import com.github.whyrising.recompose.RKeys.coeffects
-import com.github.whyrising.recompose.RKeys.db
+import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
+import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.toInterceptor

@@ -1,8 +1,9 @@
 package com.github.whyrising.recompose
 
-import com.github.whyrising.recompose.RKeys.after
-import com.github.whyrising.recompose.RKeys.before
-import com.github.whyrising.recompose.RKeys.db
+import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
+import com.github.whyrising.recompose.schemas.Schema.after
+import com.github.whyrising.recompose.schemas.Schema.before
+import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.CofxHandler1
 import com.github.whyrising.recompose.cofx.CofxHandler2
@@ -64,12 +65,12 @@ class CofxTest : FreeSpec({
             """ {
                 appDb.state.value = -22
                 registerDbInjectorCofx
-                val context: Context = m(RKeys.coeffects to m(db to 10))
+                val context: Context = m(coeffects to m(db to 10))
 
                 val dbInjector: Interceptor = injectCofx(db)
 
                 val beforeFn = dbInjector[before] as InterceptorFn
-                beforeFn(context) shouldBe m(RKeys.coeffects to m(db to -22))
+                beforeFn(context) shouldBe m(coeffects to m(db to -22))
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
 
@@ -84,7 +85,7 @@ class CofxTest : FreeSpec({
                 val dbInjector: Interceptor = injectCofx(db)
 
                 val beforeFn = dbInjector[before] as InterceptorFn
-                beforeFn(m()) shouldBe m(RKeys.coeffects to m(db to -22))
+                beforeFn(m()) shouldBe m(coeffects to m(db to -22))
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
 
@@ -93,7 +94,7 @@ class CofxTest : FreeSpec({
                  context
             """ {
                 appDb.state.value = -22
-                val context: Context = m(RKeys.coeffects to m(db to 10))
+                val context: Context = m(coeffects to m(db to 10))
 
                 val dbInjector: Interceptor = injectCofx("non-existent-id")
 
@@ -109,7 +110,7 @@ class CofxTest : FreeSpec({
                 context
             """ {
                 appDb.state.value = -22
-                val context: Context = m(RKeys.coeffects to m(db to 10))
+                val context: Context = m(coeffects to m(db to 10))
 
                 val dbInjector: Interceptor = injectCofx("non-existent-id", 0)
 
@@ -122,7 +123,7 @@ class CofxTest : FreeSpec({
                 should return an Interceptor with before func that inject db 
                 value in coeffects.
             """ {
-                val context: Context = m(RKeys.coeffects to m(db to 10))
+                val context: Context = m(coeffects to m(db to 10))
                 regCofx("id") { cofx: Coeffects, value: Any ->
                     val dbVal = cofx[db]!! as Int
                     cofx.assoc(db, dbVal + value as Int)
@@ -131,7 +132,7 @@ class CofxTest : FreeSpec({
                 val dbInjector: Interceptor = injectCofx("id", 20)
 
                 val beforeFn = dbInjector[before] as InterceptorFn
-                beforeFn(context) shouldBe m(RKeys.coeffects to m(db to 30))
+                beforeFn(context) shouldBe m(coeffects to m(db to 30))
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
 
@@ -147,7 +148,7 @@ class CofxTest : FreeSpec({
                 val dbInjector: Interceptor = injectCofx("id", 20)
 
                 val beforeFn = dbInjector[before] as InterceptorFn
-                beforeFn(m()) shouldBe m(RKeys.coeffects to m(db to 20))
+                beforeFn(m()) shouldBe m(coeffects to m(db to 20))
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
         }

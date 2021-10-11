@@ -10,6 +10,7 @@ import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.doFx
+import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.React
@@ -24,15 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
-
-fun measureTime(action: () -> Unit) {
-    val start = System.nanoTime()
-    action()
-    val finish = System.nanoTime()
-    val timeElapsed = finish - start
-
-    Log.i("timeElapsed", "$timeElapsed")
-}
 
 // -- Dispatch -----------------------------------------------------------------
 
@@ -98,7 +90,7 @@ inline fun <T> regEventDb(
 
 inline fun regEventFx(
     id: Any,
-    interceptors: IPersistentVector<IPersistentMap<RKeys, Any>> = v(),
+    interceptors: IPersistentVector<IPersistentMap<Schema, Any>> = v(),
     crossinline handler: (
         cofx: IPersistentMap<Any, Any>,
         event: IPersistentVector<Any>
