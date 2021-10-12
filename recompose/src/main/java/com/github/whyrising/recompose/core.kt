@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+internal const val TAG = "re-compose"
 // -- Dispatch -----------------------------------------------------------------
 
 fun dispatch(event: IPersistentVector<Any>) {

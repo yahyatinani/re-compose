@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose.fx
 
 import android.util.Log
+import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.interceptor.Context
@@ -34,21 +35,21 @@ fun regFx(id: Any, handler: EffectHandler) {
 val doFx: Interceptor = toInterceptor(
     id = dofx,
     after = { context: Context ->
-        val effects = context[effects] as Effects
+        val effects: Effects = context[effects] as Effects
         val effectsWithoutDb: Effects = effects.dissoc(db)
-
         val newDb = effects[db]
+
         if (newDb != null) {
-            val dbFxHandler = getHandler(kind, db) as EffectHandler
-            dbFxHandler(newDb)
+            val updateDbFxHandler = getHandler(kind, db) as EffectHandler
+            updateDbFxHandler(newDb)
         }
 
         for ((effectKey, effectValue) in effectsWithoutDb) {
             val fxHandler = getHandler(kind, effectKey) as EffectHandler?
             when {
                 fxHandler != null -> fxHandler(effectValue)
-                else -> Log.i(
-                    "re-compose",
+                else -> Log.w(
+                    TAG,
                     "no handler registered for effect: $effectKey. Ignoring."
                 )
             }
@@ -59,10 +60,11 @@ val doFx: Interceptor = toInterceptor(
 )
 
 // -- Builtin Effect Handlers --------------------------------------------------
+
 val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
     if (listOfEffects !is IPersistentVector<*>) {
         Log.e(
-            "regFx",
+            TAG,
             "\":fx\" effect expects a list, but was given " +
                 "${listOfEffects::class.java}"
         )
@@ -76,14 +78,14 @@ val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
         val (effectKey, effectValue) = effect
 
         if (effectKey == db)
-            Log.w("regFx", "\":fx\" effect should not contain a :db effect")
+            Log.w(TAG, "\":fx\" effect should not contain a :db effect")
 
         val fxFn = getHandler(kind, effectKey!!) as (suspend (Any?) -> Unit)?
 
         if (fxFn != null)
             fxFn(effectValue)
-        else Log.i(
-            "regFx",
+        else Log.w(
+            TAG,
             "in :fx no handler registered for effect: $effectKey. Ignoring."
         )
     }
