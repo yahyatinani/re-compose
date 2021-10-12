@@ -4,7 +4,6 @@ import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.fx.doFx
-import com.github.whyrising.recompose.fx.exec
 import com.github.whyrising.recompose.fx.initBuiltinEffectHandlers
 import com.github.whyrising.recompose.fx.regDispatchEventFxHandler
 import com.github.whyrising.recompose.fx.regDispatchNeventFxHandler
