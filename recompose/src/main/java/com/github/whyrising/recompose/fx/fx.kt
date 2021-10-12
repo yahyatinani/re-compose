@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose.fx
 
 import android.util.Log
+import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.interceptor.Context
@@ -20,7 +21,7 @@ import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 typealias Effects = IPersistentMap<Any, Any>
-typealias EffectHandler = suspend (value: Any) -> Unit
+typealias EffectHandler = suspend (value: Any?) -> Unit
 
 // -- Registration -------------------------------------------------------------
 val kind: Kinds = Kinds.Fx
@@ -34,21 +35,21 @@ fun regFx(id: Any, handler: EffectHandler) {
 val doFx: Interceptor = toInterceptor(
     id = dofx,
     after = { context: Context ->
-        val effects = context[effects] as Effects
+        val effects: Effects = context[effects] as Effects
         val effectsWithoutDb: Effects = effects.dissoc(db)
-
         val newDb = effects[db]
+
         if (newDb != null) {
-            val dbFxHandler = getHandler(kind, db) as EffectHandler
-            dbFxHandler(newDb)
+            val updateDbFxHandler = getHandler(kind, db) as EffectHandler
+            updateDbFxHandler(newDb)
         }
 
         for ((effectKey, effectValue) in effectsWithoutDb) {
             val fxHandler = getHandler(kind, effectKey) as EffectHandler?
             when {
                 fxHandler != null -> fxHandler(effectValue)
-                else -> Log.i(
-                    "re-compose",
+                else -> Log.w(
+                    TAG,
                     "no handler registered for effect: $effectKey. Ignoring."
                 )
             }
@@ -59,42 +60,58 @@ val doFx: Interceptor = toInterceptor(
 )
 
 // -- Builtin Effect Handlers --------------------------------------------------
-val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
-    if (listOfEffects !is IPersistentVector<*>) {
-        Log.e(
-            "regFx",
-            "\":fx\" effect expects a list, but was given " +
-                "${listOfEffects::class.java}"
-        )
 
-        return@regFx
-    }
+/**
+ * Registers the [EffectHandler] to [fx] id which is responsible for
+ * executing, in the given order, every effect in the vector of effects.
+ */
+fun regExecuteOrderedEffectsFx() = regFx(id = fx) { vecOfFx: Any? ->
+    if (vecOfFx is IPersistentVector<*>) {
+        val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
 
-    val effects = listOfEffects as IPersistentVector<IPersistentVector<Any>>
+        effects.forEach { effect: IPersistentVector<Any?>? ->
+            if (effect == null) return@regFx
 
-    effects.forEach { effect: IPersistentVector<Any?> ->
-        val (effectKey, effectValue) = effect
+            val effectKey = effect.nth(0, null)
+            val effectValue = effect.nth(1, null)
 
-        if (effectKey == db)
-            Log.w("regFx", "\":fx\" effect should not contain a :db effect")
+            if (effectKey == db)
+                Log.w(TAG, "\":fx\" effect should not contain a :db effect")
 
-        val fxFn = getHandler(kind, effectKey!!) as (suspend (Any?) -> Unit)?
+            if (effectKey == null) {
+                Log.w(
+                    TAG,
+                    "in :fx effect, null is not a valid effectKey. Skip."
+                )
+                return@regFx
+            }
 
-        if (fxFn != null)
-            fxFn(effectValue)
-        else Log.i(
-            "regFx",
-            "in :fx no handler registered for effect: $effectKey. Ignoring."
-        )
+            val fxFn = getHandler(kind, effectKey) as EffectHandler?
+
+            if (fxFn != null)
+                fxFn(effectValue)
+            else Log.w(
+                TAG,
+                "in :fx effect, effect: $effectKey has no associated handler." +
+                    " Skip."
+            )
+        }
+    } else {
+        val type: Class<out Any>? = when (vecOfFx) {
+            null -> null
+            else -> vecOfFx::class.java
+        }
+        Log.e(TAG, "\":fx\" effect expects a vector, but was given $type")
     }
 }
 
-val updateDbFx: Unit = regFx(id = db) { newAppDb ->
+fun regUpdateDbFx() = regFx(id = db) { newAppDb ->
     // emit() doesn't set if the newVal == the currentVal
-    appDb.state.emit(newAppDb)
+    if (newAppDb != null)
+        appDb.state.emit(newAppDb)
 }
 
-val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
+fun regDispatchEventFxHandler(): Unit = regFx(id = dispatch) { event ->
     if (event !is IPersistentVector<*>) {
         Log.e(
             "regFx",
@@ -106,7 +123,7 @@ val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
     dispatch(event as IPersistentVector<Any>)
 }
 
-val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
+fun regDispatchNeventFxHandler(): Unit = regFx(id = dispatchN) { events ->
     if (events !is IPersistentVector<*>) {
         Log.e(
             "regFx",
@@ -119,3 +136,12 @@ val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
         dispatch(event as IPersistentVector<Any>)
     }
 }
+
+internal fun initBuiltinEffectHandlers() {
+    regExecuteOrderedEffectsFx()
+    regUpdateDbFx()
+    regDispatchEventFxHandler()
+    regDispatchNeventFxHandler()
+}
+
+val exec = initBuiltinEffectHandlers()

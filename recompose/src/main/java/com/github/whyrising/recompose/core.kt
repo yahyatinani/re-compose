@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+internal const val TAG = "re-compose"
 // -- Dispatch -----------------------------------------------------------------
 
 fun dispatch(event: IPersistentVector<Any>) {
@@ -46,10 +47,6 @@ object Recompose : ViewModel() {
     private val eventQueue = Channel<IPersistentVector<Any>>()
 
     init {
-        startEventReceiver()
-    }
-
-    private fun startEventReceiver() {
         viewModelScope.launch {
             Log.i(TAG, "event receiver is listening...")
             while (true) {
@@ -69,6 +66,7 @@ object Recompose : ViewModel() {
 
 // -- Events ---------------------------------------------------
 
+// TODO: make handler: (db: T, vec: IPersistentVector<Any>) -> T
 /**
  * Register the given event `handler` (function) for the given `id`.
  */

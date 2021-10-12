@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose.subs
 
 import android.util.Log
+import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
@@ -19,8 +20,6 @@ val kind: Kinds = Sub
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 
 // -- subscribe ----------------------------------------------------------------
-internal const val TAG = "re-compose"
-
 private fun <T> cacheReaction(
     key: IPersistentVector<Any>,
     reaction: Reaction<T>
