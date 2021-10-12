@@ -5,12 +5,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
+import com.github.whyrising.recompose.fx.EffectHandler
+import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.fx.doFx
-import com.github.whyrising.recompose.schemas.Schema
+import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.React
@@ -18,7 +22,6 @@ import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.core.v
-import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -29,14 +32,14 @@ import kotlin.coroutines.EmptyCoroutineContext
 internal const val TAG = "re-compose"
 // -- Dispatch -----------------------------------------------------------------
 
-fun dispatch(event: IPersistentVector<Any>) {
+fun dispatch(event: Event) {
     Recompose.send(event)
 }
 
 /**
  * This is a blocking function normally used to initialize the appDb.
  */
-fun dispatchSync(event: IPersistentVector<Any>) {
+fun dispatchSync(event: Event) {
     runBlocking {
         handle(event)
     }
@@ -59,7 +62,7 @@ object Recompose : ViewModel() {
         }
     }
 
-    internal fun send(event: IPersistentVector<Any>) {
+    internal fun send(event: Event) {
         eventQueue.trySend(event)
     }
 }
@@ -72,7 +75,7 @@ object Recompose : ViewModel() {
  */
 inline fun <T> regEventDb(
     id: Any,
-    interceptors: IPersistentVector<Any> = v(),
+    interceptors: IPersistentVector<Interceptor> = v(),
     crossinline handler: (db: T, vec: IPersistentVector<Any>) -> Any
 ) {
     register(
@@ -88,11 +91,8 @@ inline fun <T> regEventDb(
 
 inline fun regEventFx(
     id: Any,
-    interceptors: IPersistentVector<IPersistentMap<Schema, Any>> = v(),
-    crossinline handler: (
-        cofx: IPersistentMap<Any, Any>,
-        event: IPersistentVector<Any>
-    ) -> IPersistentMap<Any, Any>
+    interceptors: IPersistentVector<Interceptor> = v(),
+    crossinline handler: (cofx: Coeffects, event: Event) -> Effects
 ) {
     register(
         id = id,
@@ -183,6 +183,6 @@ fun <T> Reaction<T>.w(
  * @param handler is a side-effecting function which takes a single argument
  * and whose return value is ignored.
  */
-fun regFx(id: Any, handler: suspend (value: Any?) -> Unit) {
+fun regFx(id: Any, handler: EffectHandler) {
     com.github.whyrising.recompose.fx.regFx(id, handler)
 }

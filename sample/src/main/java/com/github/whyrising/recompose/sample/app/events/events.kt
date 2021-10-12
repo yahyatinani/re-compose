@@ -1,5 +1,6 @@
 package com.github.whyrising.recompose.sample.app.events
 
+import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
@@ -10,7 +11,6 @@ import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
-import com.github.whyrising.y.collections.map.IPersistentMap
 import java.util.Date
 
 fun regEvents() {
@@ -25,7 +25,7 @@ fun regEvents() {
     regEventFx(
         id = Keys.timer,
         interceptors = v(injectCofx(Keys.now))
-    ) { cofx: IPersistentMap<Any, Any>, _ ->
+    ) { cofx: Coeffects, _ ->
         val db =
             cofx[Schema.db] as AppSchema
         m(Schema.db to db.copy(time = cofx[Keys.now] as Date))

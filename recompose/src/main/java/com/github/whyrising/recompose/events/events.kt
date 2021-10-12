@@ -1,19 +1,17 @@
 package com.github.whyrising.recompose.events
 
+import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
-import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.collections.core.concat
 import com.github.whyrising.y.collections.core.conj
 import com.github.whyrising.y.collections.core.lazySeq
-import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
-val kind: Kinds = Event
+val kind: Kinds = Kinds.Event
 
 // TODO: Move flatten to y library?
 /**
@@ -43,10 +41,11 @@ fun register(id: Any, interceptors: IPersistentVector<Any>) {
 -------------  Handle event ----------------------
  */
 
-@Suppress("UNCHECKED_CAST")
-suspend fun handle(eventVec: IPersistentVector<Any>) {
-    val interceptors = getHandler(kind, eventVec[0])
-        as ISeq<IPersistentMap<Schema, Any>>?
+typealias Event = IPersistentVector<Any>
 
-    execute(eventVec, interceptors ?: return)
+@Suppress("UNCHECKED_CAST")
+suspend fun handle(event: Event) {
+    val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
+
+    execute(event, interceptors ?: return)
 }

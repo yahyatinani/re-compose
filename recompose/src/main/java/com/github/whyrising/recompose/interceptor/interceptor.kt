@@ -1,5 +1,6 @@
 package com.github.whyrising.recompose.interceptor
 
+import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.queue
@@ -7,7 +8,6 @@ import com.github.whyrising.recompose.schemas.ContextSchema.stack
 import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.schemas.Schema.after
 import com.github.whyrising.recompose.schemas.Schema.before
-import com.github.whyrising.recompose.schemas.Schema.event
 import com.github.whyrising.recompose.schemas.Schema.originalEvent
 import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.conj
@@ -16,7 +16,6 @@ import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.seq.ISeq
-import com.github.whyrising.y.collections.vector.IPersistentVector
 
 typealias Context = IPersistentMap<ContextSchema, Any>
 
@@ -51,11 +50,11 @@ internal fun enqueue(
  * Create a fresh context.
  */
 internal fun context(
-    eventVec: Any,
+    event: Event,
     interceptors: ISeq<Interceptor>
 ): Context = m<ContextSchema, Any>()
-    .let { assocCofx(it, event, eventVec) }
-    .let { assocCofx(it, originalEvent, eventVec) }
+    .let { assocCofx(it, Schema.event, event) }
+    .let { assocCofx(it, originalEvent, event) }
     .let { enqueue(it, interceptors) }
 
 // -- Execute Interceptor Chain  ----------------------------------------------
@@ -104,9 +103,9 @@ internal fun changeDirection(context: Context): Context =
     enqueue(context, context[stack] as ISeq<Interceptor>?)
 
 suspend fun execute(
-    eventVec: IPersistentVector<Any>,
+    event: Event,
     interceptors: ISeq<Interceptor>
-): Context = context(eventVec, interceptors)
+): Context = context(event, interceptors)
     .let { invokeInterceptors(it, before) }
     .let { changeDirection(it) }
     .let { invokeInterceptors(it, after) }
