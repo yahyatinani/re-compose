@@ -44,7 +44,7 @@ fun dispatchSync(event: IPersistentVector<Any>) {
 
 object Recompose : ViewModel() {
     private const val TAG = "re-compose"
-    internal val eventQueue = Channel<IPersistentVector<Any>>()
+    private val eventQueue = Channel<IPersistentVector<Any>>()
 
     init {
         viewModelScope.launch {
