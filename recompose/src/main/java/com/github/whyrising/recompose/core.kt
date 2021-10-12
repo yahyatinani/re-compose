@@ -44,13 +44,9 @@ fun dispatchSync(event: IPersistentVector<Any>) {
 
 object Recompose : ViewModel() {
     private const val TAG = "re-compose"
-    private val eventQueue = Channel<IPersistentVector<Any>>()
+    internal val eventQueue = Channel<IPersistentVector<Any>>()
 
     init {
-        startEventReceiver()
-    }
-
-    private fun startEventReceiver() {
         viewModelScope.launch {
             Log.i(TAG, "event receiver is listening...")
             while (true) {
@@ -70,6 +66,7 @@ object Recompose : ViewModel() {
 
 // -- Events ---------------------------------------------------
 
+// TODO: make handler: (db: T, vec: IPersistentVector<Any>) -> T
 /**
  * Register the given event `handler` (function) for the given `id`.
  */

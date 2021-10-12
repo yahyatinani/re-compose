@@ -111,7 +111,7 @@ fun regUpdateDbFx() = regFx(id = db) { newAppDb ->
         appDb.state.emit(newAppDb)
 }
 
-val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
+fun regDispatchEventFxHandler(): Unit = regFx(id = dispatch) { event ->
     if (event !is IPersistentVector<*>) {
         Log.e(
             "regFx",
@@ -123,7 +123,7 @@ val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
     dispatch(event as IPersistentVector<Any>)
 }
 
-val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
+fun regDispatchNeventFxHandler(): Unit = regFx(id = dispatchN) { events ->
     if (events !is IPersistentVector<*>) {
         Log.e(
             "regFx",
@@ -140,6 +140,8 @@ val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
 internal fun initBuiltinEffectHandlers() {
     regExecuteOrderedEffectsFx()
     regUpdateDbFx()
+    regDispatchEventFxHandler()
+    regDispatchNeventFxHandler()
 }
 
 val exec = initBuiltinEffectHandlers()
