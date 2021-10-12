@@ -21,7 +21,7 @@ import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 typealias Effects = IPersistentMap<Any, Any>
-typealias EffectHandler = suspend (value: Any) -> Unit
+typealias EffectHandler = suspend (value: Any?) -> Unit
 
 // -- Registration -------------------------------------------------------------
 val kind: Kinds = Kinds.Fx
@@ -61,39 +61,54 @@ val doFx: Interceptor = toInterceptor(
 
 // -- Builtin Effect Handlers --------------------------------------------------
 
-val executeOrderedEffectsFx: Unit = regFx(id = fx) { listOfEffects: Any ->
-    if (listOfEffects !is IPersistentVector<*>) {
-        Log.e(
-            TAG,
-            "\":fx\" effect expects a list, but was given " +
-                "${listOfEffects::class.java}"
-        )
+/**
+ * Registers the [EffectHandler] to [fx] id which is responsible for
+ * executing, in the given order, every effect in the vector of effects.
+ */
+fun regExecuteOrderedEffectsFx() = regFx(id = fx) { vecOfFx: Any? ->
+    if (vecOfFx is IPersistentVector<*>) {
+        val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
 
-        return@regFx
-    }
+        effects.forEach { effect: IPersistentVector<Any?>? ->
+            if (effect == null) return@regFx
 
-    val effects = listOfEffects as IPersistentVector<IPersistentVector<Any>>
+            val effectKey = effect.nth(0, null)
+            val effectValue = effect.nth(1, null)
 
-    effects.forEach { effect: IPersistentVector<Any?> ->
-        val (effectKey, effectValue) = effect
+            if (effectKey == db)
+                Log.w(TAG, "\":fx\" effect should not contain a :db effect")
 
-        if (effectKey == db)
-            Log.w(TAG, "\":fx\" effect should not contain a :db effect")
+            if (effectKey == null) {
+                Log.w(
+                    TAG,
+                    "in :fx effect, null is not a valid effectKey. Skip."
+                )
+                return@regFx
+            }
 
-        val fxFn = getHandler(kind, effectKey!!) as (suspend (Any?) -> Unit)?
+            val fxFn = getHandler(kind, effectKey) as EffectHandler?
 
-        if (fxFn != null)
-            fxFn(effectValue)
-        else Log.w(
-            TAG,
-            "in :fx no handler registered for effect: $effectKey. Ignoring."
-        )
+            if (fxFn != null)
+                fxFn(effectValue)
+            else Log.w(
+                TAG,
+                "in :fx effect, effect: $effectKey has no associated handler." +
+                    " Skip."
+            )
+        }
+    } else {
+        val type: Class<out Any>? = when (vecOfFx) {
+            null -> null
+            else -> vecOfFx::class.java
+        }
+        Log.e(TAG, "\":fx\" effect expects a vector, but was given $type")
     }
 }
 
-val updateDbFx: Unit = regFx(id = db) { newAppDb ->
+fun regUpdateDbFx() = regFx(id = db) { newAppDb ->
     // emit() doesn't set if the newVal == the currentVal
-    appDb.state.emit(newAppDb)
+    if (newAppDb != null)
+        appDb.state.emit(newAppDb)
 }
 
 val dispatchEventFx: Unit = regFx(id = dispatch) { event ->
@@ -121,3 +136,10 @@ val dispatchNeventFx: Unit = regFx(id = dispatchN) { events ->
         dispatch(event as IPersistentVector<Any>)
     }
 }
+
+internal fun initBuiltinEffectHandlers() {
+    regExecuteOrderedEffectsFx()
+    regUpdateDbFx()
+}
+
+val exec = initBuiltinEffectHandlers()
