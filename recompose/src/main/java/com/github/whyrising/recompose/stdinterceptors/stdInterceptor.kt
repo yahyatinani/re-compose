@@ -19,7 +19,7 @@ import com.github.whyrising.y.collections.core.m
 These 2 factories wrap 2 kinds of event handlers.
 */
 
-inline fun <T> dbHandlerToInterceptor(
+inline fun <T : Any> dbHandlerToInterceptor(
     crossinline dbEventHandler: (db: T, event: Event) -> T
 ): Interceptor = toInterceptor(
     id = ":db-handler",
