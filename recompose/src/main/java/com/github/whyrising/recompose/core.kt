@@ -76,7 +76,7 @@ object Recompose : ViewModel() {
 inline fun <T> regEventDb(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: (db: T, vec: IPersistentVector<Any>) -> Any
+    crossinline handler: (db: T, vec: IPersistentVector<Any>) -> T
 ) {
     register(
         id = id,

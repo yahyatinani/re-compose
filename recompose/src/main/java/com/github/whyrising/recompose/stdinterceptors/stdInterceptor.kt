@@ -20,7 +20,7 @@ These 2 factories wrap 2 kinds of event handlers.
 */
 
 inline fun <T> dbHandlerToInterceptor(
-    crossinline dbEventHandler: (db: T, event: Event) -> Any
+    crossinline dbEventHandler: (db: T, event: Event) -> T
 ): Interceptor = toInterceptor(
     id = ":db-handler",
     before = { context: Context ->
