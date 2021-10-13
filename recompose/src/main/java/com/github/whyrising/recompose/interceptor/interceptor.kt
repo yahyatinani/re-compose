@@ -1,13 +1,12 @@
 package com.github.whyrising.recompose.interceptor
 
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.schemas.CoeffectsSchema
 import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.queue
 import com.github.whyrising.recompose.schemas.ContextSchema.stack
 import com.github.whyrising.recompose.schemas.InterceptorSchema
-import com.github.whyrising.recompose.schemas.Schema
-import com.github.whyrising.recompose.schemas.Schema.originalEvent
 import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.conj
 import com.github.whyrising.y.collections.core.get
@@ -36,7 +35,7 @@ fun toInterceptor(
 
 fun assocCofx(
     context: Context,
-    key: Schema,
+    key: CoeffectsSchema,
     value: Any
 ): Context = assocIn(context, l(coeffects, key), value) as Context
 
@@ -52,8 +51,8 @@ internal fun context(
     event: Event,
     interceptors: ISeq<Interceptor>
 ): Context = m<ContextSchema, Any>()
-    .let { assocCofx(it, Schema.event, event) }
-    .let { assocCofx(it, originalEvent, event) }
+    .let { assocCofx(it, CoeffectsSchema.event, event) }
+    .let { assocCofx(it, CoeffectsSchema.originalEvent, event) }
     .let { enqueue(it, interceptors) }
 
 // -- Execute Interceptor Chain  ----------------------------------------------
