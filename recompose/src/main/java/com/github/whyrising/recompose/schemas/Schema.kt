@@ -11,7 +11,8 @@ enum class Schema {
     dofx,
     id,
     before,
-    after;
+    after,
+    notFound;
 
     override fun toString(): String {
         return ":${super.toString()}"

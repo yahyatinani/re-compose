@@ -26,8 +26,7 @@ fun regEvents() {
         id = Keys.timer,
         interceptors = v(injectCofx(Keys.now))
     ) { cofx: Coeffects, _ ->
-        val db =
-            cofx[Schema.db] as AppSchema
+        val db = cofx[Schema.db] as AppSchema
         m(Schema.db to db.copy(time = cofx[Keys.now] as Date))
     }
 

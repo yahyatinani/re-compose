@@ -64,6 +64,8 @@ dependencies {
     testImplementation(Libs.Kotest.runner)
     testImplementation(Libs.Kotest.assertions)
     testImplementation(Libs.Kotest.property)
+    testImplementation(Libs.Mockk.core)
+    testImplementation(Libs.Mockk.jvm)
 }
 
 val androidSourcesJar by tasks.register<Jar>("androidSourcesJar") {
