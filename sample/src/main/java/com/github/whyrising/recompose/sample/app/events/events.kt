@@ -32,16 +32,14 @@ fun regEvents() {
     }
 
     regEventDb<AppSchema>(
-        Keys.timeColorChange
+        Keys.primaryColorChange
     ) { db, (_, color) ->
-        db.copy(timeColor = (color as String))
+        db.copy(primaryColor = (color as String))
     }
 
-    regEventDb<AppSchema>(":a") { db, (_, a) ->
-        db.copy(a = a as String)
-    }
-
-    regEventDb<AppSchema>(":b") { db, (_, b) ->
-        db.copy(b = b as String)
+    regEventDb<AppSchema>(
+        Keys.secondaryColorChange
+    ) { db, (_, color) ->
+        db.copy(secondaryColor = (color as String))
     }
 }

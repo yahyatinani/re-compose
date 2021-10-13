@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
@@ -21,12 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.sample.app.Keys
+import com.github.whyrising.recompose.sample.app.Keys.secondaryColor
 import com.github.whyrising.recompose.sample.app.init
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
@@ -47,21 +45,19 @@ fun Clock() {
 }
 
 @Composable
-fun ColorInput() {
+fun ColorInput(label: String, value: String, onValueChange: (String) -> Unit) {
     Surface {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Primary color:",
+                text = label,
                 style = MaterialTheme.typography.h5
             )
             Spacer(modifier = Modifier.width(4.dp))
             OutlinedTextField(
-                value = subscribe<String>(v(Keys.timeColorName)).w(),
+                value = value,
                 singleLine = true,
                 maxLines = 1,
-                onValueChange = {
-                    dispatch(v(Keys.timeColorChange, it))
-                }
+                onValueChange = onValueChange
             )
         }
     }
@@ -84,7 +80,7 @@ fun TimeApp() {
         ) {
             val systemUiController = rememberSystemUiController()
 
-            val color = subscribe<Color>(v(Keys.primaryColor, defaultColor)).w()
+            val color = subscribe<Color>(v(secondaryColor, defaultColor)).w()
             val areStatusBarIconsDark = subscribe<Boolean>(
                 v(Keys.statusBarDarkIcons, defaultColor)
             ).w()
@@ -104,76 +100,33 @@ fun TimeApp() {
             )
             Clock()
             Spacer(modifier = Modifier.height(16.dp))
-            ColorInput()
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+            ColorInput(
+                label = "Primary color:",
+                value = subscribe<String>(v(Keys.primaryColorName)).w()
             ) {
-                OutlinedTextField(
-                    value = subscribe<String>(v(":a")).w(),
-                    onValueChange = { dispatch(v(":a", it)) },
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    singleLine = true,
-                    label = { Text(text = "a") },
-                    keyboardOptions = KeyboardOptions
-                        .Default
-                        .copy(keyboardType = KeyboardType.Number),
-                )
+                dispatch(v(Keys.primaryColorChange, it))
+            }
 
-                Text(
-                    text = "+",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
+            Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = subscribe<String>(v(":b")).w(),
-                    onValueChange = { dispatch(v(":b", it)) },
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    singleLine = true,
-                    label = { Text(text = "b") },
-                    keyboardOptions = KeyboardOptions
-                        .Default
-                        .copy(keyboardType = KeyboardType.Number),
-                )
-
-                Text(
-                    text = "=",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-
-                OutlinedTextField(
-                    value = subscribe<String>(v(":sum-a-b")).w(),
-                    onValueChange = {},
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    singleLine = true,
-                    label = { Text(text = "sum") },
-                    enabled = false,
-                )
+            ColorInput(
+                label = "Secondary color:",
+                value = subscribe<String>(v(Keys.secondaryColorName)).w()
+            ) {
+                dispatch(v(Keys.secondaryColorChange, it))
             }
         }
-    }
-}
-
-@Composable
-private fun ShowCase() {
-    RecomposeTheme {
-        init()
-        TimeApp()
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    ShowCase()
+    init()
+    RecomposeTheme {
+        TimeApp()
+    }
 }
 
 @Preview(
@@ -182,5 +135,8 @@ fun DefaultPreview() {
 )
 @Composable
 fun DefaultDarkPreview() {
-    ShowCase()
+    init()
+    RecomposeTheme {
+        TimeApp()
+    }
 }

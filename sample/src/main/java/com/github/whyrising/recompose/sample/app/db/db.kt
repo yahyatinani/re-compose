@@ -7,14 +7,14 @@ import java.util.Date
 
 data class AppSchema(
     val time: Date,
-    val timeColor: String,
-    val a: String = "",
-    val b: String = "",
+    val primaryColor: String,
+    val secondaryColor: String
 )
 
 val defaultAppDB = AppSchema(
     time = Date(),
-    timeColor = "Pink",
+    primaryColor = "Pink",
+    secondaryColor = "Orange",
 )
 
 fun regCofxs() {

@@ -19,14 +19,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-fun toFloatOrNull(n: String): Float? = try {
-    n.toFloat()
-} catch (e: NumberFormatException) {
-    null
-}
-
-fun add(n: Float, m: Float) = n + m
-
 fun regSubs() {
     regEventDb<Any>(Keys.initialize) { _, _ ->
         defaultAppDB
@@ -36,16 +28,18 @@ fun regSubs() {
         AppSchema.time
     }
 
-    regSub(Keys.timeColorName) { AppSchema: AppSchema, _ ->
-        AppSchema.timeColor
+    regSub(Keys.primaryColorName) { AppSchema: AppSchema, _ ->
+        AppSchema.primaryColor
+    }
+
+    regSub(Keys.secondaryColorName) { AppSchema: AppSchema, _ ->
+        AppSchema.secondaryColor
     }
 
     regSub(
         Keys.primaryColor,
-        { subscribe<String>(v(Keys.timeColorName)) }
+        { subscribe<String>(v(Keys.primaryColorName)) }
     ) { colorStr, (_, defaultColor) ->
-        Log.i("MainActivity", "`primaryColor` compFn did run")
-
         toColor(
             stringColor = colorStr.lowercase(),
             default = defaultColor as Color
@@ -53,14 +47,28 @@ fun regSubs() {
     }
 
     regSub(
+        Keys.secondaryColor,
+        { subscribe<String>(v(Keys.secondaryColorName)) }
+    ) { colorStr, (_, defaultColor) ->
+        toColor(
+            stringColor = colorStr.lowercase(),
+            default = defaultColor as Color
+        )
+    }
+
+    regSubM<Color, Colors>(
         Keys.materialThemeColors,
         { (_, _, defaultColor) ->
-            subscribe(v(Keys.primaryColor, defaultColor))
+            v(
+                subscribe(v(Keys.primaryColor, defaultColor)),
+                subscribe(v(Keys.secondaryColor, defaultColor))
+            )
         }
-    ) { primaryColor: Color, (_, colors) ->
-        Log.i("MainActivity", "`materialThemeColors` compFn did run")
-
-        (colors as Colors).copy(primary = primaryColor)
+    ) { (primaryColor, secondaryColor), (_, colors) ->
+        (colors as Colors).copy(
+            primary = primaryColor,
+            secondary = secondaryColor
+        )
     }
 
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
@@ -80,26 +88,5 @@ fun regSubs() {
         Log.i("MainActivity", "`statusBarDarkIcons` compFn did run")
 
         primaryColor.luminance() >= 0.5f
-    }
-
-    regSub(":a") { AppSchema: AppSchema, _ ->
-        AppSchema.a.trim()
-    }
-
-    regSub(":b") { AppSchema: AppSchema, _ ->
-        AppSchema.b.trim()
-    }
-
-    regSubM(
-        ":sum-a-b",
-        { v(subscribe<String>(v(":a")), subscribe(v(":b"))) }
-    ) { (a, b), _ ->
-        val n = toFloatOrNull(a)
-        val m = toFloatOrNull(b)
-
-        when {
-            n != null && m != null -> "${add(n, m)}"
-            else -> ""
-        }
     }
 }
