@@ -4,11 +4,8 @@ package com.github.whyrising.recompose.schemas
 enum class Schema {
     event,
     originalEvent,
-    db,
-    fx,
-    dispatch,
-    dispatchN,
     dofx,
+    db,
     notFound;
 
     override fun toString(): String = ":${super.toString()}"

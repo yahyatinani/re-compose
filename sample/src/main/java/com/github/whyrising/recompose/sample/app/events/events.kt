@@ -2,6 +2,7 @@ package com.github.whyrising.recompose.sample.app.events
 
 import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.injectCofx
+import com.github.whyrising.recompose.fx.FxIds
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.sample.app.Keys
@@ -19,7 +20,7 @@ fun regEvents() {
     }
 
     regEventFx(Keys.startTicks) { _, _ ->
-        m(Schema.fx to v(v(Keys.timeticker, null)))
+        m(FxIds.fx to v(v(Keys.timeticker, null)))
     }
 
     regEventFx(

@@ -11,17 +11,23 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.recompose.schemas.ContextSchema.effects
+import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.recompose.schemas.Schema.dispatch
-import com.github.whyrising.recompose.schemas.Schema.dispatchN
-import com.github.whyrising.recompose.schemas.Schema.dofx
-import com.github.whyrising.recompose.schemas.Schema.fx
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 typealias Effects = IPersistentMap<Any, Any>
 typealias EffectHandler = suspend (value: Any?) -> Unit
+
+@Suppress("EnumEntryName")
+enum class FxIds {
+    fx,
+    dispatch,
+    dispatchN;
+
+    override fun toString(): String = ":${super.toString()}"
+}
 
 // -- Registration -------------------------------------------------------------
 val kind: Kinds = Kinds.Fx
@@ -33,7 +39,7 @@ fun regFx(id: Any, handler: EffectHandler) {
 // -- Interceptor --------------------------------------------------------------
 
 val doFx: Interceptor = toInterceptor(
-    id = dofx,
+    id = Schema.dofx,
     after = { context: Context ->
         val effects: Effects = context[effects] as Effects
         val effectsWithoutDb: Effects = effects.dissoc(db)
@@ -65,7 +71,7 @@ val doFx: Interceptor = toInterceptor(
  * Registers the [EffectHandler] to [fx] id which is responsible for
  * executing, in the given order, every effect in the vector of effects.
  */
-fun regExecuteOrderedEffectsFx() = regFx(id = fx) { vecOfFx: Any? ->
+fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
     if (vecOfFx is IPersistentVector<*>) {
         val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
 
@@ -111,7 +117,7 @@ fun regUpdateDbFx() = regFx(id = db) { newAppDb ->
         appDb.state.emit(newAppDb)
 }
 
-fun regDispatchEventFxHandler(): Unit = regFx(id = dispatch) { event ->
+fun regDispatchEventFxHandler(): Unit = regFx(id = FxIds.dispatch) { event ->
     if (event !is IPersistentVector<*>) {
         Log.e(
             "regFx",
@@ -123,7 +129,7 @@ fun regDispatchEventFxHandler(): Unit = regFx(id = dispatch) { event ->
     dispatch(event as IPersistentVector<Any>)
 }
 
-fun regDispatchNeventFxHandler(): Unit = regFx(id = dispatchN) { events ->
+fun regDispatchNeventFxHandler(): Unit = regFx(id = FxIds.dispatchN) { events ->
     if (events !is IPersistentVector<*>) {
         Log.e(
             "regFx",
