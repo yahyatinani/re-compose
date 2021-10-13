@@ -15,7 +15,7 @@ import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.register
 import com.github.whyrising.recompose.schemas.ContextSchema
-import com.github.whyrising.recompose.schemas.Schema.after
+import com.github.whyrising.recompose.schemas.InterceptorSchema.after
 import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.schemas.Schema.dispatch
 import com.github.whyrising.recompose.schemas.Schema.dispatchN

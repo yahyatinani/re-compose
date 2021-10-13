@@ -7,6 +7,8 @@ import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
+import com.github.whyrising.recompose.schemas.InterceptorSchema
+import com.github.whyrising.recompose.schemas.InterceptorSchema.before
 import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.stdinterceptors.DbEventHandler
 import com.github.whyrising.recompose.stdinterceptors.FxEventHandler
@@ -35,7 +37,7 @@ class StdInterceptorTest : FreeSpec({
         }
 
         val interceptor: Interceptor = dbHandlerToInterceptor(addToDbHandler)
-        val fn: InterceptorFn = interceptor[Schema.before] as InterceptorFn
+        val fn: InterceptorFn = interceptor[before] as InterceptorFn
         val newContext = fn(context)
 
         newContext shouldBe m(
@@ -51,7 +53,7 @@ class StdInterceptorTest : FreeSpec({
         val handler: FxEventHandler = { _, _ -> newEffects }
 
         val interceptor: Interceptor = fxHandlerToInterceptor(handler)
-        val fn: InterceptorFn = interceptor[Schema.before] as InterceptorFn
+        val fn: InterceptorFn = interceptor[before] as InterceptorFn
         val newContext = fn(context)
 
         newContext shouldBe m(
@@ -64,7 +66,7 @@ class StdInterceptorTest : FreeSpec({
         "before() should log the event and return the same context" {
             val event = v<Any>("id", 45)
             val context: Context = m(coeffects to m(Schema.event to event))
-            val before = debug[Schema.before] as InterceptorFn
+            val before = debug[before] as InterceptorFn
 
             before(context) shouldBeSameInstanceAs context
         }
@@ -72,7 +74,7 @@ class StdInterceptorTest : FreeSpec({
         "after()" {
             val event = v<Any>("id", 45)
             val context: Context = m(coeffects to m(Schema.event to event))
-            val after = debug[Schema.after] as InterceptorFn
+            val after = debug[InterceptorSchema.after] as InterceptorFn
 
             after(context) shouldBeSameInstanceAs context
         }

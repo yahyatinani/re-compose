@@ -5,9 +5,8 @@ import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.queue
 import com.github.whyrising.recompose.schemas.ContextSchema.stack
+import com.github.whyrising.recompose.schemas.InterceptorSchema
 import com.github.whyrising.recompose.schemas.Schema
-import com.github.whyrising.recompose.schemas.Schema.after
-import com.github.whyrising.recompose.schemas.Schema.before
 import com.github.whyrising.recompose.schemas.Schema.originalEvent
 import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.conj
@@ -19,7 +18,7 @@ import com.github.whyrising.y.collections.seq.ISeq
 
 typealias Context = IPersistentMap<ContextSchema, Any>
 
-typealias Interceptor = IPersistentMap<Schema, Any>
+typealias Interceptor = IPersistentMap<InterceptorSchema, Any>
 
 typealias InterceptorFn = suspend (context: Context) -> Context
 
@@ -30,9 +29,9 @@ fun toInterceptor(
     before: InterceptorFn = defaultInterceptorFn,
     after: InterceptorFn = defaultInterceptorFn
 ): Interceptor = m(
-    Schema.id to id,
-    Schema.before to before,
-    Schema.after to after,
+    InterceptorSchema.id to id,
+    InterceptorSchema.before to before,
+    InterceptorSchema.after to after,
 )
 
 fun assocCofx(
@@ -63,7 +62,7 @@ internal fun context(
 internal suspend fun invokeInterceptorFn(
     context: Context,
     interceptor: Interceptor,
-    direction: Schema
+    direction: InterceptorSchema
 ) = when (val interceptorFn = interceptor[direction] as InterceptorFn?) {
     null -> context
     else -> interceptorFn(context)
@@ -76,7 +75,7 @@ internal suspend fun invokeInterceptorFn(
 @Suppress("UNCHECKED_CAST")
 internal suspend fun invokeInterceptors(
     context: Context,
-    direction: Schema
+    direction: InterceptorSchema
 ): Context {
     tailrec suspend fun invokeInterceptors(context: Context): Context {
         val que = context[queue] as ISeq<Interceptor>
@@ -106,6 +105,6 @@ suspend fun execute(
     event: Event,
     interceptors: ISeq<Interceptor>
 ): Context = context(event, interceptors)
-    .let { invokeInterceptors(it, before) }
+    .let { invokeInterceptors(it, InterceptorSchema.before) }
     .let { changeDirection(it) }
-    .let { invokeInterceptors(it, after) }
+    .let { invokeInterceptors(it, InterceptorSchema.after) }

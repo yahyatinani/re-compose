@@ -14,8 +14,8 @@ import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
-import com.github.whyrising.recompose.schemas.Schema.after
-import com.github.whyrising.recompose.schemas.Schema.before
+import com.github.whyrising.recompose.schemas.InterceptorSchema.after
+import com.github.whyrising.recompose.schemas.InterceptorSchema.before
 import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
@@ -69,7 +69,8 @@ class CofxTest : FreeSpec({
 
                 val dbInjector: Interceptor = injectCofx(db)
 
-                val beforeFn = dbInjector[before] as InterceptorFn
+                val beforeFn =
+                    dbInjector[before] as InterceptorFn
                 beforeFn(context) shouldBe m(coeffects to m(db to -22))
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
@@ -84,7 +85,8 @@ class CofxTest : FreeSpec({
 
                 val dbInjector: Interceptor = injectCofx(db)
 
-                val beforeFn = dbInjector[before] as InterceptorFn
+                val beforeFn =
+                    dbInjector[before] as InterceptorFn
                 beforeFn(m()) shouldBe m(coeffects to m(db to -22))
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }
@@ -98,7 +100,8 @@ class CofxTest : FreeSpec({
 
                 val dbInjector: Interceptor = injectCofx("non-existent-id")
 
-                val beforeFn = dbInjector[before] as InterceptorFn
+                val beforeFn =
+                    dbInjector[before] as InterceptorFn
                 beforeFn(context) shouldBeSameInstanceAs context
                 dbInjector[after] shouldBeSameInstanceAs defaultInterceptorFn
             }

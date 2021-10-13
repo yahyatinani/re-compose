@@ -1,15 +1,10 @@
 package com.github.whyrising.recompose.schemas
 
 @Suppress("EnumEntryName")
-enum class Schema {
-    event,
-    originalEvent,
-    db,
-    fx,
-    dispatch,
-    dispatchN,
-    dofx,
-    notFound;
+enum class InterceptorSchema {
+    id,
+    before,
+    after;
 
     override fun toString(): String = ":${super.toString()}"
 }

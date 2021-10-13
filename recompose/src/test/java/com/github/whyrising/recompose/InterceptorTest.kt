@@ -17,12 +17,12 @@ import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.queue
 import com.github.whyrising.recompose.schemas.ContextSchema.stack
-import com.github.whyrising.recompose.schemas.Schema
-import com.github.whyrising.recompose.schemas.Schema.after
-import com.github.whyrising.recompose.schemas.Schema.before
+import com.github.whyrising.recompose.schemas.InterceptorSchema
+import com.github.whyrising.recompose.schemas.InterceptorSchema.after
+import com.github.whyrising.recompose.schemas.InterceptorSchema.before
+import com.github.whyrising.recompose.schemas.InterceptorSchema.id
 import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.schemas.Schema.event
-import com.github.whyrising.recompose.schemas.Schema.id
 import com.github.whyrising.recompose.schemas.Schema.originalEvent
 import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.collections.core.assocIn
@@ -92,7 +92,7 @@ class InterceptorTest : FreeSpec({
 
     "context(event, interceptors) should return a fresh context" {
         val eventVec = v<Any>(":id", 12)
-        val interceptors = l<IPersistentMap<Schema, Any>>()
+        val interceptors = l<IPersistentMap<InterceptorSchema, Any>>()
 
         val context = context(eventVec, interceptors)
 
