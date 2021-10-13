@@ -83,4 +83,11 @@ object Libs {
         const val assertions = "io.kotest:kotest-assertions-core:$version"
         const val property = "io.kotest:kotest-property:$version"
     }
+
+    object Mockk {
+        private const val version = "1.12.0"
+
+        const val core = "io.mockk:mockk:$version"
+        const val jvm = "io.mockk:mockk-agent-jvm:$version"
+    }
 }
