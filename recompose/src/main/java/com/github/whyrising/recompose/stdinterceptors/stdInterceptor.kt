@@ -10,8 +10,9 @@ import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.effects
 import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.schemas.Schema.event
+import com.github.whyrising.y.collections.core.assocIn
 import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.collections.core.l
 
 /*
 -- Interceptor Factories -------------------------------------------------------
@@ -25,13 +26,11 @@ inline fun <T : Any> dbHandlerToInterceptor(
     id = ":db-handler",
     before = { context: Context ->
         val cofx = context[coeffects] as Coeffects
-        val oldDb = cofx[db] as T
-        val event = cofx[event] as Event
-        val effectsMap = (context[effects] ?: m<Any, Any>()) as Effects
-        context.assoc(
-            effects,
-            effectsMap.assoc(db, dbEventHandler(oldDb, event))
-        )
+        assocIn(
+            context,
+            l(effects, db),
+            dbEventHandler(cofx[db] as T, cofx[event] as Event)
+        ) as Context
     }
 )
 
