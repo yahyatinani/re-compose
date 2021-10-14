@@ -6,6 +6,7 @@ import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.interceptor.Context
+import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.schemas.CoeffectsSchema.event
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
@@ -50,7 +51,7 @@ inline fun fxHandlerToInterceptor(crossinline handler: FxEventHandler) =
 // -- Built-in Interceptors ----------------------------------------------------
 
 val debug = toInterceptor(
-    ":debug",
+    id = ":debug",
     before = {
         Log.d(TAG, "Handling event: ${(it[coeffects] as Coeffects)[event]}")
         it
@@ -73,6 +74,30 @@ val debug = toInterceptor(
                     "equal to the previous."
             )
         }
+        context
+    }
+)
+
+/**
+ *  A built-in [Interceptor] factory function.
+ *
+ * This interceptor runs after every event handler has run.
+ *
+ * @param f a side effect function that takes the appDb value from [Effects],
+ * if it's existing, otherwise, from [Coeffects], and the [Event] vector.
+ *
+ * @return the context unchanged.
+ */
+fun <T> after(f: (db: T, event: Event) -> Unit): Interceptor = toInterceptor(
+    id = ":after",
+    after = { context ->
+        val coeffects = context[coeffects] as Coeffects
+        val event = coeffects[event] as Event
+        val effects = context[effects] as Effects
+        val db = effects[db] as T? ?: coeffects[db] as T
+
+        f(db, event)
+
         context
     }
 )

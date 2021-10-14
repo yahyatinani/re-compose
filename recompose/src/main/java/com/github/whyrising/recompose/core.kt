@@ -69,14 +69,16 @@ object Recompose : ViewModel() {
 
 // -- Events ---------------------------------------------------
 
-// TODO: make handler: (db: T, vec: IPersistentVector<Any>) -> T
+typealias EventHandler1<T> = (db: T, vec: IPersistentVector<Any>) -> T
+typealias EventHandler2 = (cofx: Coeffects, event: Event) -> Effects
+
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
 inline fun <T : Any> regEventDb(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: (db: T, vec: IPersistentVector<Any>) -> T
+    crossinline handler: EventHandler1<T>
 ) {
     register(
         id = id,
@@ -92,7 +94,7 @@ inline fun <T : Any> regEventDb(
 inline fun regEventFx(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: (cofx: Coeffects, event: Event) -> Effects
+    crossinline handler: EventHandler2
 ) {
     register(
         id = id,
@@ -167,7 +169,7 @@ inline fun <T, R> regSubM(
  *
  * @param context CoroutineContext to use for collecting.
  *
- * @return returns the current value of this reaction. Every time there would be
+ * @return the current value of this reaction. Every time there would be
  * new value posted into the Reaction it's going to cause a recomposition.
  */
 @Composable
