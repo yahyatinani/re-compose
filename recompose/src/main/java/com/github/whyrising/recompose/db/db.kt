@@ -1,10 +1,11 @@
 package com.github.whyrising.recompose.db
 
 import com.github.whyrising.recompose.subs.React
+import com.github.whyrising.y.collections.core.m
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 
-internal val DEFAULT_APP_DB_VALUE = Any()
+internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()
 
 class RAtom<T>(v: T) : React<T> {
     internal val state: MutableStateFlow<T> = MutableStateFlow(v)
@@ -27,4 +28,4 @@ class RAtom<T>(v: T) : React<T> {
  *
  * It is set to a default token until it gets initialized via an event handler.
  * */
-internal val appDb = RAtom(DEFAULT_APP_DB_VALUE)
+internal val appDb: RAtom<Any> = RAtom(DEFAULT_APP_DB_VALUE)
