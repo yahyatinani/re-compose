@@ -8,11 +8,13 @@ import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.schemas.CoeffectsSchema
 import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
+import com.github.whyrising.recompose.schemas.ContextSchema.effects
 import com.github.whyrising.recompose.schemas.InterceptorSchema
 import com.github.whyrising.recompose.schemas.InterceptorSchema.before
 import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.stdinterceptors.DbEventHandler
 import com.github.whyrising.recompose.stdinterceptors.FxEventHandler
+import com.github.whyrising.recompose.stdinterceptors.after
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.debug
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
@@ -42,9 +44,10 @@ class StdInterceptorTest : FreeSpec({
         val fn: InterceptorFn = interceptor[before] as InterceptorFn
         val newContext = fn(context)
 
+        interceptor[InterceptorSchema.id] shouldBe ":db-handler"
         newContext shouldBe m(
             ContextSchema.coeffects to coeffects,
-            ContextSchema.effects to m(Schema.db to 6)
+            effects to m(Schema.db to 6)
         )
     }
 
@@ -59,9 +62,10 @@ class StdInterceptorTest : FreeSpec({
         val fn: InterceptorFn = interceptor[before] as InterceptorFn
         val newContext = fn(context)
 
+        interceptor[InterceptorSchema.id] shouldBe ":fx-handler"
         newContext shouldBe m(
             ContextSchema.coeffects to coeffects,
-            ContextSchema.effects to newEffects
+            effects to newEffects
         )
     }
 
@@ -72,6 +76,7 @@ class StdInterceptorTest : FreeSpec({
                 m(coeffects to m(CoeffectsSchema.event to event))
             val before = debug[before] as InterceptorFn
 
+            debug[InterceptorSchema.id] shouldBe ":debug"
             before(context) shouldBeSameInstanceAs context
         }
 
@@ -81,7 +86,60 @@ class StdInterceptorTest : FreeSpec({
                 m(coeffects to m(CoeffectsSchema.event to event))
             val after = debug[InterceptorSchema.after] as InterceptorFn
 
+            debug[InterceptorSchema.id] shouldBe ":debug"
             after(context) shouldBeSameInstanceAs context
+        }
+    }
+
+    "after interceptor should run after every handler" - {
+        "when effects doesn't have db, pass db value from coeffects to `f`" {
+            val expectedEvent = v<Any>("id", 45)
+            val expectedDbVal = 1
+            var dbVal = -1
+            var eventVal = v<Any>()
+            val context: Context = m(
+                effects to m(),
+                coeffects to m(
+                    CoeffectsSchema.event to expectedEvent,
+                    Schema.db to expectedDbVal
+                )
+            )
+
+            val interceptor = after { db: Int, event ->
+                dbVal = db
+                eventVal = event
+            }
+            val afterFn = interceptor[InterceptorSchema.after] as InterceptorFn
+
+            interceptor[InterceptorSchema.id] shouldBe ":after"
+            afterFn(context) shouldBeSameInstanceAs context
+            dbVal shouldBe expectedDbVal
+            eventVal shouldBeSameInstanceAs expectedEvent
+        }
+
+        "when effects have db, pass its value to the side effect function `f`" {
+            val expectedEvent = v<Any>("id", 45)
+            val expectedDbVal = 20
+            var dbVal = -1
+            var eventVal = v<Any>()
+            val context: Context = m(
+                effects to m(Schema.db to expectedDbVal),
+                coeffects to m(
+                    CoeffectsSchema.event to expectedEvent,
+                    Schema.db to 10
+                )
+            )
+
+            val interceptor = after { db: Int, event ->
+                dbVal = db
+                eventVal = event
+            }
+            val afterFn = interceptor[InterceptorSchema.after] as InterceptorFn
+
+            interceptor[InterceptorSchema.id] shouldBe ":after"
+            afterFn(context) shouldBeSameInstanceAs context
+            dbVal shouldBe expectedDbVal
+            eventVal shouldBeSameInstanceAs expectedEvent
         }
     }
 })
