@@ -1,6 +1,5 @@
 package com.github.whyrising.recompose.sample.app.subs
 
-import android.util.Log
 import androidx.compose.material.Colors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -85,8 +84,6 @@ fun regSubs() {
             subscribe(v(Keys.primaryColor, defaultColor))
         }
     ) { primaryColor: Color, _ ->
-        Log.i("MainActivity", "`statusBarDarkIcons` compFn did run")
-
         primaryColor.luminance() >= 0.5f
     }
 }

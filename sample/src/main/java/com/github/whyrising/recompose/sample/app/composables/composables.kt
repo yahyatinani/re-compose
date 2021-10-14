@@ -22,15 +22,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.sample.app.Keys
 import com.github.whyrising.recompose.sample.app.Keys.secondaryColor
+import com.github.whyrising.recompose.sample.app.Keys.statusBarDarkIcons
+import com.github.whyrising.recompose.sample.app.db.AppSchema
 import com.github.whyrising.recompose.sample.app.init
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
 import com.github.whyrising.y.collections.core.v
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.util.Date
 
 @Composable
 fun Clock() {
@@ -50,16 +54,33 @@ fun ColorInput(label: String, value: String, onValueChange: (String) -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.h5,
+                fontSize = 18.sp
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             OutlinedTextField(
                 value = value,
                 singleLine = true,
                 maxLines = 1,
+                placeholder = { Text(text = "Color") },
                 onValueChange = onValueChange
             )
         }
+    }
+}
+
+@Composable
+fun UpdateStatusBarColor(defaultColor: Color) {
+    val systemUiController = rememberSystemUiController()
+
+    val color = subscribe<Color>(v(secondaryColor, defaultColor)).w()
+    val darkIcons = subscribe<Boolean>(v(statusBarDarkIcons, defaultColor)).w()
+
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = color,
+            darkIcons = darkIcons
+        )
     }
 }
 
@@ -78,19 +99,7 @@ fun TimeApp() {
                 v(Keys.materialThemeColors, MaterialTheme.colors, defaultColor)
             ).w()
         ) {
-            val systemUiController = rememberSystemUiController()
-
-            val color = subscribe<Color>(v(secondaryColor, defaultColor)).w()
-            val areStatusBarIconsDark = subscribe<Boolean>(
-                v(Keys.statusBarDarkIcons, defaultColor)
-            ).w()
-
-            SideEffect {
-                systemUiController.setSystemBarsColor(
-                    color = color,
-                    darkIcons = areStatusBarIconsDark
-                )
-            }
+            UpdateStatusBarColor(defaultColor = defaultColor)
 
             Text(
                 text = "Local time:",
@@ -98,7 +107,9 @@ fun TimeApp() {
                 fontWeight = FontWeight.Light,
                 color = MaterialTheme.colors.primary
             )
+
             Clock()
+
             Spacer(modifier = Modifier.height(16.dp))
 
             ColorInput(
@@ -120,13 +131,24 @@ fun TimeApp() {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    init()
+fun AppPreview() {
+    init(
+        initAppDb = AppSchema(
+            time = Date(),
+            primaryColor = "",
+            secondaryColor = "",
+        )
+    )
     RecomposeTheme {
         TimeApp()
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    AppPreview()
 }
 
 @Preview(
@@ -135,8 +157,5 @@ fun DefaultPreview() {
 )
 @Composable
 fun DefaultDarkPreview() {
-    init()
-    RecomposeTheme {
-        TimeApp()
-    }
+    AppPreview()
 }

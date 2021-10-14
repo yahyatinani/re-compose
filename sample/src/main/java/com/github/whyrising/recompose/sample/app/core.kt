@@ -8,6 +8,8 @@ import androidx.lifecycle.lifecycleScope
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.dispatchSync
 import com.github.whyrising.recompose.sample.app.composables.TimeApp
+import com.github.whyrising.recompose.sample.app.db.AppSchema
+import com.github.whyrising.recompose.sample.app.db.defaultAppDB
 import com.github.whyrising.recompose.sample.app.db.regCofxs
 import com.github.whyrising.recompose.sample.app.events.regEvents
 import com.github.whyrising.recompose.sample.app.fx.regFx
@@ -34,8 +36,8 @@ enum class Keys {
     now
 }
 
-fun init() {
-    regEvents()
+fun init(initAppDb: AppSchema = defaultAppDB) {
+    regEvents(initAppDb)
     dispatchSync(v(Keys.initialize))
     regSubs()
     regCofxs()

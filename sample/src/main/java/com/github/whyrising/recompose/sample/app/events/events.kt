@@ -7,16 +7,15 @@ import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.sample.app.Keys
 import com.github.whyrising.recompose.sample.app.db.AppSchema
-import com.github.whyrising.recompose.sample.app.db.defaultAppDB
 import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.v
 import java.util.Date
 
-fun regEvents() {
+fun regEvents(initAppDb: AppSchema) {
     regEventDb<Any>(Keys.initialize) { _, _ ->
-        defaultAppDB
+        initAppDb
     }
 
     regEventFx(Keys.startTicks) { _, _ ->
