@@ -24,11 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.whyrising.recompose.dispatch
+import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.sample.app.Keys
 import com.github.whyrising.recompose.sample.app.Keys.secondaryColor
 import com.github.whyrising.recompose.sample.app.Keys.statusBarDarkIcons
 import com.github.whyrising.recompose.sample.app.db.AppSchema
-import com.github.whyrising.recompose.sample.app.init
+import com.github.whyrising.recompose.sample.app.setup
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
@@ -133,13 +134,15 @@ fun TimeApp() {
 
 @Composable
 fun AppPreview() {
-    init(
-        initAppDb = AppSchema(
+    regEventDb<Any>(Keys.initializeDb) { _, _ ->
+        AppSchema(
             time = Date(),
             primaryColor = "",
             secondaryColor = "",
         )
-    )
+    }
+    setup()
+
     RecomposeTheme {
         TimeApp()
     }

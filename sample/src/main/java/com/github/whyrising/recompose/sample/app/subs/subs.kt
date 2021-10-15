@@ -19,7 +19,7 @@ import java.util.Date
 import java.util.Locale
 
 fun regSubs() {
-    regEventDb<Any>(Keys.initialize) { _, _ ->
+    regEventDb<Any>(Keys.initializeDb) { _, _ ->
         defaultAppDB
     }
 
