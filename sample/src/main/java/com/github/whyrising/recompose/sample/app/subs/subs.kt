@@ -3,13 +3,17 @@ package com.github.whyrising.recompose.sample.app.subs
 import androidx.compose.material.Colors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regSub
 import com.github.whyrising.recompose.regSubM
-import com.github.whyrising.recompose.sample.app.Keys
+import com.github.whyrising.recompose.sample.app.Keys.formattedTime
+import com.github.whyrising.recompose.sample.app.Keys.materialThemeColors
+import com.github.whyrising.recompose.sample.app.Keys.primaryColor
+import com.github.whyrising.recompose.sample.app.Keys.primaryColorName
+import com.github.whyrising.recompose.sample.app.Keys.secondaryColor
+import com.github.whyrising.recompose.sample.app.Keys.secondaryColorName
+import com.github.whyrising.recompose.sample.app.Keys.statusBarDarkIcons
+import com.github.whyrising.recompose.sample.app.Keys.time
 import com.github.whyrising.recompose.sample.app.db.AppSchema
-import com.github.whyrising.recompose.sample.app.db.defaultAppDB
-import com.github.whyrising.recompose.sample.app.fx.HH_MM_SS
 import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.collections.core.v
@@ -18,72 +22,96 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-fun regSubs() {
-    regEventDb<Any>(Keys.initializeDb) { _, _ ->
-        defaultAppDB
-    }
+fun getTime(db: AppSchema, query: IPersistentVector<Any>): Date = db.time
 
-    regSub(Keys.time) { AppSchema: AppSchema, _ ->
-        AppSchema.time
-    }
+fun getPrimaryColorName(db: AppSchema, query: IPersistentVector<Any>): String =
+    db.primaryColor
 
-    regSub(Keys.primaryColorName) { AppSchema: AppSchema, _ ->
-        AppSchema.primaryColor
-    }
+fun getSecondaryColorName(
+    db: AppSchema,
+    query: IPersistentVector<Any>
+): String = db.secondaryColor
 
-    regSub(Keys.secondaryColorName) { AppSchema: AppSchema, _ ->
-        AppSchema.secondaryColor
-    }
+fun stringToColor(colorName: String, query: IPersistentVector<Any>): Color {
+    val (_, defaultColor) = query
+    return toColor(
+        stringColor = colorName.lowercase(),
+        default = defaultColor as Color
+    )
+}
 
-    regSub(
-        Keys.primaryColor,
-        { subscribe<String>(v(Keys.primaryColorName)) }
-    ) { colorStr, (_, defaultColor) ->
-        toColor(
-            stringColor = colorStr.lowercase(),
-            default = defaultColor as Color
-        )
-    }
+/**
+ * @param colors is a vector of colors that should contain two colors:
+ * primary and secondary in the given order
+ * @param query is the query vector
+ *
+ * @return a new theme colors using the given primary and secondary colors
+ */
+fun themeColors(
+    colors: IPersistentVector<Color>,
+    query: IPersistentVector<Any>
+): Colors {
+    val (primaryColor, secondaryColor) = colors
+    val (_, colorPalette) = query
 
-    regSub(
-        Keys.secondaryColor,
-        { subscribe<String>(v(Keys.secondaryColorName)) }
-    ) { colorStr, (_, defaultColor) ->
-        toColor(
-            stringColor = colorStr.lowercase(),
-            default = defaultColor as Color
-        )
-    }
+    return (colorPalette as Colors).copy(
+        primary = primaryColor,
+        secondary = secondaryColor
+    )
+}
 
-    regSubM<Color, Colors>(
-        Keys.materialThemeColors,
-        { (_, _, defaultColor) ->
-            v(
-                subscribe(v(Keys.primaryColor, defaultColor)),
-                subscribe(v(Keys.secondaryColor, defaultColor))
-            )
-        }
-    ) { (primaryColor, secondaryColor), (_, colors) ->
-        (colors as Colors).copy(
-            primary = primaryColor,
-            secondary = secondaryColor
-        )
-    }
+const val HH_MM_SS = "HH:mm:ss"
 
+fun formattedTime(date: Date, query: IPersistentVector<Any>): String {
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
-    regSub(
-        Keys.formattedTime,
-        { subscribe(v(Keys.time)) }
-    ) { date: Date, _ ->
-        simpleDateFormat.format(date)
-    }
+    return simpleDateFormat.format(date)
+}
+
+fun isLightColor(color: Color, queryVec: IPersistentVector<Any>): Boolean {
+    return color.luminance() >= 0.5f
+}
+
+fun regSubs() {
+    regSub(time, ::getTime)
+
+    regSub(primaryColorName, ::getPrimaryColorName)
+
+    regSub(secondaryColorName, ::getSecondaryColorName)
 
     regSub(
-        Keys.statusBarDarkIcons,
-        { (_, defaultColor): IPersistentVector<Any> ->
-            subscribe(v(Keys.primaryColor, defaultColor))
-        }
-    ) { primaryColor: Color, _ ->
-        primaryColor.luminance() >= 0.5f
-    }
+        queryId = primaryColor,
+        signalsFn = { subscribe(v(primaryColorName)) },
+        computationFn = ::stringToColor
+    )
+
+    regSub(
+        queryId = secondaryColor,
+        signalsFn = { subscribe(v(secondaryColorName)) },
+        computationFn = ::stringToColor
+    )
+
+    regSubM(
+        queryId = materialThemeColors,
+        signalsFn = { (_, _, defaultColor) ->
+            v(
+                subscribe(v(primaryColor, defaultColor)),
+                subscribe(v(secondaryColor, defaultColor))
+            )
+        },
+        computationFn = ::themeColors
+    )
+
+    regSub(
+        queryId = formattedTime,
+        signalsFn = { subscribe(v(time)) },
+        computationFn = ::formattedTime
+    )
+
+    regSub(
+        queryId = statusBarDarkIcons,
+        signalsFn = { (_, defaultColor): IPersistentVector<Any> ->
+            subscribe(v(secondaryColor, defaultColor))
+        },
+        computationFn = ::isLightColor
+    )
 }

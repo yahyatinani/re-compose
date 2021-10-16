@@ -10,8 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-const val HH_MM_SS = "HH:mm:ss"
-
 fun regFx(scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)) {
     regFx(timeticker) {
         scope.launch(Dispatchers.Default) {
