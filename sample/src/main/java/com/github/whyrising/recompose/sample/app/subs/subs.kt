@@ -15,6 +15,7 @@ import com.github.whyrising.recompose.sample.app.Keys.statusBarDarkIcons
 import com.github.whyrising.recompose.sample.app.Keys.time
 import com.github.whyrising.recompose.sample.app.db.AppSchema
 import com.github.whyrising.recompose.sample.util.toColor
+import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
@@ -71,6 +72,30 @@ fun isLightColor(color: Color, queryVec: IPersistentVector<Any>): Boolean {
     return color.luminance() >= 0.5f
 }
 
+fun primaryColorNameReaction(query: IPersistentVector<Any>): React<String> =
+    subscribe(v(primaryColorName))
+
+fun secondaryColorNameReaction(query: IPersistentVector<Any>): React<String> =
+    subscribe(v(secondaryColorName))
+
+fun primSecondColorReaction(
+    query: IPersistentVector<Any>
+): IPersistentVector<React<Color>> {
+    val (_, _, defaultColor) = query
+    return v(
+        subscribe(v(primaryColor, defaultColor)),
+        subscribe(v(secondaryColor, defaultColor))
+    )
+}
+
+fun timeReaction(query: IPersistentVector<Any>): React<Date> =
+    subscribe(v(time))
+
+fun secondaryColorReaction(query: IPersistentVector<Any>): React<Color> {
+    val (_, defaultColor) = query
+    return subscribe(v(secondaryColor, defaultColor))
+}
+
 fun regSubs() {
     regSub(time, ::getTime)
 
@@ -80,38 +105,31 @@ fun regSubs() {
 
     regSub(
         queryId = primaryColor,
-        signalsFn = { subscribe(v(primaryColorName)) },
+        signalsFn = ::primaryColorNameReaction,
         computationFn = ::stringToColor
     )
 
     regSub(
         queryId = secondaryColor,
-        signalsFn = { subscribe(v(secondaryColorName)) },
+        signalsFn = ::secondaryColorNameReaction,
         computationFn = ::stringToColor
     )
 
     regSubM(
         queryId = materialThemeColors,
-        signalsFn = { (_, _, defaultColor) ->
-            v(
-                subscribe(v(primaryColor, defaultColor)),
-                subscribe(v(secondaryColor, defaultColor))
-            )
-        },
+        signalsFn = ::primSecondColorReaction,
         computationFn = ::themeColors
     )
 
     regSub(
         queryId = formattedTime,
-        signalsFn = { subscribe(v(time)) },
+        signalsFn = ::timeReaction,
         computationFn = ::formattedTime
     )
 
     regSub(
         queryId = statusBarDarkIcons,
-        signalsFn = { (_, defaultColor): IPersistentVector<Any> ->
-            subscribe(v(secondaryColor, defaultColor))
-        },
+        signalsFn = ::secondaryColorReaction,
         computationFn = ::isLightColor
     )
 }

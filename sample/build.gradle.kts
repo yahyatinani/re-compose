@@ -46,6 +46,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = Libs.Compose.version
     }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
 }
 
 dependencies {
@@ -59,6 +63,7 @@ dependencies {
     implementation(Libs.Accompanist.systemuicontroller)
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)
+    implementation(Libs.Coroutines.coroutinesTest)
     implementation("com.google.android.material:material:1.4.0")
     implementation(project(mapOf("path" to ":recompose")))
 
