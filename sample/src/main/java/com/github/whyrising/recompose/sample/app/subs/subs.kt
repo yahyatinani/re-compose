@@ -15,6 +15,7 @@ import com.github.whyrising.recompose.sample.app.Keys.statusBarDarkIcons
 import com.github.whyrising.recompose.sample.app.Keys.time
 import com.github.whyrising.recompose.sample.app.db.AppSchema
 import com.github.whyrising.recompose.sample.util.toColor
+import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.React
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.collections.core.v
@@ -23,17 +24,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-fun getTime(db: AppSchema, query: IPersistentVector<Any>): Date = db.time
+fun getTime(db: AppSchema, query: Query): Date = db.time
 
-fun getPrimaryColorName(db: AppSchema, query: IPersistentVector<Any>): String =
+fun getPrimaryColorName(db: AppSchema, query: Query): String =
     db.primaryColor
 
 fun getSecondaryColorName(
     db: AppSchema,
-    query: IPersistentVector<Any>
+    query: Query
 ): String = db.secondaryColor
 
-fun stringToColor(colorName: String, query: IPersistentVector<Any>): Color {
+fun stringToColor(colorName: String, query: Query): Color {
     val (_, defaultColor) = query
     return toColor(
         stringColor = colorName.lowercase(),
@@ -50,7 +51,7 @@ fun stringToColor(colorName: String, query: IPersistentVector<Any>): Color {
  */
 fun themeColors(
     colors: IPersistentVector<Color>,
-    query: IPersistentVector<Any>
+    query: Query
 ): Colors {
     val (primaryColor, secondaryColor) = colors
     val (_, colorPalette) = query
@@ -63,23 +64,23 @@ fun themeColors(
 
 const val HH_MM_SS = "HH:mm:ss"
 
-fun formattedTime(date: Date, query: IPersistentVector<Any>): String {
+fun formattedTime(date: Date, query: Query): String {
     val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
     return simpleDateFormat.format(date)
 }
 
-fun isLightColor(color: Color, queryVec: IPersistentVector<Any>): Boolean {
+fun isLightColor(color: Color, queryVec: Query): Boolean {
     return color.luminance() >= 0.5f
 }
 
-fun primaryColorNameReaction(query: IPersistentVector<Any>): React<String> =
+fun primaryColorNameReaction(query: Query): React<String> =
     subscribe(v(primaryColorName))
 
-fun secondaryColorNameReaction(query: IPersistentVector<Any>): React<String> =
+fun secondaryColorNameReaction(query: Query): React<String> =
     subscribe(v(secondaryColorName))
 
 fun primSecondColorReaction(
-    query: IPersistentVector<Any>
+    query: Query
 ): IPersistentVector<React<Color>> {
     val (_, _, defaultColor) = query
     return v(
@@ -88,10 +89,10 @@ fun primSecondColorReaction(
     )
 }
 
-fun timeReaction(query: IPersistentVector<Any>): React<Date> =
+fun timeReaction(query: Query): React<Date> =
     subscribe(v(time))
 
-fun secondaryColorReaction(query: IPersistentVector<Any>): React<Color> {
+fun secondaryColorReaction(query: Query): React<Color> {
     val (_, defaultColor) = query
     return subscribe(v(secondaryColor, defaultColor))
 }

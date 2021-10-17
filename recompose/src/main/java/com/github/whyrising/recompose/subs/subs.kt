@@ -16,6 +16,10 @@ import kotlin.coroutines.CoroutineContext
 
 val kind: Kinds = Sub
 
+typealias Query = IPersistentVector<Any>
+
+typealias SubHandler<T, U> = (React<T>, Query) -> Reaction<U>
+
 // -- cache --------------------------------------------------------------------
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 
@@ -34,29 +38,27 @@ private fun <T> cacheReaction(
             )
         }
     }
-
     reactionsCache[key] = reaction
     return reaction
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> subscribe(query: IPersistentVector<Any>): Reaction<T> {
+internal fun <T> subscribe(query: Query): Reaction<T> {
     val cacheKey = v(query, v())
     val cachedReaction = reactionsCache[cacheKey] as Reaction<T>?
 
     if (cachedReaction != null)
         return cachedReaction
 
-    val queryId = query[0]
-    val handlerFn = getHandler(kind, queryId)
-        as ((React<*>, IPersistentVector<Any>) -> Reaction<T>)?
+    val (queryId) = query
+    val subHandler = getHandler(kind, queryId) as (SubHandler<*, T>)?
         ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )
 
     Log.i(TAG, "No cached reaction was found for subscription `$cacheKey`")
 
-    return cacheReaction(cacheKey, handlerFn(appDb, query))
+    return cacheReaction(cacheKey, subHandler(appDb, query))
 }
 
 // -- regSub -----------------------------------------------------------------
@@ -75,13 +77,13 @@ fun <R, T> reaction(
 
 inline fun <T, R> regDbExtractor(
     queryId: Any,
-    crossinline extractorFn: (db: T, queryVec: IPersistentVector<Any>) -> R,
+    crossinline extractorFn: (db: T, queryVec: Query) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
     registerHandler(
-        queryId,
-        kind,
-        { appDb: React<T>, queryVec: IPersistentVector<Any> ->
+        id = queryId,
+        kind = kind,
+        handlerFn = { appDb: React<T>, queryVec: Query ->
             reaction(appDb, context) { inputSignal: T ->
                 extractorFn(inputSignal, queryVec)
             }
@@ -92,18 +94,18 @@ inline fun <T, R> regDbExtractor(
 inline fun <T, R> regSubscription(
     queryId: Any,
     crossinline signalsFn: (
-        queryVec: IPersistentVector<Any>
+        queryVec: Query
     ) -> IPersistentVector<React<T>>,
     crossinline computationFn: (
         subscriptions: IPersistentVector<T>,
-        queryVec: IPersistentVector<Any>
+        queryVec: Query
     ) -> R,
     context: CoroutineContext = Dispatchers.Main.immediate,
 ) {
     registerHandler(
         queryId,
         kind,
-        { _: React<Any>, queryVec: IPersistentVector<Any> ->
+        { _: React<Any>, queryVec: Query ->
             val subscriptions = signalsFn(queryVec)
             val reaction = Reaction {
                 val deref = deref(subscriptions)
