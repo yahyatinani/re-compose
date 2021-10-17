@@ -46,6 +46,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = Libs.Compose.version
     }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
 }
 
 dependencies {
@@ -55,16 +59,20 @@ dependencies {
     implementation(Libs.Compose.material)
     implementation(Libs.Compose.uiTooling)
     implementation(Libs.Compose.uiToolingPreview)
-    implementation("com.google.android.material:material:1.4.0")
     implementation(Libs.Androidx.activityCompose)
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.18.0")
-
+    implementation(Libs.Accompanist.systemuicontroller)
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)
-
+    implementation(Libs.Coroutines.coroutinesTest)
+    implementation("com.google.android.material:material:1.4.0")
     implementation(project(mapOf("path" to ":recompose")))
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(Libs.Kotlin.kotlinReflect)
+    testImplementation(Libs.Kotest.runner)
+    testImplementation(Libs.Kotest.assertions)
+    testImplementation(Libs.Kotest.property)
+    testImplementation(Libs.Mockk.core)
+    testImplementation(Libs.Mockk.jvm)
 
     androidTestImplementation(Libs.Compose.uiTestJUnit)
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

@@ -16,7 +16,6 @@ import com.github.whyrising.recompose.fx.regUpdateDbFx
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
-import com.github.whyrising.recompose.registrar.register
 import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.InterceptorSchema.after
 import com.github.whyrising.recompose.schemas.Schema.db
@@ -29,11 +28,12 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import com.github.whyrising.recompose.registrar.register as myRegister
 
 class FxTest : FreeSpec({
     beforeAny {
         appDb.state.emit(DEFAULT_APP_DB_VALUE)
-        register.swap { m() }
+        myRegister.swap { m() }
     }
 
     "regFx(id, fxHandler)" {
@@ -41,7 +41,7 @@ class FxTest : FreeSpec({
 
         regFx(":fx-test", fxHandler)
 
-        register()[Kinds.Fx]!![":fx-test"] shouldBeSameInstanceAs fxHandler
+        myRegister()[Kinds.Fx]!![":fx-test"] shouldBeSameInstanceAs fxHandler
     }
 
     "doFx interceptor should update the appDb and apply other effects" {
@@ -169,7 +169,7 @@ class FxTest : FreeSpec({
     "regDispatchEventFxHandler()" {
         regDispatchEventFxHandler()
 
-        val fxHandler: Any? = register()[Kinds.Fx]!![dispatch]
+        val fxHandler: Any? = myRegister()[Kinds.Fx]!![dispatch]
 
         fxHandler.shouldNotBeNull()
     }
@@ -177,7 +177,7 @@ class FxTest : FreeSpec({
     "regDispatchNeventFxHandler()" {
         regDispatchNeventFxHandler()
 
-        val fxHandler: Any? = register()[Kinds.Fx]!![dispatchN]
+        val fxHandler: Any? = myRegister()[Kinds.Fx]!![dispatchN]
 
         fxHandler.shouldNotBeNull()
     }
@@ -185,10 +185,10 @@ class FxTest : FreeSpec({
     "initBuiltinEffectHandlers()" {
         initBuiltinEffectHandlers()
 
-        val fxFxHandler: Any? = register()[Kinds.Fx]!![fx]
-        val dbFxHandler: Any? = register()[Kinds.Fx]!![db]
-        val dispatchFxHandler: Any? = register()[Kinds.Fx]!![dispatch]
-        val dispatchNfxHandler: Any? = register()[Kinds.Fx]!![dispatchN]
+        val fxFxHandler: Any? = myRegister()[Kinds.Fx]!![fx]
+        val dbFxHandler: Any? = myRegister()[Kinds.Fx]!![db]
+        val dispatchFxHandler: Any? = myRegister()[Kinds.Fx]!![dispatch]
+        val dispatchNfxHandler: Any? = myRegister()[Kinds.Fx]!![dispatchN]
 
         fxFxHandler.shouldNotBeNull()
         dbFxHandler.shouldNotBeNull()

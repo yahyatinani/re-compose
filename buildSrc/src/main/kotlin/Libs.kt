@@ -55,6 +55,14 @@ object Libs {
         const val coreKtx = "androidx.core:core-ktx:1.6.0"
     }
 
+    object Accompanist {
+        private const val version = "0.19.0"
+        private const val group = "com.google.accompanist"
+
+        const val systemuicontroller =
+            "$group:accompanist-systemuicontroller:$version"
+    }
+
     object Coroutines {
         private const val group = "org.jetbrains.kotlinx"
         private const val version = "1.5.2"
@@ -77,7 +85,7 @@ object Libs {
     }
 
     object Kotest {
-        private const val version = "4.6.3"
+        private const val version = "5.0.0.M2"
 
         const val runner = "io.kotest:kotest-runner-junit5:$version"
         const val assertions = "io.kotest:kotest-assertions-core:$version"
