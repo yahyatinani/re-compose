@@ -139,13 +139,13 @@ class Reaction<T>(val f: () -> T) :
         for ((i, s) in subscriptions.withIndex()) {
             viewModelScope.launch(context) {
                 s.collect { newInput: R ->
-                    val derefs = deref(subscriptions)
-                        .assoc(i, newInput) as IPersistentVector<R>
-
                     // Evaluate this only once by leaving it out of swap since
-                    // swap can run f multiple times, the output is the same for
-                    // the same input
-                    val materializedView = computation(derefs)
+                    // swap can run f multiple times. The output is the same for
+                    // the same newInput.
+                    val materializedView = deref(subscriptions)
+                        .assoc(i, newInput)
+                        .let { computation(it as IPersistentVector<R>) }
+
                     swap { materializedView }
                 }
             }
