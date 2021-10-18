@@ -6,7 +6,6 @@ import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.concurrency.IAtom
-import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.str
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +16,11 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-interface React<T> : IDeref<T> {
-    suspend fun collect(action: suspend (T) -> Unit)
-}
-
-class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
+class Reaction<T>(val f: () -> T) :
+    ViewModel(),
+    IAtom<T>,
+    React<T>,
+    Disposable<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
 
     // this flag is used to track the last subscriber of this reaction
@@ -41,13 +40,6 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     }
 
     val id: String by lazy { str("rx", hashCode()) }
-
-    override fun onCleared() {
-        super.onCleared()
-
-        disposeFns.forEach { disposeFn -> disposeFn(this) }
-        viewModelScope.cancel("This reaction `$id` got cleared")
-    }
 
     override fun deref(): T = state.value
 
@@ -91,8 +83,19 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
         }
     }
 
-    fun addOnDispose(f: (Reaction<T>) -> Unit) {
+    override fun addOnDispose(f: (Reaction<T>) -> Unit) {
         disposeFns.add(f)
+    }
+
+    override fun dispose() {
+        disposeFns.forEach { disposeFn -> disposeFn(this) }
+        viewModelScope.cancel("This reaction `$id` got cleared")
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        dispose()
     }
 
     override suspend fun collect(action: suspend (T) -> Unit) {
