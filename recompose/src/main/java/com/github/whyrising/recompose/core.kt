@@ -17,7 +17,7 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
-import com.github.whyrising.recompose.subs.React
+import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regSubscription
@@ -132,7 +132,7 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
     queryId: Any,
-    crossinline signalsFn: (queryVec: IPersistentVector<Any>) -> React<T>,
+    crossinline signalsFn: (queryVec: IPersistentVector<Any>) -> ReactiveAtom<T>,
     crossinline computationFn: (
         input: T,
         queryVec: IPersistentVector<Any>
@@ -157,7 +157,7 @@ inline fun <T, R> regSubM(
     queryId: Any,
     crossinline signalsFn: (
         queryVec: IPersistentVector<Any>
-    ) -> IPersistentVector<React<T>>,
+    ) -> IPersistentVector<ReactiveAtom<T>>,
     crossinline computationFn: (
         subscriptions: IPersistentVector<T>,
         queryVec: IPersistentVector<Any>,

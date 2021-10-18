@@ -18,7 +18,7 @@ val kind: Kinds = Sub
 
 typealias Query = IPersistentVector<Any>
 
-typealias SubHandler<T, U> = (React<T>, Query) -> Reaction<U>
+typealias SubHandler<T, U> = (ReactiveAtom<T>, Query) -> Reaction<U>
 
 // -- cache --------------------------------------------------------------------
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
@@ -65,7 +65,7 @@ internal fun <T> subscribe(query: Query): Reaction<T> {
 // -- regSub -----------------------------------------------------------------
 
 fun <R, T> reaction(
-    inputNode: React<T>,
+    inputNode: ReactiveAtom<T>,
     context: CoroutineContext,
     f: (T) -> R
 ): Reaction<R> {
@@ -84,7 +84,7 @@ inline fun <T, R> regDbExtractor(
     registerHandler(
         id = queryId,
         kind = kind,
-        handlerFn = { appDb: React<T>, queryVec: Query ->
+        handlerFn = { appDb: ReactiveAtom<T>, queryVec: Query ->
             reaction(appDb, context) { inputSignal: T ->
                 extractorFn(inputSignal, queryVec)
             }
@@ -96,7 +96,7 @@ inline fun <T, R> regSubscription(
     queryId: Any,
     crossinline signalsFn: (
         queryVec: Query
-    ) -> IPersistentVector<React<T>>,
+    ) -> IPersistentVector<ReactiveAtom<T>>,
     crossinline computationFn: (
         subscriptions: IPersistentVector<T>,
         queryVec: Query
@@ -106,7 +106,7 @@ inline fun <T, R> regSubscription(
     registerHandler(
         queryId,
         kind,
-        { _: React<Any>, queryVec: Query ->
+        { _: ReactiveAtom<Any>, queryVec: Query ->
             val subscriptions = signalsFn(queryVec)
             val reaction = Reaction {
                 val deref = deref(subscriptions)

@@ -1,13 +1,13 @@
 package com.github.whyrising.recompose.db
 
-import com.github.whyrising.recompose.subs.React
+import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.y.collections.core.m
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 
 internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()
 
-class RAtom<T>(v: T) : React<T> {
+class RAtom<T>(v: T) : ReactiveAtom<T> {
     internal val state: MutableStateFlow<T> = MutableStateFlow(v)
 
     override fun deref(): T = state.value

@@ -36,7 +36,7 @@ import com.github.whyrising.recompose.sample.app.subs.secondaryColorReaction
 import com.github.whyrising.recompose.sample.app.subs.stringToColor
 import com.github.whyrising.recompose.sample.app.subs.themeColors
 import com.github.whyrising.recompose.sample.app.subs.timeReaction
-import com.github.whyrising.recompose.subs.React
+import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.y.collections.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -144,7 +144,7 @@ class SubscriptionsTest : FreeSpec({
         mockAppDb(defaultAppDB)
         regSub(primaryColorName, ::getPrimaryColorName)
 
-        val primaryColorName: React<String> = primaryColorNameReaction(v())
+        val primaryColorName: ReactiveAtom<String> = primaryColorNameReaction(v())
 
         primaryColorName.deref() shouldBe "Pink"
     }
@@ -153,7 +153,7 @@ class SubscriptionsTest : FreeSpec({
         mockAppDb(defaultAppDB)
         regSub(secondaryColorName, ::getSecondaryColorName)
 
-        val primaryColorName: React<String> = secondaryColorNameReaction(v())
+        val primaryColorName: ReactiveAtom<String> = secondaryColorNameReaction(v())
 
         primaryColorName.deref() shouldBe "Orange"
     }

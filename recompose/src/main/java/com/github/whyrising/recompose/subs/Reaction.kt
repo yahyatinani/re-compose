@@ -19,7 +19,7 @@ import kotlin.coroutines.CoroutineContext
 class Reaction<T>(val f: () -> T) :
     ViewModel(),
     IAtom<T>,
-    React<T>,
+    ReactiveAtom<T>,
     Disposable<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
 
@@ -114,7 +114,7 @@ class Reaction<T>(val f: () -> T) :
      * compute derived data from it.
      */
     inline fun <R> reactTo(
-        inputNode: React<R>,
+        inputNode: ReactiveAtom<R>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: R) -> T
     ) {
@@ -130,7 +130,7 @@ class Reaction<T>(val f: () -> T) :
     }
 
     inline fun <R> reactTo(
-        subscriptions: IPersistentVector<React<R>>,
+        subscriptions: IPersistentVector<ReactiveAtom<R>>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: IPersistentVector<R>) -> T
     ) {
@@ -152,7 +152,7 @@ class Reaction<T>(val f: () -> T) :
 }
 
 fun <T> deref(
-    subscriptions: IPersistentVector<React<T>>
+    subscriptions: IPersistentVector<ReactiveAtom<T>>
 ): IPersistentVector<T> = subscriptions.fold(v()) { vec, reaction ->
     vec.conj(reaction.deref())
 }
