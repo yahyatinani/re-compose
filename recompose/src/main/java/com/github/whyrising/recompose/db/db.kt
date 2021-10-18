@@ -8,12 +8,16 @@ import kotlinx.coroutines.flow.collect
 internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()
 
 class RAtom<T>(v: T) : ReactiveAtom<T> {
-    internal val state: MutableStateFlow<T> = MutableStateFlow(v)
+    private val state: MutableStateFlow<T> = MutableStateFlow(v)
 
     override fun deref(): T = state.value
 
     override suspend fun collect(action: suspend (T) -> Unit) = state.collect {
         action(it)
+    }
+
+    override suspend fun emit(value: T) {
+        state.emit(value)
     }
 }
 

@@ -32,7 +32,7 @@ import com.github.whyrising.recompose.registrar.register as myRegister
 
 class FxTest : FreeSpec({
     beforeAny {
-        appDb.state.emit(DEFAULT_APP_DB_VALUE)
+        appDb.emit(DEFAULT_APP_DB_VALUE)
         myRegister.swap { m() }
     }
 

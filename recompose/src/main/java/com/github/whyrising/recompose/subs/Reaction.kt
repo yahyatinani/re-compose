@@ -99,9 +99,11 @@ class Reaction<T>(val f: () -> T) :
         dispose()
     }
 
-    override suspend fun collect(action: suspend (T) -> Unit) {
-        state.collect { action(it) }
+    override suspend fun collect(action: suspend (T) -> Unit) = state.collect {
+        action(it)
     }
+
+    override suspend fun emit(value: T) = state.emit(value)
 
     /**
      * This function runs the [computation] function every time the [inputNode]

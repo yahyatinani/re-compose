@@ -114,7 +114,7 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
 fun regUpdateDbFx() = regFx(id = db) { newAppDb ->
     // emit() doesn't set if the newVal == the currentVal
     if (newAppDb != null)
-        appDb.state.emit(newAppDb)
+        appDb.emit(newAppDb)
 }
 
 fun regDispatchEventFxHandler(): Unit = regFx(id = FxIds.dispatch) { event ->
