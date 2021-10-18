@@ -5,6 +5,7 @@ import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.deref
 import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.core.inc
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -153,5 +154,32 @@ class ReactionTest : FreeSpec({
         val reaction3 = Reaction { 3 }
 
         deref(v(reaction1, reaction2, reaction3)) shouldBe v(1, 2, 3)
+    }
+
+    "reactTo(node)" {
+        val input = Reaction { 0 }
+        input.emit(5)
+        val node = Reaction { -1 }
+
+        node.reactTo(input, dispatcher) { newInput ->
+            inc(newInput)
+        }
+
+        node.deref() shouldBe 6
+    }
+
+    "reactTo(nodes)" {
+        val inputNode1 = Reaction { 0 }
+        val inputNode2 = Reaction { 0 }
+        inputNode1.emit(3)
+        inputNode2.emit(5)
+        val node = Reaction { -1 }
+
+        node.reactTo(v(inputNode1, inputNode2), dispatcher) { newInput ->
+            val (a, b) = newInput
+            inc(a + b)
+        }
+
+        node.deref() shouldBe 9
     }
 })

@@ -145,17 +145,17 @@ class Reaction<T>(val f: () -> T) :
     }
 
     inline fun <R> reactTo(
-        subscriptions: IPersistentVector<ReactiveAtom<R>>,
+        inputNodes: IPersistentVector<ReactiveAtom<R>>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: IPersistentVector<R>) -> T
     ) {
-        for ((i, s) in subscriptions.withIndex()) {
+        for ((i, s) in inputNodes.withIndex()) {
             viewModelScope.launch(context) {
                 s.collect { newInput: R ->
                     // Evaluate this only once by leaving it out of swap since
                     // swap can run f multiple times. The output is the same for
                     // the same newInput.
-                    val materializedView = deref(subscriptions)
+                    val materializedView = deref(inputNodes)
                         .assoc(i, newInput)
                         .let { computation(it as IPersistentVector<R>) }
 
@@ -166,8 +166,7 @@ class Reaction<T>(val f: () -> T) :
     }
 }
 
-fun <T> deref(
-    subscriptions: IPersistentVector<IDeref<T>>
-): IPersistentVector<T> = subscriptions.fold(v()) { vec, d ->
-    vec.conj(d.deref())
-}
+fun <T> deref(refs: IPersistentVector<IDeref<T>>): IPersistentVector<T> =
+    refs.fold(v()) { acc, r ->
+        acc.conj(r.deref())
+    }
