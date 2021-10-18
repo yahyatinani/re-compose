@@ -17,8 +17,9 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
-import com.github.whyrising.recompose.subs.React
+import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
+import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.core.v
@@ -120,7 +121,7 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
  */
 inline fun <T, R> regSub(
     queryId: Any,
-    crossinline extractor: (db: T, queryVec: IPersistentVector<Any>) -> R,
+    crossinline extractor: (db: T, queryVec: Query) -> R,
 ) = regDbExtractor(queryId, extractor)
 
 /**
@@ -132,11 +133,8 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
     queryId: Any,
-    crossinline signalsFn: (queryVec: IPersistentVector<Any>) -> React<T>,
-    crossinline computationFn: (
-        input: T,
-        queryVec: IPersistentVector<Any>
-    ) -> R,
+    crossinline signalsFn: (queryVec: Query) -> ReactiveAtom<T>,
+    crossinline computationFn: (input: T, queryVec: Query) -> R,
 ) = regSubscription(
     queryId,
     { queryVec -> v(signalsFn(queryVec)) },
@@ -156,11 +154,11 @@ inline fun <T, R> regSub(
 inline fun <T, R> regSubM(
     queryId: Any,
     crossinline signalsFn: (
-        queryVec: IPersistentVector<Any>
-    ) -> IPersistentVector<React<T>>,
+        queryVec: Query
+    ) -> IPersistentVector<ReactiveAtom<T>>,
     crossinline computationFn: (
         subscriptions: IPersistentVector<T>,
-        queryVec: IPersistentVector<Any>,
+        queryVec: Query,
     ) -> R,
 ) = regSubscription(queryId, signalsFn, computationFn)
 

@@ -6,7 +6,6 @@ import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.concurrency.IAtom
-import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.str
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +16,11 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-interface React<T> : IDeref<T> {
-    suspend fun collect(action: suspend (T) -> Unit)
-}
-
-class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
+class Reaction<T>(val f: () -> T) :
+    ViewModel(),
+    IAtom<T>,
+    ReactiveAtom<T>,
+    Disposable<T> {
     private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
 
     // this flag is used to track the last subscriber of this reaction
@@ -32,7 +31,8 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
         mutableStateFlow.subscriptionCount
             .onEach { count ->
                 when {
-                    // last subscriber just disappeared
+                    // last subscriber just disappeared => composable left
+                    // the Composition tree.
                     count == 0 && !isFresh -> onCleared()
                     else -> isFresh = false
                 }
@@ -41,13 +41,6 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     }
 
     val id: String by lazy { str("rx", hashCode()) }
-
-    override fun onCleared() {
-        super.onCleared()
-
-        disposeFns.forEach { disposeFn -> disposeFn(this) }
-        viewModelScope.cancel("This reaction `$id` got cleared")
-    }
 
     override fun deref(): T = state.value
 
@@ -91,13 +84,26 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
         }
     }
 
-    fun addOnDispose(f: (Reaction<T>) -> Unit) {
+    override fun addOnDispose(f: (Reaction<T>) -> Unit) {
         disposeFns.add(f)
     }
 
-    override suspend fun collect(action: suspend (T) -> Unit) {
-        state.collect { action(it) }
+    override fun dispose() {
+        disposeFns.forEach { disposeFn -> disposeFn(this) }
+        viewModelScope.cancel("This reaction `$id` just got canceled.")
     }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        dispose()
+    }
+
+    override suspend fun collect(action: suspend (T) -> Unit) = state.collect {
+        action(it)
+    }
+
+    override suspend fun emit(value: T) = state.emit(value)
 
     /**
      * This function runs the [computation] function every time the [inputNode]
@@ -110,7 +116,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
      * compute derived data from it.
      */
     inline fun <R> reactTo(
-        inputNode: React<R>,
+        inputNode: ReactiveAtom<R>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: R) -> T
     ) {
@@ -126,7 +132,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
     }
 
     inline fun <R> reactTo(
-        subscriptions: IPersistentVector<React<R>>,
+        subscriptions: IPersistentVector<ReactiveAtom<R>>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: IPersistentVector<R>) -> T
     ) {
@@ -148,7 +154,7 @@ class Reaction<T>(val f: () -> T) : ViewModel(), IAtom<T>, React<T> {
 }
 
 fun <T> deref(
-    subscriptions: IPersistentVector<React<T>>
+    subscriptions: IPersistentVector<ReactiveAtom<T>>
 ): IPersistentVector<T> = subscriptions.fold(v()) { vec, reaction ->
     vec.conj(reaction.deref())
 }

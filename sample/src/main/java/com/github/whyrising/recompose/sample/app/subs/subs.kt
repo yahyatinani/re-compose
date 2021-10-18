@@ -16,7 +16,7 @@ import com.github.whyrising.recompose.sample.app.Keys.time
 import com.github.whyrising.recompose.sample.app.db.AppSchema
 import com.github.whyrising.recompose.sample.util.toColor
 import com.github.whyrising.recompose.subs.Query
-import com.github.whyrising.recompose.subs.React
+import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
@@ -73,15 +73,15 @@ fun isLightColor(color: Color, queryVec: Query): Boolean {
     return color.luminance() >= 0.5f
 }
 
-fun primaryColorNameReaction(query: Query): React<String> =
+fun primaryColorNameReaction(query: Query): ReactiveAtom<String> =
     subscribe(v(primaryColorName))
 
-fun secondaryColorNameReaction(query: Query): React<String> =
+fun secondaryColorNameReaction(query: Query): ReactiveAtom<String> =
     subscribe(v(secondaryColorName))
 
 fun primSecondColorReaction(
     query: Query
-): IPersistentVector<React<Color>> {
+): IPersistentVector<ReactiveAtom<Color>> {
     val (_, _, defaultColor) = query
     return v(
         subscribe(v(primaryColor, defaultColor)),
@@ -89,10 +89,10 @@ fun primSecondColorReaction(
     )
 }
 
-fun timeReaction(query: Query): React<Date> =
+fun timeReaction(query: Query): ReactiveAtom<Date> =
     subscribe(v(time))
 
-fun secondaryColorReaction(query: Query): React<Color> {
+fun secondaryColorReaction(query: Query): ReactiveAtom<Color> {
     val (_, defaultColor) = query
     return subscribe(v(secondaryColor, defaultColor))
 }
