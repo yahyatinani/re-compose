@@ -31,7 +31,8 @@ class Reaction<T>(val f: () -> T) :
         mutableStateFlow.subscriptionCount
             .onEach { count ->
                 when {
-                    // last subscriber just disappeared
+                    // last subscriber just disappeared => composable left
+                    // the Composition tree.
                     count == 0 && !isFresh -> onCleared()
                     else -> isFresh = false
                 }
@@ -89,7 +90,7 @@ class Reaction<T>(val f: () -> T) :
 
     override fun dispose() {
         disposeFns.forEach { disposeFn -> disposeFn(this) }
-        viewModelScope.cancel("This reaction `$id` got cleared")
+        viewModelScope.cancel("This reaction `$id` just got canceled.")
     }
 
     override fun onCleared() {

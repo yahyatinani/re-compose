@@ -31,10 +31,11 @@ private fun <T> cacheReaction(
     reaction.addOnDispose { r: Reaction<T> ->
         if (reactionsCache.containsKey(key) && r === reactionsCache[key]) {
             reactionsCache.remove(key)
-            val value = appDb.state.subscriptionCount.value
             Log.i(
                 "reactionsCache",
-                "${key[0]} got removed from cache. $value"
+                "${key[0]} got removed from cache. ${
+                    appDb.state.subscriptionCount.value
+                }"
             )
         }
     }
