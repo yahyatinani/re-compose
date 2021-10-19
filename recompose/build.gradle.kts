@@ -55,6 +55,7 @@ dependencies {
     implementation(Libs.Coroutines.core)
     implementation(Libs.Coroutines.android)
     implementation(Libs.Coroutines.vmLifecycle)
+    implementation(Libs.Coroutines.coroutinesTest)
 
     implementation(Libs.Y.core)
     implementation(Libs.Y.collections)

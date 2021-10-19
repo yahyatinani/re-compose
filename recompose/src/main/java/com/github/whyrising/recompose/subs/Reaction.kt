@@ -3,9 +3,14 @@ package com.github.whyrising.recompose.subs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.y.collections.core.l
 import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
+import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.IAtom
+import com.github.whyrising.y.concurrency.IDeref
+import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.str
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,14 +26,16 @@ class Reaction<T>(val f: () -> T) :
     IAtom<T>,
     ReactiveAtom<T>,
     Disposable<T> {
-    private val disposeFns: MutableList<(Reaction<T>) -> Unit> = mutableListOf()
+    internal val disposeFns: Atom<ISeq<(Reaction<T>) -> Unit>> = atom(l())
 
     // this flag is used to track the last subscriber of this reaction
-    private var isFresh = true
+    internal var isFresh = true
 
-    val state: MutableStateFlow<T> by lazy {
+    internal val state: MutableStateFlow<T> by lazy {
         val mutableStateFlow = MutableStateFlow(f())
-        mutableStateFlow.subscriptionCount
+
+        mutableStateFlow
+            .subscriptionCount
             .onEach { count ->
                 when {
                     // last subscriber just disappeared => composable left
@@ -37,6 +44,7 @@ class Reaction<T>(val f: () -> T) :
                     else -> isFresh = false
                 }
             }.launchIn(viewModelScope)
+
         mutableStateFlow
     }
 
@@ -85,15 +93,20 @@ class Reaction<T>(val f: () -> T) :
     }
 
     override fun addOnDispose(f: (Reaction<T>) -> Unit) {
-        disposeFns.add(f)
+        disposeFns.swap { it.cons(f) }
     }
 
     override fun dispose() {
-        disposeFns.forEach { disposeFn -> disposeFn(this) }
+        var s: ISeq<(Reaction<T>) -> Unit>? = disposeFns()
+        while (s != null && s.count > 0) {
+            s.first()(this)
+            s = s.next()
+        }
+
         viewModelScope.cancel("This reaction `$id` just got canceled.")
     }
 
-    override fun onCleared() {
+    public override fun onCleared() {
         super.onCleared()
 
         dispose()
@@ -132,20 +145,20 @@ class Reaction<T>(val f: () -> T) :
     }
 
     inline fun <R> reactTo(
-        subscriptions: IPersistentVector<ReactiveAtom<R>>,
+        inputNodes: IPersistentVector<ReactiveAtom<R>>,
         context: CoroutineContext,
         crossinline computation: suspend (newInput: IPersistentVector<R>) -> T
     ) {
-        for ((i, s) in subscriptions.withIndex()) {
+        for ((i, inputNode) in inputNodes.withIndex()) {
             viewModelScope.launch(context) {
-                s.collect { newInput: R ->
-                    val derefs = deref(subscriptions)
-                        .assoc(i, newInput) as IPersistentVector<R>
-
+                inputNode.collect { newInput: R ->
                     // Evaluate this only once by leaving it out of swap since
-                    // swap can run f multiple times, the output is the same for
-                    // the same input
-                    val materializedView = computation(derefs)
+                    // swap can run f multiple times. The output is the same for
+                    // the same newInput.
+                    val materializedView = deref(inputNodes)
+                        .assoc(i, newInput)
+                        .let { computation(it as IPersistentVector<R>) }
+
                     swap { materializedView }
                 }
             }
@@ -153,8 +166,7 @@ class Reaction<T>(val f: () -> T) :
     }
 }
 
-fun <T> deref(
-    subscriptions: IPersistentVector<ReactiveAtom<T>>
-): IPersistentVector<T> = subscriptions.fold(v()) { vec, reaction ->
-    vec.conj(reaction.deref())
-}
+fun <T> deref(refs: IPersistentVector<IDeref<T>>): IPersistentVector<T> =
+    refs.fold(v()) { acc, r ->
+        acc.conj(r.deref())
+    }
