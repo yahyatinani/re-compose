@@ -149,9 +149,9 @@ class Reaction<T>(val f: () -> T) :
         context: CoroutineContext,
         crossinline computation: suspend (newInput: IPersistentVector<R>) -> T
     ) {
-        for ((i, s) in inputNodes.withIndex()) {
+        for ((i, inputNode) in inputNodes.withIndex()) {
             viewModelScope.launch(context) {
-                s.collect { newInput: R ->
+                inputNode.collect { newInput: R ->
                     // Evaluate this only once by leaving it out of swap since
                     // swap can run f multiple times. The output is the same for
                     // the same newInput.
