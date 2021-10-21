@@ -3,7 +3,9 @@ package com.github.whyrising.recompose.stdinterceptors
 import android.util.Log
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.cofx.Coeffects
+import com.github.whyrising.recompose.events.DbEventHandler
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.events.FxEventHandler
 import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
@@ -18,9 +20,6 @@ import com.github.whyrising.y.collections.core.get
 import com.github.whyrising.y.collections.core.l
 
 // -- Interceptor Factories ----------------------------------------------------
-
-typealias DbEventHandler<T> = (db: T, event: Event) -> T
-typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
 
 // These 2 factories wrap 2 kinds of event handlers.
 

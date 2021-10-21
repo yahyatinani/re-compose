@@ -1,5 +1,7 @@
 package com.github.whyrising.recompose.events
 
+import com.github.whyrising.recompose.cofx.Coeffects
+import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
@@ -12,6 +14,9 @@ import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
 
 val kind: Kinds = Kinds.Event
+
+typealias DbEventHandler<T> = (db: T, event: Event) -> Any
+typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
 
 // TODO: Move flatten to y library?
 /**

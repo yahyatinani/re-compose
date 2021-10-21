@@ -5,14 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.events.DbEventHandler
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.events.FxEventHandler
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.EffectHandler
-import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
@@ -69,17 +69,13 @@ object Recompose : ViewModel() {
 }
 
 // -- Events ---------------------------------------------------
-
-typealias EventHandler1<T> = (db: T, vec: IPersistentVector<Any>) -> T
-typealias EventHandler2 = (cofx: Coeffects, event: Event) -> Effects
-
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
 inline fun <T : Any> regEventDb(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: EventHandler1<T>
+    crossinline handler: DbEventHandler<T>
 ) {
     register(
         id = id,
@@ -95,7 +91,7 @@ inline fun <T : Any> regEventDb(
 inline fun regEventFx(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: EventHandler2
+    crossinline handler: FxEventHandler
 ) {
     register(
         id = id,
