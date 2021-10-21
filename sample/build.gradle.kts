@@ -53,7 +53,7 @@ android {
 }
 
 dependencies {
-    implementation(Libs.Androidx.coreKtx)
+    implementation(Libs.Androidx.core)
     implementation(Libs.Androidx.appcompat)
     implementation(Libs.Compose.ui)
     implementation(Libs.Compose.material)
