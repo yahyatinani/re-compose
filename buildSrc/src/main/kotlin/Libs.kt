@@ -1,6 +1,11 @@
 object Libs {
     const val jvmTarget = "1.8"
 
+    object AndroidBuild {
+        const val compileSdk = 31
+        const val buildToolsVersion = "31.0.0"
+    }
+
     object Kotlin {
         const val version = "1.5.31"
 
