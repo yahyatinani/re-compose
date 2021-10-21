@@ -2,14 +2,14 @@ object Libs {
     const val jvmTarget = "1.8"
 
     object Kotlin {
-        const val version = "1.5.30"
+        const val version = "1.5.31"
 
         const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:$version"
     }
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.3"
+        const val version = "1.0.4"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -35,28 +35,31 @@ object Libs {
     }
 
     object Androidx {
-        // Integration with activities
-        const val activityCompose =
-            "androidx.activity:activity-compose:1.3.1"
+        private const val gr = "androidx"
 
-        // Integration with ViewModels
-        const val viewModelCompose =
-            "androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07"
+        // Kotlin
+        const val core = "$gr.core:core-ktx:1.7.0-rc01"
+
+        // Integration with activities
+        const val activityCompose = "$gr.activity:activity-compose:1.4.0-rc01"
 
         // Appcompat is needed for themes.xml resource
-        const val appcompat = "androidx.appcompat:appcompat:1.3.1"
+        const val appcompat = "$gr.appcompat:appcompat:1.4.0-beta01"
+    }
 
-        const val navigationCompose =
-            "androidx.navigation:navigation-compose:2.4.0-alpha10"
+    object Lifecycle {
+        private const val group = "androidx.lifecycle"
+        private const val version = "2.4.0-rc01"
 
-        const val constraintLayoutCompose =
-            "androidx.constraintlayout:constraintlayout-compose:1.0.0-rc01"
+        // ViewModel
+        const val viewModel = "$group:lifecycle-viewmodel-ktx:$version"
 
-        const val coreKtx = "androidx.core:core-ktx:1.6.0"
+        // ViewModel utilities for Compose
+        const val VmCompose = "$group:lifecycle-viewmodel-compose:$version"
     }
 
     object Accompanist {
-        private const val version = "0.19.0"
+        private const val version = "0.20.0"
         private const val group = "com.google.accompanist"
 
         const val systemuicontroller =
@@ -70,9 +73,6 @@ object Libs {
         const val core = "$group:kotlinx-coroutines-core:$version"
         const val android = "$group:kotlinx-coroutines-android:$version"
         const val coroutinesTest = "$group:kotlinx-coroutines-test:$version"
-
-        const val vmLifecycle =
-            "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
     }
 
     object Y {

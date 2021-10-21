@@ -47,14 +47,15 @@ android {
 }
 
 dependencies {
-    implementation(Libs.Androidx.coreKtx)
+    implementation(Libs.Androidx.core)
     implementation(Libs.Androidx.appcompat)
-    implementation(Libs.Androidx.viewModelCompose)
     implementation(Libs.Compose.runtime)
+
+    implementation(Libs.Lifecycle.viewModel)
+    implementation(Libs.Lifecycle.VmCompose)
 
     implementation(Libs.Coroutines.core)
     implementation(Libs.Coroutines.android)
-    implementation(Libs.Coroutines.vmLifecycle)
     implementation(Libs.Coroutines.coroutinesTest)
 
     implementation(Libs.Y.core)
