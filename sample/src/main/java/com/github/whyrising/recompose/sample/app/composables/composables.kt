@@ -41,7 +41,7 @@ import java.util.Date
 fun Clock() {
     Text(
         text = subscribe<String>(v(Keys.formattedTime)).w(),
-        style = MaterialTheme.typography.h1,
+        style = MaterialTheme.typography.h1.copy(fontSize = 88.sp),
         fontWeight = FontWeight.SemiBold,
         color = subscribe<Color>(
             v(Keys.primaryColor, MaterialTheme.colors.onSurface)
