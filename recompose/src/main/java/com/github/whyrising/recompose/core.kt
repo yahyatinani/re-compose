@@ -23,6 +23,7 @@ import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -49,13 +50,14 @@ object Recompose : ViewModel() {
     private val eventQueue = Channel<IPersistentVector<Any>>()
 
     init {
-        viewModelScope.launch {
-            // TODO: what coroutine context?
+        viewModelScope.launch(Dispatchers.Default) {
             while (true) {
                 val eventVec: IPersistentVector<Any> = eventQueue.receive()
                 when (eventVec.count) {
                     0 -> continue
-                    else -> viewModelScope.launch { handle(eventVec) }
+                    else -> viewModelScope.launch(Dispatchers.Default) {
+                        handle(eventVec)
+                    }
                 }
             }
         }
