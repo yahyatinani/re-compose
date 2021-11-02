@@ -1,6 +1,5 @@
 package com.github.whyrising.recompose
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
@@ -47,12 +46,11 @@ fun dispatchSync(event: Event) {
 }
 
 object Recompose : ViewModel() {
-    private const val TAG = "re-compose"
     private val eventQueue = Channel<IPersistentVector<Any>>()
 
     init {
         viewModelScope.launch {
-            Log.i(TAG, "event receiver is listening...")
+            // TODO: what coroutine context?
             while (true) {
                 val eventVec: IPersistentVector<Any> = eventQueue.receive()
                 when (eventVec.count) {
@@ -147,13 +145,13 @@ inline fun <T, R> regSub(
  * @param computationFn a function that obtains data from [signalsFn], and
  * compute derived data from it.
  */
-inline fun <T, R> regSubM(
+inline fun <R> regSubM(
     queryId: Any,
     crossinline signalsFn: (
         queryVec: Query
-    ) -> IPersistentVector<ReactiveAtom<T>>,
+    ) -> IPersistentVector<ReactiveAtom<Any>>,
     crossinline computationFn: (
-        subscriptions: IPersistentVector<T>,
+        subscriptions: IPersistentVector<Any>,
         queryVec: Query,
     ) -> R,
 ) = regSubscription(queryId, signalsFn, computationFn)

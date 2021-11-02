@@ -50,15 +50,15 @@ fun stringToColor(colorName: String, query: Query): Color {
  * @return a new theme colors using the given primary and secondary colors
  */
 fun themeColors(
-    colors: IPersistentVector<Color>,
+    colors: IPersistentVector<Any>,
     query: Query
 ): Colors {
     val (primaryColor, secondaryColor) = colors
     val (_, colorPalette) = query
 
     return (colorPalette as Colors).copy(
-        primary = primaryColor,
-        secondary = secondaryColor
+        primary = primaryColor as Color,
+        secondary = secondaryColor as Color
     )
 }
 
@@ -81,7 +81,7 @@ fun secondaryColorNameReaction(query: Query): ReactiveAtom<String> =
 
 fun primSecondColorReaction(
     query: Query
-): IPersistentVector<ReactiveAtom<Color>> {
+): IPersistentVector<ReactiveAtom<Any>> {
     val (_, _, defaultColor) = query
     return v(
         subscribe(v(primaryColor, defaultColor)),
