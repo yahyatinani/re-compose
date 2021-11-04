@@ -2,14 +2,11 @@ package com.github.whyrising.recompose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.DbEventHandler
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.FxEventHandler
-import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.EffectHandler
 import com.github.whyrising.recompose.fx.doFx
@@ -23,52 +20,25 @@ import com.github.whyrising.recompose.subs.regDbExtractor
 import com.github.whyrising.recompose.subs.regSubscription
 import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
 internal const val TAG = "re-compose"
+
 // -- Dispatch -----------------------------------------------------------------
 
-fun dispatch(event: Event) {
-    Recompose.send(event)
-}
+fun dispatch(event: Event) =
+    com.github.whyrising.recompose.router.dispatch(event)
 
 /**
  * This is a blocking function normally used to initialize the appDb.
  */
 fun dispatchSync(event: Event) {
-    runBlocking {
-        handle(event)
-    }
+    com.github.whyrising.recompose.router.dispatchSync(event)
 }
 
-object Recompose : ViewModel() {
-    private val eventQueue = Channel<IPersistentVector<Any>>()
+// -- Events -------------------------------------------------------------------
 
-    init {
-        viewModelScope.launch(Dispatchers.Default) {
-            while (true) {
-                val eventVec: IPersistentVector<Any> = eventQueue.receive()
-                when (eventVec.count) {
-                    0 -> continue
-                    else -> viewModelScope.launch(Dispatchers.Default) {
-                        handle(eventVec)
-                    }
-                }
-            }
-        }
-    }
-
-    internal fun send(event: Event) {
-        eventQueue.trySend(event)
-    }
-}
-
-// -- Events ---------------------------------------------------
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
