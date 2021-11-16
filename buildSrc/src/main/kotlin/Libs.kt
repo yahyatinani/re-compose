@@ -14,7 +14,7 @@ object Libs {
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.4"
+        const val version = "1.1.0-beta02"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -82,7 +82,7 @@ object Libs {
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.7"
+        private const val version = "0.0.8"
 
         const val core = "$group:y-core:$version"
         const val collections = "$group:y-collections:$version"
