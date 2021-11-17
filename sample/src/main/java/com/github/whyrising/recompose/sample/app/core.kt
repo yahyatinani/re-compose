@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.Surface
+import androidx.compose.runtime.SideEffect
 import androidx.lifecycle.lifecycleScope
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.dispatchSync
@@ -53,9 +54,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        dispatch(v(Keys.startTicks))
         setContent {
+            SideEffect { dispatch(v(Keys.startTicks)) }
+
             RecomposeTheme {
                 Surface {
                     TimeApp()
