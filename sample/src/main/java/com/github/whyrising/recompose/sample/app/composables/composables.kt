@@ -1,19 +1,8 @@
 package com.github.whyrising.recompose.sample.app.composables
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Colors
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
@@ -24,18 +13,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.whyrising.recompose.dispatch
-import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.sample.app.Keys
 import com.github.whyrising.recompose.sample.app.Keys.secondaryColor
 import com.github.whyrising.recompose.sample.app.Keys.statusBarDarkIcons
-import com.github.whyrising.recompose.sample.app.db.AppSchema
 import com.github.whyrising.recompose.sample.app.setup
 import com.github.whyrising.recompose.sample.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
 import com.github.whyrising.y.collections.core.v
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import java.util.Date
 
 @Composable
 fun Clock() {
@@ -132,17 +118,11 @@ fun TimeApp() {
     }
 }
 
+// -- Previews -----------------------------------------------------------------
+
 @Composable
 fun AppPreview() {
-    regEventDb<Any>(Keys.initializeDb) { _, _ ->
-        AppSchema(
-            time = Date(),
-            primaryColor = "",
-            secondaryColor = "",
-        )
-    }
     setup()
-
     RecomposeTheme {
         TimeApp()
     }

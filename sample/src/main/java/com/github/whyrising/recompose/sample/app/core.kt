@@ -38,15 +38,15 @@ enum class Keys {
 }
 
 fun setup() {
-    regEvents()
+    regEventDb<Any>(id = initializeDb, handler = ::initDBHandler)
     dispatchSync(v(initializeDb))
+    regEvents()
     regSubs()
     regCofxs()
 }
 
 class MainActivity : ComponentActivity() {
     init {
-        regEventDb<Any>(id = initializeDb, handler = ::initDBHandler)
         setup()
         regFx(lifecycleScope)
     }
