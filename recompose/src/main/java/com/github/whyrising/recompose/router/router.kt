@@ -5,29 +5,44 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
+import com.github.whyrising.recompose.router.Recompose.enqueue
+import com.github.whyrising.y.collections.core.q
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 
 object Recompose : ViewModel() {
-    // TODO: Use a persistent queue from y
-    internal val eventQueue = Channel<Event>()
+    private val eventQueue = MutableStateFlow(q<Event>())
 
     init {
-        viewModelScope.launch {
-            while (true)
-                handle(eventQueue.receive())
-        }
+        eventQueue
+            .onEach { queue ->
+                if (queue.isNotEmpty()) {
+                    val event = queue.peek()!!
+                    handle(event)
+                    eventQueue.compareAndSet(queue, queue.pop())
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    internal fun enqueue(event: Event) {
+        eventQueue.update { it.conj(event) }
     }
 }
 
-fun dispatch(event: Event) {
+private fun validate(event: Event) {
     if (event.count == 0)
         throw RuntimeException(
-            "$TAG: You called `dispatch` with an empty event vector"
+            "$TAG: `dispatch` was called with an empty event vector."
         )
+}
 
-    Recompose.eventQueue.trySend(event)
+fun dispatch(event: Event) {
+    validate(event)
+    enqueue(event)
 }
 
 fun dispatchSync(event: Event) {
