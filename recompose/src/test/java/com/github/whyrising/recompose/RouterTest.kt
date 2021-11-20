@@ -121,11 +121,15 @@ class RouterTest : FreeSpec({
 
     "eventQueueFactory()" {
         val oldQueue = EVENT_QUEUE()
+        oldQueue.consumerJob.cancel()
+        oldQueue.enqueue(v<Any>(":test-event1", 8))
+        oldQueue.enqueue(v<Any>(":test-event2", 9))
 
         eventQueueFactory(testDispatcher)
 
         EVENT_QUEUE().context shouldBeSameInstanceAs testDispatcher
         oldQueue.context shouldBeSameInstanceAs EmptyCoroutineContext
+        oldQueue.state.value shouldBeSameInstanceAs q<Any>()
         oldQueue.viewModelScope.isActive.shouldBeFalse()
     }
 })

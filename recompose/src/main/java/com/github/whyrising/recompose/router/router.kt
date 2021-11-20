@@ -24,35 +24,6 @@ data class EventQueue(
 ) : ViewModel() {
     internal val state = MutableStateFlow(q<Event>())
 
-    internal fun consumeEventQueue(): Job = viewModelScope.launch(context) {
-        state.collect {
-            if (it.isNotEmpty())
-                processFirstEvent(it)
-        }
-    }
-
-    init {
-        consumeEventQueue()
-    }
-
-    internal fun enqueue(event: Event) {
-        state.update { it.conj(event) }
-    }
-
-    fun purge() {
-        state.value = q()
-    }
-
-    fun halt() {
-        onCleared()
-        viewModelScope.cancel()
-    }
-
-    /**
-     * Since the only one who's poping the event queue is this function, called
-     * from the one and only queue consumer once at a time, there will be no
-     * race condition. Therefore, no need for atomic ops.
-     */
     suspend fun processFirstEvent(queue: PersistentQueue<Event>) {
         val event = queue.peek()
         if (event != null) {
@@ -64,6 +35,29 @@ data class EventQueue(
                 throw e
             }
         }
+    }
+
+    internal fun consumeEventQueue(): Job = viewModelScope.launch(context) {
+        state.collect {
+            if (it.isNotEmpty())
+                processFirstEvent(it)
+        }
+    }
+
+    internal val consumerJob: Job = consumeEventQueue()
+
+    internal fun enqueue(event: Event) {
+        state.update { it.conj(event) }
+    }
+
+    fun purge() {
+        state.value = q()
+    }
+
+    fun halt() {
+        onCleared()
+        state.value = q()
+        viewModelScope.cancel()
     }
 }
 
