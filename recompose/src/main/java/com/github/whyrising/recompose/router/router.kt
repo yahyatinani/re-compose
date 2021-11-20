@@ -5,44 +5,104 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
-import com.github.whyrising.recompose.router.Recompose.enqueue
+import com.github.whyrising.y.collections.PersistentQueue
 import com.github.whyrising.y.collections.core.q
+import com.github.whyrising.y.concurrency.atom
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
-object Recompose : ViewModel() {
-    private val eventQueue = MutableStateFlow(q<Event>())
+data class EventQueue(
+    internal val context: CoroutineContext = EmptyCoroutineContext
+) : ViewModel() {
+    internal val state = MutableStateFlow(q<Event>())
+
+    internal fun consumeEventQueue(): Job = viewModelScope.launch(context) {
+        state.collect {
+            if (it.isNotEmpty())
+                processFirstEvent(it)
+        }
+    }
 
     init {
-        eventQueue
-            .onEach { queue ->
-                if (queue.isNotEmpty()) {
-                    val event = queue.peek()!!
-                    handle(event)
-                    eventQueue.compareAndSet(queue, queue.pop())
-                }
-            }
-            .launchIn(viewModelScope)
+        consumeEventQueue()
     }
 
     internal fun enqueue(event: Event) {
-        eventQueue.update { it.conj(event) }
+        state.update { it.conj(event) }
+    }
+
+    fun purge() {
+        state.value = q()
+    }
+
+    fun halt() {
+        onCleared()
+        viewModelScope.cancel()
+    }
+
+    /**
+     * Since the only one who's poping the event queue is this function, called
+     * from the one and only queue consumer once at a time, there will be no
+     * race condition. Therefore, no need for atomic ops.
+     */
+    suspend fun processFirstEvent(queue: PersistentQueue<Event>) {
+        val event = queue.peek()
+        if (event != null) {
+            try {
+                handle(event)
+                state.value = queue.pop()
+            } catch (e: RuntimeException) {
+                purge()
+                throw e
+            }
+        }
     }
 }
 
+internal val EVENT_QUEUE = atom(EventQueue())
+
+/**
+ * Halt and replace the previous [EventQueue] with a new one.
+ *
+ * You should probably call this function at the very start of your app, since
+ * you only need it if you want to run the [EventQueue] consumer from a
+ * different Dispatcher. (eg. [Dispatchers.Default])
+ *
+ * The [EventQueue] consumer coroutine is running on [viewModelScope] with
+ * [EmptyCoroutineContext] by default.
+ *
+ * @param context to launch the [EventQueue] consumer coroutine.
+ */
+fun eventQueueFactory(context: CoroutineContext) {
+    EVENT_QUEUE.swap {
+        it.halt()
+        EventQueue(context)
+    }
+}
+
+// -- Dispatching --------------------------------------------------------------
+
 private fun validate(event: Event) {
     if (event.count == 0)
-        throw RuntimeException(
+        throw IllegalArgumentException(
             "$TAG: `dispatch` was called with an empty event vector."
         )
 }
 
+// TODO: consider using a coroutine to enqueue
+//  order don't matter since the dispatch can be called from a different
+//  coroutine or thread, eg. from queue consumer coroutine
 fun dispatch(event: Event) {
     validate(event)
-    enqueue(event)
+    EVENT_QUEUE().enqueue(event)
 }
 
 fun dispatchSync(event: Event) {

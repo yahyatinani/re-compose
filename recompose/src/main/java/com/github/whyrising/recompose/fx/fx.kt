@@ -99,7 +99,7 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
             else Log.w(
                 TAG,
                 "in :fx effect, effect: $effectKey has no associated handler." +
-                    " Skip."
+                        " Skip."
             )
         }
     } else {
@@ -126,6 +126,7 @@ fun regDispatchEventFxHandler(): Unit = regFx(id = FxIds.dispatch) { event ->
         return@regFx
     }
 
+    // TODO: review this cast
     dispatch(event as IPersistentVector<Any>)
 }
 
@@ -138,6 +139,7 @@ fun regDispatchNeventFxHandler(): Unit = regFx(id = FxIds.dispatchN) { events ->
         return@regFx
     }
 
+    // TODO: review this cast
     events.forEach { event: Any? ->
         dispatch(event as IPersistentVector<Any>)
     }
