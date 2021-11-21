@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.Surface
+import androidx.compose.runtime.SideEffect
 import androidx.lifecycle.lifecycleScope
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.dispatchSync
@@ -38,24 +39,24 @@ enum class Keys {
 }
 
 fun setup() {
-    regEvents()
+    regEventDb<Any>(id = initializeDb, handler = ::initDBHandler)
     dispatchSync(v(initializeDb))
+    regEvents()
     regSubs()
     regCofxs()
 }
 
 class MainActivity : ComponentActivity() {
     init {
-        regEventDb<Any>(id = initializeDb, handler = ::initDBHandler)
         setup()
         regFx(lifecycleScope)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        dispatch(v(Keys.startTicks))
         setContent {
+            SideEffect { dispatch(v(Keys.startTicks)) }
+
             RecomposeTheme {
                 Surface {
                     TimeApp()

@@ -76,9 +76,13 @@ fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
  * Register [appDb] cofx handler under the key [db]
  * It injects the [appDb] value into a coeffects map.
  */
-val registerDbInjectorCofx = regCofx(id = db) { coeffects ->
-    coeffects.assoc(db, appDb.deref())
+fun registerDbInjectorCofx() {
+    regCofx(id = db) { coeffects ->
+        coeffects.assoc(db, appDb.deref())
+    }
 }
+
+val registerDbInjectorCofx = registerDbInjectorCofx()
 
 // Because this interceptor is used so much, we reify it
 val injectDb = injectCofx(db)

@@ -1,9 +1,10 @@
 package com.github.whyrising.recompose
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 fun measureTime(id: String, action: () -> Unit) {
     val start = System.nanoTime()
@@ -16,9 +17,10 @@ fun measureTime(id: String, action: () -> Unit) {
 suspend fun multiThreadedRun(
     n: Int = 100,
     k: Int = 1000,
+    context: CoroutineContext = EmptyCoroutineContext,
     action: suspend () -> Unit
 ) {
-    withContext(Dispatchers.Default) {
+    withContext(context) {
         coroutineScope {
             repeat(n) {
                 launch {

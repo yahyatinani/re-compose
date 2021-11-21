@@ -14,7 +14,7 @@ object Libs {
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.4"
+        const val version = "1.1.0-beta02"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -82,7 +82,7 @@ object Libs {
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.7"
+        private const val version = "0.0.10"
 
         const val core = "$group:y-core:$version"
         const val collections = "$group:y-collections:$version"
@@ -90,7 +90,7 @@ object Libs {
     }
 
     object Kotest {
-        private const val version = "5.0.0.M2"
+        private const val version = "4.6.3"
 
         const val runner = "io.kotest:kotest-runner-junit5:$version"
         const val assertions = "io.kotest:kotest-assertions-core:$version"
