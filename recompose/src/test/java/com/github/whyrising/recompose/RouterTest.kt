@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose
 
 import androidx.lifecycle.viewModelScope
+import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.registrar.Kinds
@@ -20,7 +21,6 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -37,6 +37,8 @@ class RouterTest : FreeSpec({
     beforeEach {
         Dispatchers.setMain(testDispatcher)
         register.reset(register.deref().assoc(Kinds.Event, m()))
+        EVENT_QUEUE.swap { EventQueue() }
+        appDb.emit(DEFAULT_APP_DB_VALUE)
     }
 
     afterEach {
@@ -166,5 +168,37 @@ class RouterTest : FreeSpec({
         job1.isCompleted.shouldBeTrue()
         queue.queueState() shouldBe q<Any>()
         appDb.deref() shouldBe 8
+    }
+
+    "dispatch(event)" - {
+        "when the event is empty, it should throw an exception" {
+            EVENT_QUEUE().consumerJob.cancel()
+
+            val e =
+                shouldThrowExactly<IllegalArgumentException> {
+                    com.github.whyrising.recompose.router.dispatch(v())
+                }
+            e.message shouldBe
+                    "$TAG: `dispatch` was called with an empty event vector."
+        }
+
+        "it should enqueue an event" {
+            EVENT_QUEUE().consumerJob.cancel()
+
+            com.github.whyrising.recompose.router.dispatch(v(":event"))
+
+            EVENT_QUEUE().queueState() shouldBe q<Event>().conj(v(":event"))
+        }
+    }
+
+    "dispatchSync(event)" {
+        var i = 0
+        regEventDb<Any>(":test-event") { db, _ ->
+            i++
+        }
+
+        dispatchSync(v<Any>(":test-event"))
+
+        i shouldBe 1
     }
 })
