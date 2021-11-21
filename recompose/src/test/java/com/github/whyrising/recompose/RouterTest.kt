@@ -1,14 +1,17 @@
 package com.github.whyrising.recompose
 
 import androidx.lifecycle.viewModelScope
+import com.github.whyrising.recompose.cofx.injectCofx
+import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.Event
-import com.github.whyrising.recompose.registrar.Kinds
+import com.github.whyrising.recompose.fx.initBuiltinEffectHandlers
 import com.github.whyrising.recompose.registrar.register
 import com.github.whyrising.recompose.router.EVENT_QUEUE
 import com.github.whyrising.recompose.router.EventQueue
 import com.github.whyrising.recompose.router.eventQueueFactory
+import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.collections.core.m
 import com.github.whyrising.y.collections.core.q
 import com.github.whyrising.y.collections.core.v
@@ -36,9 +39,12 @@ class RouterTest : FreeSpec({
 
     beforeEach {
         Dispatchers.setMain(testDispatcher)
-        register.reset(register.deref().assoc(Kinds.Event, m()))
-        EVENT_QUEUE.swap { EventQueue() }
+        register.reset(m())
         appDb.emit(DEFAULT_APP_DB_VALUE)
+        EVENT_QUEUE.swap { EventQueue() }
+        registerDbInjectorCofx()
+        injectCofx(Schema.db)
+        initBuiltinEffectHandlers()
     }
 
     afterEach {
