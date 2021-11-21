@@ -201,4 +201,27 @@ class RouterTest : FreeSpec({
 
         i shouldBe 1
     }
+
+    "equals()" {
+        (EventQueue() == EventQueue()).shouldBeTrue()
+
+        val eq1 = EventQueue()
+        val eq2 = EventQueue()
+        eq1.queueState.swap { it.conj(v("event-1")) }
+        (eq1 == eq2).shouldBeFalse()
+
+        (EventQueue().equals("EventQueue()")).shouldBeFalse()
+    }
+
+    "hashCode()" {
+        EventQueue().hashCode() shouldBe 31 * 1 + q<Event>().hashCode()
+
+        val e = v("event-1")
+        val q = q<Event>().conj(e)
+        val hash = 31 * 1 + q.hashCode()
+        val eventQueue = EventQueue()
+        eventQueue.queueState.swap { it.conj(e) }
+
+        eventQueue.hashCode() shouldBe hash
+    }
 })

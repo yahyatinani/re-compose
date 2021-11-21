@@ -71,6 +71,16 @@ internal data class EventQueue(
         queueState.reset(q())
         viewModelScope.cancel()
     }
+
+    /**
+     * [EventQueue]s are equal if the internal [queueState] queues are equal
+     */
+    override fun equals(other: Any?): Boolean = when (other) {
+        is EventQueue -> queueState() == other.queueState()
+        else -> false
+    }
+
+    override fun hashCode(): Int = 31 * 1 + queueState().hashCode()
 }
 
 internal val EVENT_QUEUE = atom(EventQueue())
