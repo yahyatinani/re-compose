@@ -178,8 +178,8 @@ class RouterTest : FreeSpec({
                 shouldThrowExactly<IllegalArgumentException> {
                     com.github.whyrising.recompose.router.dispatch(v())
                 }
-            e.message shouldBe
-                    "$TAG: `dispatch` was called with an empty event vector."
+            val msg = "$TAG: `dispatch` was called with an empty event vector."
+            e.message shouldBe msg
         }
 
         "it should enqueue an event" {

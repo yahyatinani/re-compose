@@ -98,8 +98,7 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
                 fxFn(effectValue)
             else Log.w(
                 TAG,
-                "in :fx effect, effect: $effectKey has no associated handler." +
-                        " Skip."
+                "in :fx, effect: $effectKey has no associated handler. Skip."
             )
         }
     } else {
