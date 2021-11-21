@@ -192,14 +192,13 @@ class RouterTest : FreeSpec({
     }
 
     "dispatchSync(event)" {
-        var i = 0
-        regEventDb<Any>(":test-event") { db, _ ->
-            i++
+        regEventDb<Any>(":test-event") { _, _ ->
+            12
         }
 
         dispatchSync(v<Any>(":test-event"))
 
-        i shouldBe 1
+        appDb.deref() shouldBe 12
     }
 
     "equals()" {
