@@ -1,6 +1,7 @@
 package com.github.whyrising.recompose
 
 import androidx.lifecycle.viewModelScope
+import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.register
@@ -18,8 +19,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -40,14 +45,14 @@ class RouterTest : FreeSpec({
 
     "enqueue(event) should add the event to the event queue" {
         val eventQueue = EventQueue()
-        eventQueue.viewModelScope.cancel()
+        eventQueue.consumerJob.cancel()
         val event1 = v(":test-event1", 1)
         val event2 = v(":test-event2", 2)
 
         eventQueue.enqueue(event1)
         eventQueue.enqueue(event2)
 
-        eventQueue.state.value shouldBe q<Event>().conj(event1).conj(event2)
+        eventQueue.queueState() shouldBe q<Event>().conj(event1).conj(event2)
     }
 
     "purge() should set the event queue to empty queue" {
@@ -59,12 +64,13 @@ class RouterTest : FreeSpec({
 
         eventQueue.purge()
 
-        eventQueue.state.value shouldBeSameInstanceAs q<Event>()
+        eventQueue.queueState() shouldBeSameInstanceAs q<Event>()
     }
 
     "processFirstEvent()" - {
         "should handle the first event in the queue" {
             val eventQueue = EventQueue()
+            eventQueue.consumerJob.cancel()
             var isEventHandled = false
             regEventDb(":test-event1") { db: Any, _: Event ->
                 isEventHandled = true
@@ -72,29 +78,31 @@ class RouterTest : FreeSpec({
             }
             eventQueue.enqueue(v<Any>(":test-event1", 5))
 
-            eventQueue.processFirstEvent(eventQueue.state.value)
+            eventQueue.processFirstEvent()
 
-            eventQueue.state.value shouldBeSameInstanceAs q<Event>()
+            eventQueue.queueState() shouldBeSameInstanceAs q<Event>()
             isEventHandled.shouldBeTrue()
         }
 
         "when queue is empty, it should skip any handling" {
             val eventQueue = EventQueue()
+            eventQueue.consumerJob.cancel()
             var isEventHandled = false
             regEventDb(":test-event1") { db: Any, _: Event ->
                 isEventHandled = true
                 db
             }
 
-            eventQueue.processFirstEvent(eventQueue.state.value)
+            eventQueue.deferredUntilEvent.complete(Unit)
+            eventQueue.processFirstEvent()
 
-            eventQueue.state.value shouldBeSameInstanceAs q<Event>()
+            eventQueue.queueState() shouldBeSameInstanceAs q<Event>()
             isEventHandled.shouldBeFalse()
         }
 
         "when exception thrown, purge the event queue then re-throw" {
             val eventQueue = EventQueue()
-            eventQueue.viewModelScope.cancel()
+            eventQueue.consumerJob.cancel()
             regEventDb<Any>(":test-event1") { _, _ ->
                 throw RuntimeException("Test exception")
             }
@@ -102,21 +110,23 @@ class RouterTest : FreeSpec({
             eventQueue.enqueue(v<Any>(":test-event2", 7))
 
             shouldThrowExactly<RuntimeException> {
-                eventQueue.processFirstEvent(eventQueue.state.value)
+                eventQueue.processFirstEvent()
             }.message shouldBe "Test exception"
 
-            eventQueue.state.value shouldBeSameInstanceAs q<Event>()
+            eventQueue.queueState() shouldBeSameInstanceAs q<Event>()
         }
     }
 
     "consumeEventQueue() should process all events in the queue" {
         val eventQueue = EventQueue()
+        eventQueue.consumerJob.cancel()
         eventQueue.enqueue(v<Any>(":test-event1", 8))
         eventQueue.enqueue(v<Any>(":test-event2", 9))
+        eventQueue.enqueue(v<Any>(":test-event2", 10))
 
         eventQueue.consumeEventQueue()
 
-        eventQueue.state.value shouldBeSameInstanceAs q<Event>()
+        eventQueue.queueState() shouldBeSameInstanceAs q<Event>()
     }
 
     "eventQueueFactory()" {
@@ -129,7 +139,32 @@ class RouterTest : FreeSpec({
 
         EVENT_QUEUE().context shouldBeSameInstanceAs testDispatcher
         oldQueue.context shouldBeSameInstanceAs EmptyCoroutineContext
-        oldQueue.state.value shouldBeSameInstanceAs q<Any>()
+        oldQueue.queueState() shouldBeSameInstanceAs q<Event>()
         oldQueue.viewModelScope.isActive.shouldBeFalse()
+    }
+
+    "concurrency test for producer-consumer in EventQueue" {
+        val queue = EventQueue()
+        appDb.emit(0)
+        regEventDb<Any>(":test-event1") { db, _ ->
+            runBlocking { delay(100) }
+            db as Int + 3
+        }
+        regEventDb<Any>(":test-event2") { db, _ ->
+            runBlocking { delay(1000) }
+            db as Int + 5
+        }
+        val job: Job
+        val job1: Job
+
+        runBlocking {
+            job = launch { queue.enqueue(v<Any>(":test-event2")) }
+            job1 = launch { queue.enqueue(v<Any>(":test-event1")) }
+        }
+
+        job.isCompleted.shouldBeTrue()
+        job1.isCompleted.shouldBeTrue()
+        queue.queueState() shouldBe q<Any>()
+        appDb.deref() shouldBe 8
     }
 })

@@ -5,58 +5,70 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
-import com.github.whyrising.y.collections.PersistentQueue
 import com.github.whyrising.y.collections.core.q
 import com.github.whyrising.y.concurrency.atom
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-data class EventQueue(
+/**
+ * This class is a FIFO PersistentQueue that allows us to handle incoming events
+ * according to the producer-consumer pattern.
+ *
+ * We have only one consumer that can be run from [consumeEventQueue] function,
+ * and multiple producers that can be run from [enqueue] function.
+ */
+internal data class EventQueue(
     internal val context: CoroutineContext = EmptyCoroutineContext
 ) : ViewModel() {
-    internal val state = MutableStateFlow(q<Event>())
+    internal val queueState = atom(q<Event>())
 
-    suspend fun processFirstEvent(queue: PersistentQueue<Event>) {
-        val event = queue.peek()
+    @Volatile
+    internal var deferredUntilEvent = CompletableDeferred<Unit>()
+    private suspend fun suspendUntilEventOccurs() = deferredUntilEvent.await()
+
+    suspend fun processFirstEvent() {
+        val event = queueState().peek()
         if (event != null) {
             try {
                 handle(event)
-                state.value = queue.pop()
-            } catch (e: RuntimeException) {
+                queueState.swap { it.pop() }
+            } catch (e: Exception) {
                 purge()
                 throw e
             }
+        } else {
+            suspendUntilEventOccurs()
+            deferredUntilEvent = CompletableDeferred()
         }
     }
 
     internal fun consumeEventQueue(): Job = viewModelScope.launch(context) {
-        state.collect {
-            if (it.isNotEmpty())
-                processFirstEvent(it)
-        }
+        while (true)
+            processFirstEvent()
     }
 
     internal val consumerJob: Job = consumeEventQueue()
 
     internal fun enqueue(event: Event) {
-        state.update { it.conj(event) }
+        viewModelScope.launch(context) {
+            queueState.swap { it.conj(event) }
+            deferredUntilEvent.complete(Unit)
+        }
     }
 
     fun purge() {
-        state.value = q()
+        queueState.reset(q())
     }
 
     fun halt() {
         onCleared()
-        state.value = q()
+        queueState.reset(q())
         viewModelScope.cancel()
     }
 }
@@ -91,9 +103,6 @@ private fun validate(event: Event) {
         )
 }
 
-// TODO: consider using a coroutine to enqueue
-//  order don't matter since the dispatch can be called from a different
-//  coroutine or thread, eg. from queue consumer coroutine
 fun dispatch(event: Event) {
     validate(event)
     EVENT_QUEUE().enqueue(event)
