@@ -1,3 +1,5 @@
+package com.github.whyrising.recompose
+
 object Ci {
     private const val snapshotBase = "0.0.7"
 

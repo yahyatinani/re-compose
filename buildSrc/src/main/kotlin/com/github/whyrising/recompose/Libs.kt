@@ -1,3 +1,5 @@
+package com.github.whyrising.recompose
+
 object Libs {
     const val jvmTarget = "1.8"
 

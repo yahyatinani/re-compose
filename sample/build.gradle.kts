@@ -1,3 +1,5 @@
+import com.github.whyrising.recompose.Libs
+
 plugins {
     id("com.android.application")
     kotlin("android")

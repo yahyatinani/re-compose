@@ -1,3 +1,5 @@
+package com.github.whyrising.recompose
+
 object Plugins {
     object Ktlint {
         const val version = "10.2.0"

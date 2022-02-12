@@ -1,0 +1,58 @@
+import com.github.whyrising.recompose.Plugins
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath Plugins.Android.gradle
+        classpath Plugins.Kotlin.gradle
+    }
+}
+
+plugins {
+//    id 'com.diffplug.spotless' version '6.2.0'
+    id 'org.jlleitschuh.gradle.ktlint' version '10.2.0'
+    id 'maven-publish'
+    id 'signing'
+}
+
+allprojects {
+    group = 'com.github.whyrising.recompose'
+}
+
+subprojects {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+    }
+
+    apply plugin: 'org.jlleitschuh.gradle.ktlint'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            // Treat all Kotlin warnings as errors (disabled by default)
+            allWarningsAsErrors = project.hasProperty("warningsAsErrors") ? project.warningsAsErrors : false
+
+            freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
+
+            // Enable experimental coroutines APIs, including Flow
+            freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi'
+            freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.FlowPreview'
+            freeCompilerArgs += '-Xopt-in=kotlin.Experimental'
+
+            // Set JVM target to 1.8
+            jvmTarget = "1.8"
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications
+}
