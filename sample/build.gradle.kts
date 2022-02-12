@@ -64,7 +64,7 @@ dependencies {
     implementation(Libs.Y.collections)
     implementation(Libs.Y.concurrency)
     implementation(Libs.Coroutines.coroutinesTest)
-    implementation("com.google.android.material:material:1.4.0")
+    implementation("com.google.android.material:material:1.5.0")
     implementation(project(mapOf("path" to ":recompose")))
 
     testImplementation(Libs.Kotlin.kotlinReflect)

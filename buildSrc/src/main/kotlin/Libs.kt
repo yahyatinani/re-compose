@@ -2,19 +2,18 @@ object Libs {
     const val jvmTarget = "1.8"
 
     object AndroidBuild {
-        const val compileSdk = 31
-        const val buildToolsVersion = "31.0.0"
+        const val compileSdk = 32
+        const val buildToolsVersion = "32.1.0-rc1"
     }
 
     object Kotlin {
         const val version = "1.5.31"
-
         const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:$version"
     }
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.1.0-beta02"
+        const val version = "1.0.4"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -90,7 +89,7 @@ object Libs {
     }
 
     object Kotest {
-        private const val version = "4.6.3"
+        private const val version = "5.1.0"
 
         const val runner = "io.kotest:kotest-runner-junit5:$version"
         const val assertions = "io.kotest:kotest-assertions-core:$version"
