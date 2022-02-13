@@ -2,6 +2,7 @@ package com.github.whyrising.recompose
 
 object Libs {
     const val jvmTarget = "1.8"
+    const val jdkDesugar = "com.android.tools:desugar_jdk_libs:1.1.5"
 
     object AndroidBuild {
         const val compileSdk = 32
@@ -47,7 +48,7 @@ object Libs {
         const val core = "$gr.core:core-ktx:1.7.0-rc01"
 
         // Integration with activities
-        const val activityCompose = "$gr.activity:activity-compose:1.4.0-rc01"
+        const val activityCompose = "$gr.activity:activity-compose:1.4.0"
 
         // Appcompat is needed for themes.xml resource
         const val appcompat = "$gr.appcompat:appcompat:1.4.0-beta01"

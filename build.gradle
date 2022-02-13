@@ -1,3 +1,4 @@
+import com.github.whyrising.recompose.Ci
 import com.github.whyrising.recompose.Plugins
 
 buildscript {
@@ -13,7 +14,7 @@ buildscript {
 }
 
 plugins {
-//    id 'com.diffplug.spotless' version '6.2.0'
+    id 'com.diffplug.spotless' version '6.2.2'
     id 'org.jlleitschuh.gradle.ktlint' version '10.2.0'
     id 'maven-publish'
     id 'signing'
@@ -33,11 +34,23 @@ subprojects {
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
+    apply plugin: 'com.diffplug.spotless'
+    spotless {
+        kotlin {
+            target '**/*.kt'
+            targetExclude("$buildDir/**/*.kt")
+            targetExclude('bin/**/*.kt')
+
+            ktlint('0.43.2')
+//            licenseHeaderFile rootProject.file('spotless/copyright.kt')
+        }
+    }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             // Treat all Kotlin warnings as errors (disabled by default)
-            allWarningsAsErrors = project.hasProperty("warningsAsErrors") ? project.warningsAsErrors : false
+            allWarningsAsErrors = project.hasProperty("warningsAsErrors") ?
+                    project.warningsAsErrors : false
 
             freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
 
@@ -46,13 +59,20 @@ subprojects {
             freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.FlowPreview'
             freeCompilerArgs += '-Xopt-in=kotlin.Experimental'
 
-            // Set JVM target to 1.8
             jvmTarget = "1.8"
         }
+    }
+
+    tasks.withType(Test) {
+        def decimal = Runtime.getRuntime().availableProcessors() / 2
+        maxParallelForks = decimal > 0 ? decimal : 1
+        useJUnitPlatform()
+        testLogging { events("passed", "skipped", "failed") }
     }
 }
 
 signing {
     useGpgCmd()
+    required { Ci.isRelease() }
     sign publishing.publications
 }
