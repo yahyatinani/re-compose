@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 
 @Composable
@@ -36,7 +37,10 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
         Text(
             text = "20:15:45",
             modifier = Modifier.align(CenterHorizontally),
-            style = typography.h1.copy(fontWeight = FontWeight.SemiBold),
+            style = typography.h1.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 80.sp,
+            ),
             color = color
         )
     }
