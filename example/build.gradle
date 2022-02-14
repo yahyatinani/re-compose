@@ -70,5 +70,7 @@ dependencies {
     androidTestImplementation Libs.Compose.uiTestJUnit
     debugImplementation Libs.Compose.uiTooling
 
+    implementation Libs.Androidx.splash
+
     coreLibraryDesugaring Libs.jdkDesugar
 }

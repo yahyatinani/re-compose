@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.github.whyrising.recompose.example.home.DigitalWatch
 import com.github.whyrising.recompose.example.home.ThemeForm
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
@@ -77,7 +78,9 @@ fun DefaultDarkPreview() {
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
         setContent {
             MyApp()
         }

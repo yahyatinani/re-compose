@@ -52,6 +52,8 @@ object Libs {
 
         // Appcompat is needed for themes.xml resource
         const val appcompat = "$gr.appcompat:appcompat:1.4.0-beta01"
+
+        const val splash = "$gr.core:core-splashscreen:1.0.0-beta01"
     }
 
     object Lifecycle {
