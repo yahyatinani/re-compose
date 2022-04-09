@@ -8,6 +8,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Recompose"
 
-include ':sample'
 include ':recompose'
 include ':example'

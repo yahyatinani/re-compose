@@ -8,11 +8,11 @@ object Plugins {
 
     object Kotlin {
         const val gradle =
-            "org.jetbrains.kotlin:kotlin-gradle-plugin:${Libs.Kotlin.version}"
+            "org.jetbrains.kotlin:kotlin-gradle-plugin:${Deps.Kotlin.version}"
     }
 
     object Android {
-        private const val version = "7.1.1"
+        private const val version = "7.1.3"
 
         const val gradle = "com.android.tools.build:gradle:$version"
     }

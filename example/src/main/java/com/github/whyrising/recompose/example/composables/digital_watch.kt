@@ -1,4 +1,4 @@
-package com.github.whyrising.recompose.example.home
+package com.github.whyrising.recompose.example.composables
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Column
@@ -16,7 +16,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.whyrising.recompose.example.Ids.formattedTime
+import com.github.whyrising.recompose.example.events.regAllEvents
+import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
+import com.github.whyrising.recompose.subscribe
+import com.github.whyrising.recompose.w
+import com.github.whyrising.y.v
 
 @Composable
 fun DigitalWatch(modifier: Modifier = Modifier) {
@@ -35,20 +41,22 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "20:15:45",
+            text = subscribe<String>(v(formattedTime)).w(),
             modifier = Modifier.align(CenterHorizontally),
+            color = color,
             style = typography.h1.copy(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 80.sp,
-            ),
-            color = color
+            )
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
+fun DigitalWatchPreview() {
+    regAllEvents()
+    regAllSubs()
     RecomposeTheme {
         Surface {
             DigitalWatch()
@@ -58,7 +66,7 @@ fun DefaultPreview() {
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
-fun DefaultDarkPreview() {
+fun DigitalWatchDarkPreview() {
     RecomposeTheme {
         Surface {
             DigitalWatch()

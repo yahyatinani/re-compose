@@ -1,4 +1,4 @@
-import com.github.whyrising.recompose.Libs
+import com.github.whyrising.recompose.Deps
 
 plugins {
     id 'com.android.application'
@@ -53,24 +53,25 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion Libs.Compose.version
+        kotlinCompilerExtensionVersion Deps.Compose.version
     }
 }
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.7.0'
-    implementation Libs.Compose.ui
-    implementation Libs.Compose.material
-    implementation Libs.Compose.uiToolingPreview
+    implementation Deps.Compose.ui
+    implementation Deps.Compose.material
+    implementation Deps.Compose.uiToolingPreview
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
-    implementation Libs.Androidx.activityCompose
+    implementation Deps.Androidx.activityCompose
+    implementation Deps.Androidx.splash
+    implementation project(':recompose')
+
     testImplementation "junit:junit:4.13.2"
     androidTestImplementation "androidx.test.ext:junit:1.1.3"
     androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
-    androidTestImplementation Libs.Compose.uiTestJUnit
-    debugImplementation Libs.Compose.uiTooling
+    androidTestImplementation Deps.Compose.uiTestJUnit
+    debugImplementation Deps.Compose.uiTooling
 
-    implementation Libs.Androidx.splash
-
-    coreLibraryDesugaring Libs.jdkDesugar
+    coreLibraryDesugaring Deps.jdkDesugar
 }

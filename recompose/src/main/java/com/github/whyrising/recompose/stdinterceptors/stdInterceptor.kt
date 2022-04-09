@@ -15,9 +15,9 @@ import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.effects
 import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.schemas.Schema.notFound
-import com.github.whyrising.y.collections.core.assocIn
-import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.l
+import com.github.whyrising.y.assocIn
+import com.github.whyrising.y.get
+import com.github.whyrising.y.l
 
 // -- Interceptor Factories ----------------------------------------------------
 

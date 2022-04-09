@@ -1,6 +1,6 @@
 package com.github.whyrising.recompose
 
-object Libs {
+object Deps {
     const val jvmTarget = "1.8"
     const val jdkDesugar = "com.android.tools:desugar_jdk_libs:1.1.5"
 
@@ -10,13 +10,13 @@ object Libs {
     }
 
     object Kotlin {
-        const val version = "1.5.31"
+        const val version = "1.6.10"
         const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:$version"
     }
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.0.4"
+        const val version = "1.1.1"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -77,7 +77,7 @@ object Libs {
 
     object Coroutines {
         private const val group = "org.jetbrains.kotlinx"
-        private const val version = "1.5.2"
+        private const val version = "1.6.1"
 
         const val core = "$group:kotlinx-coroutines-core:$version"
         const val android = "$group:kotlinx-coroutines-android:$version"
@@ -86,15 +86,14 @@ object Libs {
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.0.10"
+        private const val version = "0.1.0"
 
         const val core = "$group:y-core:$version"
-        const val collections = "$group:y-collections:$version"
         const val concurrency = "$group:y-concurrency:$version"
     }
 
     object Kotest {
-        private const val version = "5.1.0"
+        private const val version = "5.2.2"
 
         const val runner = "io.kotest:kotest-runner-junit5:$version"
         const val assertions = "io.kotest:kotest-assertions-core:$version"

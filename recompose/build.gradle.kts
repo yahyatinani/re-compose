@@ -1,4 +1,4 @@
-import com.github.whyrising.recompose.Libs
+import com.github.whyrising.recompose.Deps
 
 plugins {
     id("com.android.library")
@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-    compileSdk = Libs.AndroidBuild.compileSdk
-    buildToolsVersion = Libs.AndroidBuild.buildToolsVersion
+    compileSdk = Deps.AndroidBuild.compileSdk
+    buildToolsVersion = Deps.AndroidBuild.buildToolsVersion
 
     defaultConfig {
         minSdk = 22
@@ -31,7 +31,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = Libs.Compose.version
+        kotlinCompilerExtensionVersion = Deps.Compose.version
     }
 
     compileOptions {
@@ -40,7 +40,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = Libs.jvmTarget
+        jvmTarget = Deps.jvmTarget
     }
 
     testOptions {
@@ -49,27 +49,26 @@ android {
 }
 
 dependencies {
-    implementation(Libs.Androidx.core)
-    implementation(Libs.Androidx.appcompat)
-    implementation(Libs.Compose.runtime)
+    implementation(Deps.Androidx.core)
+    implementation(Deps.Androidx.appcompat)
+    implementation(Deps.Compose.runtime)
 
-    implementation(Libs.Lifecycle.viewModel)
-    implementation(Libs.Lifecycle.VmCompose)
+    implementation(Deps.Lifecycle.viewModel)
+    implementation(Deps.Lifecycle.VmCompose)
 
-    implementation(Libs.Coroutines.core)
-    implementation(Libs.Coroutines.android)
-    implementation(Libs.Coroutines.coroutinesTest)
+    implementation(Deps.Coroutines.core)
+    implementation(Deps.Coroutines.android)
+    implementation(Deps.Coroutines.coroutinesTest)
 
-    implementation(Libs.Y.core)
-    implementation(Libs.Y.collections)
-    implementation(Libs.Y.concurrency)
+    api(Deps.Y.core)
+    api(Deps.Y.concurrency)
 
-    testImplementation(Libs.Kotlin.kotlinReflect)
-    testImplementation(Libs.Kotest.runner)
-    testImplementation(Libs.Kotest.assertions)
-    testImplementation(Libs.Kotest.property)
-    testImplementation(Libs.Mockk.core)
-    testImplementation(Libs.Mockk.jvm)
+    testImplementation(Deps.Kotlin.kotlinReflect)
+    testImplementation(Deps.Kotest.runner)
+    testImplementation(Deps.Kotest.assertions)
+    testImplementation(Deps.Kotest.property)
+    testImplementation(Deps.Mockk.core)
+    testImplementation(Deps.Mockk.jvm)
 }
 
 val androidSourcesJar by tasks.register<Jar>("androidSourcesJar") {

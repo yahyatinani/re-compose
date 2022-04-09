@@ -1,4 +1,4 @@
-import com.github.whyrising.recompose.Libs
+import com.github.whyrising.recompose.Deps
 
 plugins {
     id("com.android.application")
@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-    compileSdk = Libs.AndroidBuild.compileSdk
-    buildToolsVersion = Libs.AndroidBuild.buildToolsVersion
+    compileSdk = Deps.AndroidBuild.compileSdk
+    buildToolsVersion = Deps.AndroidBuild.buildToolsVersion
 
     defaultConfig {
         applicationId = "com.github.whyrising.recompose"
@@ -38,7 +38,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = Libs.jvmTarget
+        jvmTarget = Deps.jvmTarget
     }
 
     buildFeatures {
@@ -46,7 +46,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = Libs.Compose.version
+        kotlinCompilerExtensionVersion = Deps.Compose.version
     }
 
     packagingOptions {
@@ -55,28 +55,27 @@ android {
 }
 
 dependencies {
-    implementation(Libs.Androidx.core)
-    implementation(Libs.Androidx.appcompat)
-    implementation(Libs.Compose.ui)
-    implementation(Libs.Compose.material)
-    implementation(Libs.Compose.uiTooling)
-    implementation(Libs.Compose.uiToolingPreview)
-    implementation(Libs.Androidx.activityCompose)
-    implementation(Libs.Accompanist.systemuicontroller)
-    implementation(Libs.Y.collections)
-    implementation(Libs.Y.concurrency)
-    implementation(Libs.Coroutines.coroutinesTest)
+    implementation(Deps.Androidx.core)
+    implementation(Deps.Androidx.appcompat)
+    implementation(Deps.Compose.ui)
+    implementation(Deps.Compose.material)
+    implementation(Deps.Compose.uiTooling)
+    implementation(Deps.Compose.uiToolingPreview)
+    implementation(Deps.Androidx.activityCompose)
+    implementation(Deps.Accompanist.systemuicontroller)
+    implementation(Deps.Y.core)
+    implementation(Deps.Coroutines.coroutinesTest)
     implementation("com.google.android.material:material:1.5.0")
     implementation(project(mapOf("path" to ":recompose")))
 
-    testImplementation(Libs.Kotlin.kotlinReflect)
-    testImplementation(Libs.Kotest.runner)
-    testImplementation(Libs.Kotest.assertions)
-    testImplementation(Libs.Kotest.property)
-    testImplementation(Libs.Mockk.core)
-    testImplementation(Libs.Mockk.jvm)
+    testImplementation(Deps.Kotlin.kotlinReflect)
+    testImplementation(Deps.Kotest.runner)
+    testImplementation(Deps.Kotest.assertions)
+    testImplementation(Deps.Kotest.property)
+    testImplementation(Deps.Mockk.core)
+    testImplementation(Deps.Mockk.jvm)
 
-    androidTestImplementation(Libs.Compose.uiTestJUnit)
+    androidTestImplementation(Deps.Compose.uiTestJUnit)
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 }

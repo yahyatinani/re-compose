@@ -1,11 +1,11 @@
 package com.github.whyrising.recompose.registrar
 
-import com.github.whyrising.y.collections.core.assocIn
-import com.github.whyrising.y.collections.core.l
-import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.assocIn
 import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
+import com.github.whyrising.y.l
+import com.github.whyrising.y.m
 
 typealias Register = IPersistentMap<Any, IPersistentMap<Any, Any>?>
 

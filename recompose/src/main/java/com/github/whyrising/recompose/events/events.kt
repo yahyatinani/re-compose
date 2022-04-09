@@ -7,11 +7,11 @@ import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.collections.core.concat
-import com.github.whyrising.y.collections.core.conj
-import com.github.whyrising.y.collections.core.lazySeq
 import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
+import com.github.whyrising.y.concat
+import com.github.whyrising.y.conj
+import com.github.whyrising.y.lazySeq
 
 val kind: Kinds = Kinds.Event
 

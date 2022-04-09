@@ -1,4 +1,4 @@
-package com.github.whyrising.recompose.example.home
+package com.github.whyrising.recompose.example.composables
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 
 @Composable
-fun ThemeForm(modifier: Modifier = Modifier) {
+fun InputThemeForm(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -52,20 +52,20 @@ fun ThemeForm(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun LightPreview() {
+fun InputThemeFormPreview() {
     RecomposeTheme {
         Surface {
-            ThemeForm()
+            InputThemeForm()
         }
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun DarkPreview() {
+fun InputThemeFormDarkPreview() {
     RecomposeTheme {
         Surface {
-            ThemeForm()
+            InputThemeForm()
         }
     }
 }
