@@ -68,7 +68,7 @@ object Deps {
     }
 
     object Accompanist {
-        private const val version = "0.20.0"
+        private const val version = "0.23.1"
         private const val group = "com.google.accompanist"
 
         const val systemuicontroller =

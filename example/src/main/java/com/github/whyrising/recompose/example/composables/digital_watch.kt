@@ -26,7 +26,7 @@ import com.github.whyrising.y.v
 
 @Composable
 fun DigitalWatch(modifier: Modifier = Modifier) {
-    val color = MaterialTheme.colors.primary
+    val colors = MaterialTheme.colors
     val typography = MaterialTheme.typography
     Column(
         modifier = modifier
@@ -37,13 +37,13 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
             text = "Local time:",
             modifier = Modifier.align(CenterHorizontally),
             style = typography.h3.copy(fontWeight = FontWeight.Light),
-            color = color,
+            color = colors.primary,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = subscribe<String>(v(formattedTime)).w(),
             modifier = Modifier.align(CenterHorizontally),
-            color = color,
+            color = colors.secondary,
             style = typography.h1.copy(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 80.sp,

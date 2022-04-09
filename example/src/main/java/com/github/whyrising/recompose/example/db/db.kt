@@ -5,12 +5,10 @@ import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.example.Ids.now
 import java.util.Date
 
-data class AppDbSchema(
-    val time: Date
-)
-
-val defaultAppDB = AppDbSchema(
-    time = Date(),
+data class AppDb(
+    val time: Date = Date(),
+    val primaryColor: String = "Pink",
+    val secondaryColor: String = "Cyan",
 )
 
 fun regAllCofx() {

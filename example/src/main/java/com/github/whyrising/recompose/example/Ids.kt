@@ -7,5 +7,12 @@ enum class Ids {
     time,
     formattedTime,
     ticktack,
-    startTicking
+    startTicking,
+    primaryColorStr,
+    secondaryColorStr,
+    primaryColor,
+    secondaryColor,
+    setPrimaryColor,
+    setSecondaryColor,
+    themeColors
 }

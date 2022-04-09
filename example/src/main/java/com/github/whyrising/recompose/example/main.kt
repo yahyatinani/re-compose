@@ -18,6 +18,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,15 +34,22 @@ import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.router.dispatch
 import com.github.whyrising.y.v
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun MyApp() {
+    val systemUiController = rememberSystemUiController()
     RecomposeTheme {
+        val colors = MaterialTheme.colors
+        SideEffect {
+            systemUiController.setSystemBarsColor(color = colors.primary)
+        }
         Scaffold(
             topBar = {
                 TopAppBar {
                     Text(
                         text = "Re-compose Sample",
+                        color = colors.secondary,
                         style = MaterialTheme.typography.h5,
                     )
                 }
@@ -49,7 +57,7 @@ fun MyApp() {
         ) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colors.background
+                color = colors.background
             ) {
                 Column(
                     modifier = Modifier
@@ -73,17 +81,13 @@ fun MyApp() {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    RecomposeTheme {
-        MyApp()
-    }
+    MyApp()
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun DefaultDarkPreview() {
-    RecomposeTheme {
-        MyApp()
-    }
+    MyApp()
 }
 
 // -- Entry Point --------------------------------------------------------------
@@ -97,9 +101,7 @@ class MainActivity : ComponentActivity() {
         regAllCofx()
         regAllFx(lifecycle.coroutineScope)
         regAllSubs()
-
         dispatch(v(startTicking))
-
         setContent {
             MyApp()
         }
