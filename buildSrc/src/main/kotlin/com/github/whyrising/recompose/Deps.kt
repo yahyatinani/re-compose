@@ -6,7 +6,7 @@ object Deps {
 
     object AndroidBuild {
         const val compileSdk = 32
-        const val buildToolsVersion = "32.1.0-rc1"
+        const val buildToolsVersion = "32.0.0"
     }
 
     object Kotlin {
