@@ -41,8 +41,9 @@ fun MyApp() {
     val systemUiController = rememberSystemUiController()
     RecomposeTheme {
         val colors = MaterialTheme.colors
+        val primaryColor = colors.primary
         SideEffect {
-            systemUiController.setSystemBarsColor(color = colors.primary)
+            systemUiController.setSystemBarsColor(color = primaryColor)
         }
         Scaffold(
             topBar = {
