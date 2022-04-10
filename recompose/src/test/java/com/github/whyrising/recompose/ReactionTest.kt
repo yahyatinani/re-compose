@@ -3,9 +3,9 @@ package com.github.whyrising.recompose
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.deref
-import com.github.whyrising.y.collections.core.l
-import com.github.whyrising.y.collections.core.v
-import com.github.whyrising.y.core.inc
+import com.github.whyrising.y.inc
+import com.github.whyrising.y.l
+import com.github.whyrising.y.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -13,12 +13,12 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
 
 @ExperimentalCoroutinesApi
 class ReactionTest : FreeSpec({
-    val dispatcher = TestCoroutineDispatcher()
+    val dispatcher = StandardTestDispatcher()
 
     beforeAny {
         Dispatchers.setMain(dispatcher)
