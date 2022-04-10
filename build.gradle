@@ -1,0 +1,77 @@
+import com.github.whyrising.recompose.Ci
+import com.github.whyrising.recompose.Plugins
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath Plugins.Android.gradle
+        classpath Plugins.Kotlin.gradle
+    }
+}
+
+plugins {
+    id 'com.diffplug.spotless' version '6.2.2'
+    id 'org.jlleitschuh.gradle.ktlint' version '10.2.0'
+    id 'maven-publish'
+    id 'signing'
+}
+
+allprojects {
+    group = 'com.github.whyrising.recompose'
+}
+
+subprojects {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+    }
+
+    apply plugin: 'org.jlleitschuh.gradle.ktlint'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+    apply plugin: 'com.diffplug.spotless'
+    spotless {
+        kotlin {
+            target '**/*.kt'
+            targetExclude("$buildDir/**/*.kt")
+            targetExclude('bin/**/*.kt')
+
+            ktlint('0.45.2')
+        }
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            // Treat all Kotlin warnings as errors (disabled by default)
+            allWarningsAsErrors = project.hasProperty("warningsAsErrors") ?
+                    project.warningsAsErrors : false
+
+            freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
+
+            // Enable experimental coroutines APIs, including Flow
+            freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi'
+            freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.FlowPreview'
+            freeCompilerArgs += '-Xopt-in=kotlin.Experimental'
+
+            jvmTarget = "1.8"
+        }
+    }
+
+    tasks.withType(Test) {
+        def decimal = Runtime.getRuntime().availableProcessors() / 2
+        maxParallelForks = decimal > 0 ? decimal : 1
+        useJUnitPlatform()
+        testLogging { events("passed", "skipped", "failed") }
+    }
+}
+
+signing {
+    useGpgCmd()
+    required { Ci.isRelease() }
+    sign publishing.publications
+}

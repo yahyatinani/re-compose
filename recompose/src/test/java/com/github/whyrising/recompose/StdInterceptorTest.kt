@@ -18,9 +18,10 @@ import com.github.whyrising.recompose.stdinterceptors.after
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.debug
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
-import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.m
-import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
+import com.github.whyrising.y.get
+import com.github.whyrising.y.m
+import com.github.whyrising.y.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
@@ -107,7 +108,7 @@ class StdInterceptorTest : FreeSpec({
 
             val interceptor = after { db: Int, event ->
                 dbVal = db
-                eventVal = event
+                eventVal = event as PersistentVector<Any>
             }
             val afterFn = interceptor[InterceptorSchema.after] as InterceptorFn
 
@@ -132,7 +133,7 @@ class StdInterceptorTest : FreeSpec({
 
             val interceptor = after { db: Int, event ->
                 dbVal = db
-                eventVal = event
+                eventVal = event as PersistentVector<Any>
             }
             val afterFn = interceptor[InterceptorSchema.after] as InterceptorFn
 

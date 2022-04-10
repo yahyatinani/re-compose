@@ -1,3 +1,5 @@
+import com.github.whyrising.recompose.Ci
+
 apply(plugin = "maven-publish")
 apply(plugin = "signing")
 

@@ -19,10 +19,10 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.schemas.ContextSchema
 import com.github.whyrising.recompose.schemas.InterceptorSchema.after
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.m
-import com.github.whyrising.y.collections.core.v
 import com.github.whyrising.y.collections.vector.IPersistentVector
+import com.github.whyrising.y.get
+import com.github.whyrising.y.m
+import com.github.whyrising.y.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull

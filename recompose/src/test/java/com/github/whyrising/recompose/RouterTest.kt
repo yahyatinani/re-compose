@@ -12,9 +12,9 @@ import com.github.whyrising.recompose.router.EVENT_QUEUE
 import com.github.whyrising.recompose.router.EventQueue
 import com.github.whyrising.recompose.router.eventQueueFactory
 import com.github.whyrising.recompose.schemas.Schema
-import com.github.whyrising.y.collections.core.m
-import com.github.whyrising.y.collections.core.q
-import com.github.whyrising.y.collections.core.v
+import com.github.whyrising.y.m
+import com.github.whyrising.y.q
+import com.github.whyrising.y.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -28,14 +28,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.coroutines.EmptyCoroutineContext
 
 @ExperimentalCoroutinesApi
 class RouterTest : FreeSpec({
-    val testDispatcher = TestCoroutineDispatcher()
+    val testDispatcher = UnconfinedTestDispatcher()
 
     beforeEach {
         Dispatchers.setMain(testDispatcher)
@@ -162,16 +163,16 @@ class RouterTest : FreeSpec({
             runBlocking { delay(1000) }
             db as Int + 5
         }
-        val job: Job
-        val job1: Job
 
-        runBlocking {
+        var job: Job? = null
+        var job1: Job? = null
+        runTest {
             job = launch { queue.enqueue(v<Any>(":test-event2")) }
             job1 = launch { queue.enqueue(v<Any>(":test-event1")) }
         }
 
-        job.isCompleted.shouldBeTrue()
-        job1.isCompleted.shouldBeTrue()
+        job!!.isCompleted.shouldBeTrue()
+        job1!!.isCompleted.shouldBeTrue()
         queue.queueState() shouldBe q<Any>()
         appDb.deref() shouldBe 8
     }

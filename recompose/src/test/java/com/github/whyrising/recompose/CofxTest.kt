@@ -17,8 +17,8 @@ import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.InterceptorSchema.after
 import com.github.whyrising.recompose.schemas.InterceptorSchema.before
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.y.collections.core.get
-import com.github.whyrising.y.collections.core.m
+import com.github.whyrising.y.get
+import com.github.whyrising.y.m
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
