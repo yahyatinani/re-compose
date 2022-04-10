@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -162,16 +163,16 @@ class RouterTest : FreeSpec({
             runBlocking { delay(1000) }
             db as Int + 5
         }
-        val job: Job
-        val job1: Job
 
-        runBlocking {
+        var job: Job? = null
+        var job1: Job? = null
+        runTest {
             job = launch { queue.enqueue(v<Any>(":test-event2")) }
             job1 = launch { queue.enqueue(v<Any>(":test-event1")) }
         }
 
-        job.isCompleted.shouldBeTrue()
-        job1.isCompleted.shouldBeTrue()
+        job!!.isCompleted.shouldBeTrue()
+        job1!!.isCompleted.shouldBeTrue()
         queue.queueState() shouldBe q<Any>()
         appDb.deref() shouldBe 8
     }
