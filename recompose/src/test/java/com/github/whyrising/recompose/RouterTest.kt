@@ -28,14 +28,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlin.coroutines.EmptyCoroutineContext
 
 @ExperimentalCoroutinesApi
 class RouterTest : FreeSpec({
-    val testDispatcher = StandardTestDispatcher()
+    val testDispatcher = UnconfinedTestDispatcher()
 
     beforeEach {
         Dispatchers.setMain(testDispatcher)

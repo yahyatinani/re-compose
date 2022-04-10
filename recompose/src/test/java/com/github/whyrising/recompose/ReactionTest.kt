@@ -13,12 +13,12 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.setMain
 
 @ExperimentalCoroutinesApi
 class ReactionTest : FreeSpec({
-    val dispatcher = StandardTestDispatcher()
+    val dispatcher = UnconfinedTestDispatcher()
 
     beforeAny {
         Dispatchers.setMain(dispatcher)
