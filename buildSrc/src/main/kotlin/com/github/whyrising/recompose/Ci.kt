@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose
 
 object Ci {
-    private const val snapshotBase = "0.0.7"
+    private const val snapshotBase = "0.0.6"
 
     private fun githubBuildNumber() = System.getenv("GITHUB_RUN_NUMBER")
 
@@ -14,5 +14,5 @@ object Ci {
 
     fun isRelease() = releaseVersion() != null
 
-    fun publishVersion() = releaseVersion() ?: snapshotVersion()
+    val publishVersion: String = releaseVersion() ?: snapshotVersion()
 }
