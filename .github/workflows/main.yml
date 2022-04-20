@@ -8,7 +8,7 @@ on:
       - '*.md'
       - '**/*.yml'
     branches:
-      - release/*
+      - main
 
 jobs:
   build:
@@ -21,10 +21,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+      - name: Prepare Java
+        uses: actions/setup-java@v3
         with:
-          java-version: 11
+          distribution: 'adopt'
+          java-version: '11'
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -37,6 +38,9 @@ jobs:
       - name: Run tests
         run: ./gradlew :recompose:check --stacktrace
 
+      - name: Publish Snapshots 🚀
+        run: ./gradlew :recompose:publishAllPublicationsToDeployRepository
+
       - name: Bundle the build report
         if: failure()
         run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
@@ -47,3 +51,9 @@ jobs:
         with:
           name: error-report
           path: build-reports.zip
+
+env:
+  OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+  OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+  ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+  ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
