@@ -26,12 +26,6 @@ allprojects {
 }
 
 subprojects {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-    }
-
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'

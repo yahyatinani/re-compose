@@ -60,9 +60,6 @@ dependencies {
     implementation(Deps.Coroutines.android)
     implementation(Deps.Coroutines.coroutinesTest)
 
-    // TODO: Remove when exposed as api in `y`
-    implementation("org.jetbrains.kotlinx:atomicfu:0.17.1")
-
     api(Deps.Y.core)
     api(Deps.Y.concurrency)
 

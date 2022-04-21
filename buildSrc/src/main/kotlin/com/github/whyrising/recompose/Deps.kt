@@ -86,7 +86,7 @@ object Deps {
 
     object Y {
         private const val group = "com.github.whyrising.y"
-        private const val version = "0.1.0"
+        private const val version = "0.1.1"
 
         const val core = "$group:y-core:$version"
         const val concurrency = "$group:y-concurrency:$version"
