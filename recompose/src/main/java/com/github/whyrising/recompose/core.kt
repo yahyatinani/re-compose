@@ -16,10 +16,11 @@ import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.ReactiveAtom
-import com.github.whyrising.recompose.subs.regDbExtractor
-import com.github.whyrising.recompose.subs.regSubscription
+import com.github.whyrising.recompose.subs.regCompSubscription
+import com.github.whyrising.recompose.subs.regDbSubscription
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.v
+import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -33,9 +34,8 @@ fun dispatch(event: Event) =
 /**
  * This is a blocking function normally used to initialize the appDb.
  */
-fun dispatchSync(event: Event) {
+fun dispatchSync(event: Event) =
     com.github.whyrising.recompose.router.dispatchSync(event)
-}
 
 // -- Events -------------------------------------------------------------------
 
@@ -46,39 +46,34 @@ inline fun <T : Any> regEventDb(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
     crossinline handler: DbEventHandler<T>
-) {
-    register(
-        id = id,
-        interceptors = v(
-            injectDb,
-            doFx,
-            interceptors,
-            dbHandlerToInterceptor(handler)
-        )
+) = register(
+    id = id,
+    interceptors = v(
+        injectDb,
+        doFx,
+        interceptors,
+        dbHandlerToInterceptor(handler)
     )
-}
+)
 
 inline fun regEventFx(
     id: Any,
     interceptors: IPersistentVector<Interceptor> = v(),
     crossinline handler: FxEventHandler
-) {
-    register(
-        id = id,
-        interceptors = v(
-            injectDb,
-            doFx,
-            interceptors,
-            fxHandlerToInterceptor(handler)
-        )
+) = register(
+    id = id,
+    interceptors = v(
+        injectDb,
+        doFx,
+        interceptors,
+        fxHandlerToInterceptor(handler)
     )
-}
+)
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
-    return com.github.whyrising.recompose.subs.subscribe(qvec)
-}
+fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<Any, T> =
+    com.github.whyrising.recompose.subs.subscribe(qvec)
 
 /**
  * @param queryId a unique id for the subscription.
@@ -88,45 +83,63 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<T> {
 inline fun <T, R> regSub(
     queryId: Any,
     crossinline extractor: (db: T, queryVec: Query) -> R,
-) = regDbExtractor(queryId, extractor)
+) = regDbSubscription(queryId, extractor)
 
 /**
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that returns a Reaction by subscribing to other
- * nodes.
- * @param computationFn a function that obtains data from [signalsFn], and
- * compute derived data from it.
+ * @param signalsFn a function that returns a [ReactiveAtom], by subscribing to
+ * other nodes, and provides [computationFn] function with new input whenever
+ * it changes.
+ * @param placeholder is the initial value and you should provide this argument
+ * only if the computation is heavy, since the initialization is always done
+ * synchronously.
+ * @param context on which further values' calculations will be executed. If the
+ * computation is heavy you should use [Dispatchers.Default] while providing a
+ * [placeholder] value.
+ * @param computationFn a function that obtains input data from [signalsFn], and
+ * computes derived data from it.
  */
 inline fun <T, R> regSub(
     queryId: Any,
+    placeholder: R? = null,
+    context: CoroutineContext = EmptyCoroutineContext,
     crossinline signalsFn: (queryVec: Query) -> ReactiveAtom<T>,
     crossinline computationFn: (input: T, queryVec: Query) -> R,
-) = regSubscription(
-    queryId,
-    { queryVec -> v(signalsFn(queryVec)) },
-    { persistentVector, qVec -> computationFn(persistentVector[0], qVec) }
-)
+) = regCompSubscription(
+    queryId = queryId,
+    signalsFn = { queryVec -> v(signalsFn(queryVec)) },
+    initial = placeholder,
+    context = context,
+) { persistentVector, qVec ->
+    computationFn(persistentVector[0], qVec)
+}
 
 /**
  * This is basically the multi-version of [regSub] since it takes multiple
  * signal inputs in vector.
  *
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that returns a vector of Reactions by subscribing
- * to other nodes.
+ * @param signalsFn a function that returns a vector of [ReactiveAtom]s,
+ * by subscribing to other nodes, and provides [computationFn] function with new
+ * set of input whenever it one of them changes.
+ * @param placeholder is the initial value and you should provide this argument
+ * only if the computation is heavy, since the initialization is always done
+ * synchronously.
+ * @param context on which further values' calculations will be executed. If the
+ * computation is heavy you should use [Dispatchers.Default] while providing a
+ * [placeholder] value.
  * @param computationFn a function that obtains data from [signalsFn], and
  * compute derived data from it.
  */
 inline fun <R> regSubM(
     queryId: Any,
-    crossinline signalsFn: (
-        queryVec: Query
-    ) -> IPersistentVector<ReactiveAtom<Any>>,
-    crossinline computationFn: (
-        subscriptions: IPersistentVector<Any>,
-        queryVec: Query,
-    ) -> R,
-) = regSubscription(queryId, signalsFn, computationFn)
+    placeholder: R? = null,
+    context: CoroutineContext = EmptyCoroutineContext,
+    crossinline signalsFn:
+        (queryVec: Query) -> IPersistentVector<ReactiveAtom<Any>>,
+    crossinline computationFn:
+        (subscriptions: IPersistentVector<Any>, queryVec: Query) -> R
+) = regCompSubscription(queryId, signalsFn, placeholder, context, computationFn)
 
 /**
  * Collects values from this Reaction and represents its latest value.
@@ -137,7 +150,7 @@ inline fun <R> regSubM(
  * new value posted into the Reaction it's going to cause a recomposition.
  */
 @Composable
-fun <T> Reaction<T>.w(
+fun <T> Reaction<Any, T>.w(
     context: CoroutineContext = EmptyCoroutineContext
 ): T = state.collectAsState(context = context).value
 
@@ -149,6 +162,5 @@ fun <T> Reaction<T>.w(
  * @param handler is a side-effecting function which takes a single argument
  * and whose return value is ignored.
  */
-fun regFx(id: Any, handler: EffectHandler) {
+fun regFx(id: Any, handler: EffectHandler) =
     com.github.whyrising.recompose.fx.regFx(id, handler)
-}

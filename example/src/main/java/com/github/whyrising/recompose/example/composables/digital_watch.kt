@@ -1,11 +1,7 @@
 package com.github.whyrising.recompose.example.composables
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -56,7 +52,7 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
 @Composable
 fun DigitalWatchPreview() {
     regAllEvents()
-    regAllSubs()
+    regAllSubs(MaterialTheme.colors)
     RecomposeTheme {
         Surface {
             DigitalWatch()

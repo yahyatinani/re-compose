@@ -9,16 +9,16 @@ import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.v
-import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 val kind: Kinds = Sub
 
 typealias Query = IPersistentVector<Any>
 
-typealias SubHandler<T, U> = (ReactiveAtom<T>, Query) -> Reaction<U>
+typealias SubHandler<I, O> = (ReactiveAtom<I>, Query) -> Reaction<I, O>
 
 // -- cache --------------------------------------------------------------------
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
@@ -26,27 +26,27 @@ internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 // -- subscribe ----------------------------------------------------------------
 private fun <T> cacheReaction(
     key: IPersistentVector<Any>,
-    reaction: Reaction<T>
-): Reaction<T> {
-    reaction.addOnDispose { r: Reaction<T> ->
+    reaction: Reaction<Any, T>
+): Reaction<Any, T> {
+    reaction.addOnDispose { r: Reaction<Any, T> ->
+        // TODO: maybe remove contains predicate
         if (reactionsCache.containsKey(key) && r === reactionsCache[key])
             reactionsCache.remove(key)
     }
-
     reactionsCache[key] = reaction
     return reaction
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> subscribe(query: Query): Reaction<T> {
+internal fun <T> subscribe(query: Query): Reaction<Any, T> {
     val cacheKey = v(query, v())
-    val cachedReaction = reactionsCache[cacheKey] as Reaction<T>?
+    val cachedReaction = reactionsCache[cacheKey] as Reaction<Any, T>?
 
     if (cachedReaction != null)
         return cachedReaction
 
     val (queryId) = query
-    val subHandler = getHandler(kind, queryId) as (SubHandler<*, T>)?
+    val subHandler = getHandler(kind, queryId) as (SubHandler<Any, T>)?
         ?: throw IllegalArgumentException(
             "no subscription handler registered for id: `$queryId`"
         )
@@ -57,59 +57,41 @@ internal fun <T> subscribe(query: Query): Reaction<T> {
 }
 
 // -- regSub -----------------------------------------------------------------
-
-fun <R, T> reaction(
-    inputNode: ReactiveAtom<T>,
-    context: CoroutineContext,
-    f: (T) -> R
-): Reaction<R> {
-    val reaction = Reaction { f(inputNode.deref()) }
-    reaction.reactTo(inputNode, context) { newInput ->
-        f(newInput)
-    }
-    return reaction
-}
-
-inline fun <T, R> regDbExtractor(
+inline fun <I, O> regDbSubscription(
     queryId: Any,
-    crossinline extractorFn: (db: T, queryVec: Query) -> R,
-    context: CoroutineContext = Dispatchers.Main.immediate,
+    crossinline extractorFn: (db: I, queryVec: Query) -> O
 ) {
     registerHandler(
         id = queryId,
         kind = kind,
-        handlerFn = { appDb: ReactiveAtom<T>, queryVec: Query ->
-            reaction(appDb, context) { inputSignal: T ->
-                extractorFn(inputSignal, queryVec)
+        handlerFn = { appDb: ReactiveAtom<I>, queryVec: Query ->
+            Reaction(v(appDb), EmptyCoroutineContext, null) { signalsValues ->
+                extractorFn(signalsValues[0], queryVec)
             }
         }
     )
 }
 
-inline fun <T, R> regSubscription(
+inline fun <I, O> regCompSubscription(
     queryId: Any,
     crossinline signalsFn: (
         queryVec: Query
-    ) -> IPersistentVector<ReactiveAtom<T>>,
+    ) -> IPersistentVector<ReactiveAtom<I>>,
+    initial: O?,
+    context: CoroutineContext,
     crossinline computationFn: (
-        subscriptions: IPersistentVector<T>,
+        subscriptions: IPersistentVector<I>,
         queryVec: Query
-    ) -> R,
-    context: CoroutineContext = Dispatchers.Main.immediate,
+    ) -> O
 ) {
     registerHandler(
-        queryId,
-        kind,
-        { _: ReactiveAtom<Any>, queryVec: Query ->
-            val subscriptions = signalsFn(queryVec)
-            val reaction = Reaction {
-                val deref = deref(subscriptions)
-                computationFn(deref, queryVec)
+        id = queryId,
+        kind = kind,
+        handlerFn = { _: ReactiveAtom<I>, queryVec: Query ->
+            val inputSignals = signalsFn(queryVec)
+            Reaction(inputSignals, context, initial) { signalsValues ->
+                computationFn(signalsValues, queryVec)
             }
-            reaction.reactTo(subscriptions, context) { newSubscriptions ->
-                computationFn(newSubscriptions, queryVec)
-            }
-            reaction
         }
     )
 }

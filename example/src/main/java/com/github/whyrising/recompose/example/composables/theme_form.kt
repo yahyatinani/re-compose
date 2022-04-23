@@ -69,7 +69,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
 @Composable
 fun InputThemeFormPreview() {
     regAllEvents()
-    regAllSubs()
+    regAllSubs(MaterialTheme.colors)
     RecomposeTheme {
         Surface {
             InputThemeForm()
