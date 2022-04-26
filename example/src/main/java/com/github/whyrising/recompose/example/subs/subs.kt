@@ -16,7 +16,6 @@ import com.github.whyrising.recompose.regSubM
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.v
-import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -61,8 +60,8 @@ fun regAllSubs(defaultColors: Colors) {
 
     regSub<Date, String>(
         queryId = formattedTime,
-        context = Dispatchers.Default,
-        placeholder = "...",
+//        context = Dispatchers.Default,
+//        placeholder = "...",
         signalsFn = { subscribe(v(time)) },
     ) { date: Date, _: Query ->
         val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())

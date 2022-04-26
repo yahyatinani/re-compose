@@ -65,7 +65,11 @@ inline fun <I, O> regDbSubscription(
         id = queryId,
         kind = kind,
         handlerFn = { appDb: ReactiveAtom<I>, queryVec: Query ->
-            Reaction(v(appDb), EmptyCoroutineContext, null) { signalsValues ->
+            Reaction(
+                v(appDb),
+                EmptyCoroutineContext,
+                null
+            ) { signalsValues ->
                 extractorFn(signalsValues[0], queryVec)
             }
         }
@@ -89,7 +93,11 @@ inline fun <I, O> regCompSubscription(
         kind = kind,
         handlerFn = { _: ReactiveAtom<I>, queryVec: Query ->
             val inputSignals = signalsFn(queryVec)
-            Reaction(inputSignals, context, initial) { signalsValues ->
+            Reaction(
+                inputSignals,
+                context,
+                initial
+            ) { signalsValues ->
                 computationFn(signalsValues, queryVec)
             }
         }

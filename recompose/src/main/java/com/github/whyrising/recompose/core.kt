@@ -18,7 +18,9 @@ import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.recompose.subs.regCompSubscription
 import com.github.whyrising.recompose.subs.regDbSubscription
+import com.github.whyrising.recompose.subs.stateKey
 import com.github.whyrising.y.collections.vector.IPersistentVector
+import com.github.whyrising.y.get
 import com.github.whyrising.y.v
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
@@ -152,7 +154,7 @@ inline fun <R> regSubM(
 @Composable
 fun <T> Reaction<Any, T>.w(
     context: CoroutineContext = EmptyCoroutineContext
-): T = state.collectAsState(context = context).value
+): T = state.collectAsState(context = context).value[stateKey] as T
 
 // -- Effects ------------------------------------------------------------------
 

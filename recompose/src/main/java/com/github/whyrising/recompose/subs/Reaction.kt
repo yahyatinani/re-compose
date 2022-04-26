@@ -3,22 +3,26 @@ package com.github.whyrising.recompose.subs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.y.collections.concretions.vector.PersistentVector
+import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.seq.ISeq
 import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.concurrency.IAtom
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.concurrency.atom
+import com.github.whyrising.y.get
 import com.github.whyrising.y.l
+import com.github.whyrising.y.m
 import com.github.whyrising.y.str
 import com.github.whyrising.y.v
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
+
+internal const val stateKey = "state"
+internal const val inputsKey = "input"
 
 /**
  * @param inputSignals are the nodes (Reactions) that signal the current
@@ -31,22 +35,27 @@ import kotlin.coroutines.CoroutineContext
  * [Reaction].
  */
 class Reaction<Input, Output>(
-    private val inputSignals: IPersistentVector<ReactiveAtom<Input>>,
+    inputSignals: IPersistentVector<ReactiveAtom<Input>>,
     val context: CoroutineContext,
     private val initial: Output?,
     val f: (signalsValues: IPersistentVector<Input>) -> Output
 ) : ViewModel(),
-    IAtom<Output>,
     ReactiveAtom<Output>,
     Disposable<Input, Output> {
-
     internal val disposeFns = atom<ISeq<(Reaction<Input, Output>) -> Unit>>(l())
 
     // this flag is used to track the last subscriber of this reaction
     internal var isFresh = atom(true)
 
-    internal val state: MutableStateFlow<Output> by lazy {
-        MutableStateFlow(initial ?: f(deref(inputSignals))).apply {
+    // TODO: Maybe replace Flow with an atom or something because collecting
+    //  takes time and the concurrency test fail.
+    internal val state: MutableStateFlow<IPersistentMap<Any, Any?>> by lazy {
+        val inputs = deref(inputSignals)
+        val m: IPersistentMap<Any, Any?> = m(
+            inputsKey to inputs,
+            stateKey to (initial ?: f(inputs))
+        )
+        MutableStateFlow(m).apply {
             subscriptionCount
                 .onEach { subCount ->
                     when {
@@ -60,72 +69,34 @@ class Reaction<Input, Output>(
         }
     }
 
+    internal suspend fun update(newArg: Input, index: Int) {
+        while (true) {
+            val old = state.value
+            val oldArgs = old[inputsKey] as PersistentVector<Input>? ?: v()
+            if (oldArgs.count > index && oldArgs[index] == newArg)
+                return
+
+            val newArgs = oldArgs.assoc(index, newArg)
+            val materializedView = withContext(context) { f(newArgs) }
+            val new = m(stateKey to materializedView, inputsKey to newArgs)
+
+            if (state.compareAndSet(old, new))
+                return
+        }
+    }
+
     init {
         for ((i, inputNode) in inputSignals.withIndex())
             viewModelScope.launch {
                 inputNode.collect { newInput: Input ->
-                    withContext(context) {
-                        while (true) {
-                            val oldVal = state.value
-                            val newInputs = deref(inputSignals)
-                                .assoc(i, newInput)
-                            val materializedView = f(newInputs)
-                            if (state.compareAndSet(oldVal, materializedView))
-                                return@withContext
-                        }
-                    }
+                    update(newInput, i)
                 }
             }
     }
 
     val id: String by lazy { str("rx", hashCode()) }
 
-    override fun deref(): Output = state.value
-
-    override fun reset(newValue: Output): Output =
-        state.updateAndGet { newValue }
-
-    /**
-     * This function use a regular comparison using [Any.equals].
-     * If [f] returns a value that is equal to the current stored value in the
-     * reaction, this function does not actually change the reference that is
-     * stored in the [state].
-     *
-     * [f] may be evaluated multiple times, if [state] is being concurrently
-     * updated.
-     *
-     * This method is **thread-safe** and can be safely invoked from concurrent
-     * coroutines without external synchronization.
-     */
-    override fun swap(f: (currentVal: Output) -> Output): Output =
-        state.updateAndGet(f)
-
-    override fun <A> swap(
-        arg: A,
-        f: (currentVal: Output, arg: A) -> Output
-    ): Output {
-        while (true) {
-            val currentVal = state.value
-            val newVal = f(currentVal, arg)
-
-            if (state.compareAndSet(currentVal, newVal))
-                return newVal
-        }
-    }
-
-    override fun <A1, A2> swap(
-        arg1: A1,
-        arg2: A2,
-        f: (currentVal: Output, arg1: A1, arg2: A2) -> Output
-    ): Output {
-        while (true) {
-            val currentVal = state.value
-            val newVal = f(currentVal, arg1, arg2)
-
-            if (state.compareAndSet(currentVal, newVal))
-                return newVal
-        }
-    }
+    override fun deref(): Output = state.value[stateKey] as Output
 
     override fun addOnDispose(f: (Reaction<Input, Output>) -> Unit) {
         disposeFns.swap { it.cons(f) }
@@ -150,10 +121,13 @@ class Reaction<Input, Output>(
 
     override suspend fun collect(action: suspend (Output) -> Unit) =
         state.collect {
-            action(it)
+            action(it[stateKey] as Output)
         }
 
-    override suspend fun emit(value: Output) = state.emit(value)
+    /**
+     * It sets the state to [value] and resets the inputs of this reaction.
+     */
+    override suspend fun emit(value: Output) = state.emit(m(stateKey to value))
 }
 
 fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =

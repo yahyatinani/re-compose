@@ -3,27 +3,34 @@ package com.github.whyrising.recompose
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.deref
+import com.github.whyrising.recompose.subs.inputsKey
+import com.github.whyrising.recompose.subs.stateKey
 import com.github.whyrising.y.collections.vector.IPersistentVector
+import com.github.whyrising.y.get
 import com.github.whyrising.y.inc
 import com.github.whyrising.y.l
+import com.github.whyrising.y.m
 import com.github.whyrising.y.v
+import io.kotest.assertions.timing.continually
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlin.time.Duration.Companion.seconds
 
 class ReactionTest : FreeSpec({
     val context = UnconfinedTestDispatcher()
-
-    beforeAny {
-        Dispatchers.setMain(context)
-    }
+    Dispatchers.setMain(context)
 
     "ctor" - {
         "default values" {
@@ -33,7 +40,10 @@ class ReactionTest : FreeSpec({
 
             reaction.isFresh.deref().shouldBeTrue()
             reaction.id shouldBe "rx${reaction.hashCode()}"
-            reaction.state.value shouldBe defaultVal
+            reaction.state.value shouldBe m(
+                stateKey to defaultVal,
+                "input" to v<Int>()
+            )
         }
 
         "when initial is null, value should be calculated through f" {
@@ -61,7 +71,7 @@ class ReactionTest : FreeSpec({
             val reaction = Reaction(v(), context, null, f)
 
             x shouldBe 0 // f not called yet
-            reaction.state.value shouldBe 1 // f got called when state evaluated
+            reaction.state.value[stateKey] shouldBe 1 // f got called when state evaluated
             x shouldBe 1
         }
     }
@@ -72,40 +82,6 @@ class ReactionTest : FreeSpec({
         val reaction = Reaction(v(), context, null, f)
 
         reaction.deref() shouldBe defaultVal
-    }
-
-    "reset(value)" {
-        val f = { _: IPersistentVector<Int> -> 0 }
-        val reaction = Reaction(v(), context, null, f)
-
-        reaction.reset(1) shouldBe 1
-        reaction.deref() shouldBe 1
-    }
-
-    "swap(f)" {
-        val f = { _: IPersistentVector<Int> -> 0 }
-        val reaction = Reaction(v(), context, null, f)
-
-        reaction.swap { 1 } shouldBe 1
-        reaction.deref() shouldBe 1
-    }
-
-    "swap(arg,f)" {
-        val f = { _: IPersistentVector<Int> -> 1 }
-        val reaction = Reaction(v(), context, null, f)
-
-        reaction.swap(2) { currentVal, arg -> currentVal + arg } shouldBe 3
-        reaction.deref() shouldBe 3
-    }
-
-    "swap(arg1,arg2,f)" {
-        val f = { _: IPersistentVector<Int> -> 1 }
-        val reaction = Reaction(v(), context, null, f)
-
-        reaction.swap(1, 2) { currentVal: Int, arg1: Int, arg2: Int ->
-            currentVal + arg1 + arg2
-        } shouldBe 4
-        reaction.deref() shouldBe 4
     }
 
     "addOnDispose(f)" {
@@ -157,12 +133,44 @@ class ReactionTest : FreeSpec({
         reaction.viewModelScope.isActive.shouldBeFalse()
     }
 
-    "emit(value)" {
+    "emit(value) should set the state and reset inputs" {
         val reaction = Reaction<Int, Int>(v(), context, null) { 1 }
 
         reaction.emit(15)
 
         reaction.deref() shouldBe 15
+        reaction.state.value shouldBe m(stateKey to 15)
+    }
+
+    "update()" - {
+        "should recompute the reaction using the new arg" {
+            val r1 = Reaction<Int, Int>(v(), context, null) { 1 }
+            val r2 = Reaction<Int, Int>(v(), context, null) { 2 }
+            val reaction = Reaction(v(r1, r2), context, null) { (a, b) ->
+                a.inc() + b.inc()
+            }
+
+            reaction.update(-5, 0)
+
+            reaction.deref() shouldBe -1
+            reaction.state.value shouldBe m(
+                stateKey to -1,
+                inputsKey to v(-5, 2)
+            )
+        }
+
+        "when the same arg passed it should not recompute" {
+            val r1 = Reaction<Int, Int>(v(), context, null) { 1 }
+            val r2 = Reaction<Int, Int>(v(), context, null) { 2 }
+            val reaction = Reaction(v(r1, r2), context, null) { (a, b) ->
+                a.inc() + b.inc()
+            }
+            reaction.deref() shouldBe 5
+
+            reaction.update(1, 0)
+
+            reaction.deref() shouldBe 5
+        }
     }
 
     "deref(subscriptions) should return a vector of dereferenced reactions" {
@@ -198,21 +206,36 @@ class ReactionTest : FreeSpec({
         }
 
         "concurrency" {
-            runTest {
-                val input1 = Reaction<Int, Int>(v(), context, null) { 0 }
-                val input2 = Reaction<Int, Int>(v(), context, null) { 0 }
-                val r = Reaction(v(input1, input2), context, null) { (a, b) ->
-                    inc(a + b)
-                }
+            continually(duration = 60.seconds) {
+                runTest {
+                    val input1 = Reaction<Int, Int>(v(), context, null) { 0 }
+                    val input2 = Reaction<Int, Int>(v(), context, null) { 0 }
+                    val r = Reaction(v(input1, input2), Default, -1) { (a, b) ->
+                        inc(a + b)
+                    }
 
-                multiThreadedRun(100, 100) {
-                    input1.emit(input1.deref().inc())
-                }
-                multiThreadedRun(100, 100) {
-                    input2.emit(input2.deref().inc())
-                }
+                    runBlocking {
+                        // necessary to block until the reaction `r` finishes
+                        // collecting all inputs or it's going to miss some
+                        // emitted values.
+                        delay(2000)
+                    }
 
-                r.deref() shouldBe 20001
+                    multiThreadedRun(100, 100) {
+                        input1.state.update {
+                            it.assoc(stateKey, (it[stateKey] as Int).inc())
+                        }
+                    }
+                    multiThreadedRun(100, 100) {
+                        input2.state.update {
+                            it.assoc(stateKey, (it[stateKey] as Int).inc())
+                        }
+                    }
+
+                    input1.deref() shouldBeExactly 10000
+                    input2.deref() shouldBeExactly 10000
+                    r.deref() shouldBeExactly 20001
+                }
             }
         }
     }
