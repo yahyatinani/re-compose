@@ -15,12 +15,11 @@ import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
+import com.github.whyrising.recompose.subs.ReactionBase
 import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.recompose.subs.regCompSubscription
 import com.github.whyrising.recompose.subs.regDbSubscription
-import com.github.whyrising.recompose.subs.stateKey
 import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.get
 import com.github.whyrising.y.v
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
@@ -74,7 +73,7 @@ inline fun regEventFx(
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: IPersistentVector<Any>): Reaction<Any, T> =
+fun <T> subscribe(qvec: IPersistentVector<Any>): ReactionBase<Any, T> =
     com.github.whyrising.recompose.subs.subscribe(qvec)
 
 /**
@@ -105,7 +104,7 @@ inline fun <T, R> regSub(
     queryId: Any,
     placeholder: R? = null,
     context: CoroutineContext = EmptyCoroutineContext,
-    crossinline signalsFn: (queryVec: Query) -> ReactiveAtom<T>,
+    crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
     crossinline computationFn: (input: T, queryVec: Query) -> R,
 ) = regCompSubscription(
     queryId = queryId,
@@ -138,7 +137,7 @@ inline fun <R> regSubM(
     placeholder: R? = null,
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline signalsFn:
-        (queryVec: Query) -> IPersistentVector<ReactiveAtom<Any>>,
+        (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
     crossinline computationFn:
         (subscriptions: IPersistentVector<Any>, queryVec: Query) -> R
 ) = regCompSubscription(queryId, signalsFn, placeholder, context, computationFn)
@@ -152,9 +151,9 @@ inline fun <R> regSubM(
  * new value posted into the Reaction it's going to cause a recomposition.
  */
 @Composable
-fun <T> Reaction<Any, T>.w(
+fun <T> ReactionBase<Any, T>.w(
     context: CoroutineContext = EmptyCoroutineContext
-): T = state.collectAsState(context = context).value[stateKey] as T
+): T = deref(state.collectAsState(context = context))
 
 // -- Effects ------------------------------------------------------------------
 

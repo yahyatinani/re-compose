@@ -12,13 +12,12 @@ import com.github.whyrising.y.v
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 val kind: Kinds = Sub
 
 typealias Query = IPersistentVector<Any>
 
-typealias SubHandler<I, O> = (ReactiveAtom<I>, Query) -> Reaction<I, O>
+typealias SubHandler<I, O> = (ReactiveAtom<I>, Query) -> ReactionBase<I, O>
 
 // -- cache --------------------------------------------------------------------
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
@@ -26,9 +25,9 @@ internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 // -- subscribe ----------------------------------------------------------------
 private fun <T> cacheReaction(
     key: IPersistentVector<Any>,
-    reaction: Reaction<Any, T>
-): Reaction<Any, T> {
-    reaction.addOnDispose { r: Reaction<Any, T> ->
+    reaction: ReactionBase<Any, T>
+): ReactionBase<Any, T> {
+    reaction.addOnDispose { r: ReactionBase<*, *> ->
         // TODO: maybe remove contains predicate
         if (reactionsCache.containsKey(key) && r === reactionsCache[key])
             reactionsCache.remove(key)
@@ -38,9 +37,9 @@ private fun <T> cacheReaction(
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> subscribe(query: Query): Reaction<Any, T> {
+internal fun <T> subscribe(query: Query): ReactionBase<Any, T> {
     val cacheKey = v(query, v())
-    val cachedReaction = reactionsCache[cacheKey] as Reaction<Any, T>?
+    val cachedReaction = reactionsCache[cacheKey] as ReactionBase<Any, T>?
 
     if (cachedReaction != null)
         return cachedReaction
@@ -65,12 +64,8 @@ inline fun <I, O> regDbSubscription(
         id = queryId,
         kind = kind,
         handlerFn = { appDb: ReactiveAtom<I>, queryVec: Query ->
-            Reaction(
-                v(appDb),
-                EmptyCoroutineContext,
-                null
-            ) { signalsValues ->
-                extractorFn(signalsValues[0], queryVec)
+            ExtractorReaction(inputSignal = appDb) {
+                extractorFn(it, queryVec)
             }
         }
     )
@@ -80,7 +75,7 @@ inline fun <I, O> regCompSubscription(
     queryId: Any,
     crossinline signalsFn: (
         queryVec: Query
-    ) -> IPersistentVector<ReactiveAtom<I>>,
+    ) -> IPersistentVector<Reaction<I>>,
     initial: O?,
     context: CoroutineContext,
     crossinline computationFn: (
@@ -91,12 +86,11 @@ inline fun <I, O> regCompSubscription(
     registerHandler(
         id = queryId,
         kind = kind,
-        handlerFn = { _: ReactiveAtom<I>, queryVec: Query ->
-            val inputSignals = signalsFn(queryVec)
-            Reaction(
-                inputSignals,
-                context,
-                initial
+        handlerFn = { _: Reaction<I>, queryVec: Query ->
+            ComputationReaction(
+                inputSignals = signalsFn(queryVec),
+                context = context,
+                initial = initial
             ) { signalsValues ->
                 computationFn(signalsValues, queryVec)
             }
