@@ -12,11 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
@@ -47,13 +51,23 @@ fun MyApp() {
         }
         Scaffold(
             topBar = {
-                TopAppBar {
-                    Text(
-                        text = "Re-compose Sample",
-                        color = colors.secondary,
-                        style = MaterialTheme.typography.h5,
-                    )
-                }
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Re-compose Sample",
+                            color = colors.secondary,
+                            style = MaterialTheme.typography.h5,
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = { dispatch(v(Ids.exitApp)) }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Exit"
+                            )
+                        }
+                    },
+                )
             },
         ) {
             Surface(
