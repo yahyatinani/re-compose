@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 abstract class ReactionBase<T, O> : ViewModel(), Reaction<O>, Disposable {
-    // TODO: Maybe replace Flow with an atom or something because collecting
-    //  takes time and the concurrency test fail.
     internal abstract val state: MutableStateFlow<T>
 
     internal abstract fun deref(state: State<T>): O
