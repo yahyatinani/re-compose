@@ -23,13 +23,14 @@ abstract class ReactionBase<T, O> : ViewModel(), Reaction<O>, Disposable {
         .apply {
             subscriptionCount
                 .onEach { subCount ->
-                    // TODO: refactor this to ifs without else
-                    when {
-                        // last subscriber just disappeared => composable left
-                        // the Composition tree.
-                        subCount == 0 && !isFresh.deref() -> onCleared()
-                        else -> isFresh.swap { false }
-                    }
+                    // last subscriber just disappeared => composable left
+                    // the Composition tree.
+                    // Reaction is not used by any.
+                    if (subCount == 0 && !isFresh())
+                        onCleared()
+
+                    if (isFresh())
+                        isFresh.reset(false)
                 }
                 .launchIn(viewModelScope)
         }
