@@ -4,6 +4,8 @@ import androidx.compose.runtime.State
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class ExtractorReaction<I, O>(
     inputSignal: Reaction<I>,
@@ -24,9 +26,7 @@ class ExtractorReaction<I, O>(
         }
     }
 
-    override fun deref(state: State<O>): O {
-        return state.value
-    }
+    override fun deref(state: State<O>): O = state.value
 
     override fun deref(): O = state.value
 
