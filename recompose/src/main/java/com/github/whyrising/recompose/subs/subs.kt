@@ -23,14 +23,12 @@ typealias SubHandler<I, O> = (ReactiveAtom<I>, Query) -> ReactionBase<I, O>
 internal val reactionsCache = ConcurrentHashMap<Any, Any>()
 
 // -- subscribe ----------------------------------------------------------------
-private fun <T> cacheReaction(
+internal fun <T> cacheReaction(
     key: IPersistentVector<Any>,
     reaction: ReactionBase<Any, T>
 ): ReactionBase<Any, T> {
-    reaction.addOnDispose { r: ReactionBase<*, *> ->
-        // TODO: maybe remove contains predicate
-        if (reactionsCache.containsKey(key) && r === reactionsCache[key])
-            reactionsCache.remove(key)
+    reaction.addOnDispose { r ->
+        if (r === reactionsCache[key]) reactionsCache.remove(key)
     }
     reactionsCache[key] = reaction
     return reaction

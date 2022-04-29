@@ -72,7 +72,7 @@ class ComputationReactionTest : FreeSpec({
             val reaction = ComputationReaction(v(), testDispatcher, null, f)
 
             x shouldBe 0 // f not called yet
-            reaction.state.value[stateKey] shouldBe 1 // f got called when state evaluated
+            reaction.state.value[stateKey] shouldBe 1
             x shouldBe 1
         }
     }
