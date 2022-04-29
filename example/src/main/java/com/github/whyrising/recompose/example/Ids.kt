@@ -14,5 +14,6 @@ enum class Ids {
     secondaryColor,
     setPrimaryColor,
     setSecondaryColor,
-    themeColors
+    themeColors,
+    exitApp,
 }

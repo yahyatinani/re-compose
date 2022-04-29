@@ -17,7 +17,7 @@ import com.github.whyrising.y.collections.map.IPersistentMap
 import com.github.whyrising.y.collections.vector.IPersistentVector
 import com.github.whyrising.y.get
 
-typealias Effects = IPersistentMap<Any, Any>
+typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = suspend (value: Any?) -> Unit
 
 @Suppress("EnumEntryName")
