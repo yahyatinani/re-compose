@@ -101,9 +101,9 @@ class MainActivity : ComponentActivity() {
         regAllEvents()
         regAllCofx()
         regAllFx(lifecycle.coroutineScope)
-        regAllSubs()
-        dispatch(v(startTicking))
         setContent {
+            regAllSubs(MaterialTheme.colors)
+            dispatch(v(startTicking))
             MyApp()
         }
     }

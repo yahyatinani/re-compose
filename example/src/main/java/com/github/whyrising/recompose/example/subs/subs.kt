@@ -44,19 +44,30 @@ fun toColor(color: String, default: Color = Color.Gray): Color = color
         }
     }
 
-fun regAllSubs() {
+private fun fib(nth: Long): Long = when {
+    nth <= 2 -> 1
+    else -> fib(nth - 1) + fib(nth - 2)
+}
+
+internal fun heavyComp() {
+    fib(37)
+}
+
+fun regAllSubs(defaultColors: Colors) {
     regSub<AppDb, Date>(queryId = time) { db, _ ->
         db.time
     }
 
     regSub<Date, String>(
         queryId = formattedTime,
+//        context = Dispatchers.Default,
+//        placeholder = "...",
         signalsFn = { subscribe(v(time)) },
-        computationFn = { date: Date, _: Query ->
-            val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
-            formattedTime.format(date)
-        }
-    )
+    ) { date: Date, _: Query ->
+        val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
+//        heavyComp()
+        formattedTime.format(date)
+    }
 
     regSub<AppDb, String>(queryId = primaryColorStr) { db, _ ->
         db.primaryColor

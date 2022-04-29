@@ -56,7 +56,7 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
 @Composable
 fun DigitalWatchPreview() {
     regAllEvents()
-    regAllSubs()
+    regAllSubs(MaterialTheme.colors)
     RecomposeTheme {
         Surface {
             DigitalWatch()
