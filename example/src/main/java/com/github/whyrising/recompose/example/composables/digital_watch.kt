@@ -22,7 +22,7 @@ import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 
 @Composable
 fun DigitalWatch(modifier: Modifier = Modifier) {

@@ -14,9 +14,9 @@ import com.github.whyrising.recompose.example.db.AppDb
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.y.get
-import com.github.whyrising.y.m
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.m
+import com.github.whyrising.y.core.v
 import java.util.Date
 
 fun regAllEvents() {

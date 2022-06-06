@@ -15,9 +15,9 @@ import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.ContextSchema.effects
 import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.recompose.schemas.Schema.notFound
-import com.github.whyrising.y.assocIn
-import com.github.whyrising.y.get
-import com.github.whyrising.y.l
+import com.github.whyrising.y.core.assocIn
+import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.l
 
 // -- Interceptor Factories ----------------------------------------------------
 
@@ -70,7 +70,7 @@ val debug = toInterceptor(
             } else Log.i(
                 TAG,
                 "No appDb changes in: $event, since the new appDb value is " +
-                    "equal to the previous."
+                        "equal to the previous."
             )
         }
         context

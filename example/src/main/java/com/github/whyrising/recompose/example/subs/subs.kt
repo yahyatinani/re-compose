@@ -15,7 +15,7 @@ import com.github.whyrising.recompose.regSub
 import com.github.whyrising.recompose.regSubM
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subscribe
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

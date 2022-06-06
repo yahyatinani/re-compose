@@ -7,8 +7,8 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.v
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext

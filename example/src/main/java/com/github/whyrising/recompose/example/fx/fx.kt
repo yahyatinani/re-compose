@@ -4,7 +4,7 @@ import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.example.Ids.exitApp
 import com.github.whyrising.recompose.example.Ids.ticktack
 import com.github.whyrising.recompose.regFx
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

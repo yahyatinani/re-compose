@@ -13,9 +13,9 @@ import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.recompose.schemas.ContextSchema.effects
 import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.y.collections.map.IPersistentMap
-import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.get
+import com.github.whyrising.y.core.collections.IPersistentMap
+import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.get
 
 typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = suspend (value: Any?) -> Unit

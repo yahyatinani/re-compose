@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -37,7 +38,7 @@ import com.github.whyrising.recompose.example.fx.regAllFx
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.router.dispatch
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable

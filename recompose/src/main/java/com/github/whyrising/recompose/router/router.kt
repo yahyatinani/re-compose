@@ -5,102 +5,68 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
+import com.github.whyrising.recompose.router.EventQueue.enqueue
 import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.q
+import com.github.whyrising.y.core.q
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
+// TODO: Queued state machine
 /**
  * This class is a FIFO PersistentQueue that allows us to handle incoming events
  * according to the producer-consumer pattern.
- *
- * We have only one consumer that can be run from [consumeEventQueue] function,
- * and multiple producers that can be run from [enqueue] function.
  */
-internal data class EventQueue(
-    internal val context: CoroutineContext = EmptyCoroutineContext
-) : ViewModel() {
+internal object EventQueue : ViewModel() {
     internal val queueState = atom(q<Event>())
 
     @Volatile
     internal var deferredUntilEvent = CompletableDeferred<Unit>()
-    private suspend fun suspendUntilEventOccurs() = deferredUntilEvent.await()
 
-    suspend fun processFirstEvent() {
-        val event = queueState().peek()
+    private suspend fun dequeue() {
+        val queue = queueState()
+        val event = queue.peek()
         if (event != null) {
             try {
-                handle(event)
-                queueState.swap { it.pop() }
+                if (queueState.compareAndSet(queue, queue.pop()))
+                    handle(event)
             } catch (e: Exception) {
                 purge()
                 throw e
             }
         } else {
-            suspendUntilEventOccurs()
+            deferredUntilEvent.await()
             deferredUntilEvent = CompletableDeferred()
         }
     }
 
-    internal fun consumeEventQueue(): Job = viewModelScope.launch(context) {
+    // TODO: maybe more consumers?
+    internal val consumerJob = viewModelScope.launch {
         while (true)
-            processFirstEvent()
+            dequeue()
     }
 
-    internal val consumerJob: Job = consumeEventQueue()
-
     internal fun enqueue(event: Event) {
-        viewModelScope.launch(context) {
+        viewModelScope.launch {
             queueState.swap { it.conj(event) }
             deferredUntilEvent.complete(Unit)
         }
     }
 
+    /**
+     * Empties the event queue.
+     */
     fun purge() {
         queueState.reset(q())
     }
 
-    fun halt() {
-        onCleared()
+    // TODO: remove
+    override fun onCleared() {
+        super.onCleared()
+
         queueState.reset(q())
         viewModelScope.cancel()
-    }
-
-    /**
-     * [EventQueue]s are equal if the internal [queueState] queues are equal
-     */
-    override fun equals(other: Any?): Boolean = when (other) {
-        is EventQueue -> queueState() == other.queueState()
-        else -> false
-    }
-
-    override fun hashCode(): Int = 31 * 1 + queueState().hashCode()
-}
-
-internal val EVENT_QUEUE = atom(EventQueue())
-
-/**
- * Halt and replace the previous [EventQueue] with a new one.
- *
- * You should probably call this function at the very start of your app, since
- * you only need it if you want to run the [EventQueue] consumer from a
- * different Dispatcher. (eg. [Dispatchers.Default])
- *
- * The [EventQueue] consumer coroutine is running on [viewModelScope] with
- * [EmptyCoroutineContext] by default.
- *
- * @param context to launch the [EventQueue] consumer coroutine.
- */
-fun eventQueueFactory(context: CoroutineContext) {
-    EVENT_QUEUE.swap {
-        it.halt()
-        EventQueue(context)
     }
 }
 
@@ -115,7 +81,7 @@ private fun validate(event: Event) {
 
 fun dispatch(event: Event) {
     validate(event)
-    EVENT_QUEUE().enqueue(event)
+    enqueue(event)
 }
 
 fun dispatchSync(event: Event) {

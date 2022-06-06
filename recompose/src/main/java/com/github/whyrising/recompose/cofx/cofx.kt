@@ -10,9 +10,9 @@ import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.y.collections.map.IPersistentMap
-import com.github.whyrising.y.get
-import com.github.whyrising.y.m
+import com.github.whyrising.y.core.collections.IPersistentMap
+import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.m
 
 // -- Registration -------------------------------------------------------------
 

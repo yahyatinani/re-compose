@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose.db
 
 import com.github.whyrising.recompose.subs.ReactiveAtom
-import com.github.whyrising.y.m
+import com.github.whyrising.y.core.m
 import kotlinx.coroutines.flow.MutableStateFlow
 
 internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()

@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import com.github.whyrising.recompose.example.Ids.themeColors
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 
 private val DarkColorPalette = darkColors(
     primary = Purple200,
