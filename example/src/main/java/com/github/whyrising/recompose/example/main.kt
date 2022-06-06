@@ -69,9 +69,11 @@ fun MyApp() {
                     },
                 )
             },
-        ) {
+        ) { padding ->
             Surface(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 color = colors.background
             ) {
                 Column(
