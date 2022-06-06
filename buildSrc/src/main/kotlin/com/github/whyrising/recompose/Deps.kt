@@ -11,13 +11,13 @@ object Deps {
     }
 
     object Kotlin {
-        const val version = "1.6.10"
+        const val version = "1.6.21"
         const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:$version"
     }
 
     object Compose {
         private const val gr = "androidx.compose"
-        const val version = "1.1.1"
+        const val version = "1.2.0-beta03"
 
         const val ui = "$gr.ui:ui:$version"
 
@@ -94,7 +94,7 @@ object Deps {
     }
 
     object Kotest {
-        private const val version = "5.2.2"
+        private const val version = "5.3.0"
 
         const val runner = "io.kotest:kotest-runner-junit5:$version"
         const val assertions = "io.kotest:kotest-assertions-core:$version"

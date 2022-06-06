@@ -61,7 +61,7 @@ android {
 }
 
 dependencies {
-	implementation 'androidx.core:core-ktx:1.7.0'
+	implementation 'androidx.core:core-ktx:1.8.0'
 	implementation Deps.Compose.ui
 	implementation Deps.Compose.material
 	implementation Deps.Compose.uiToolingPreview
