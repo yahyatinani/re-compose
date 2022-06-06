@@ -62,9 +62,9 @@ internal suspend fun invokeInterceptorFn(
     context: Context,
     interceptor: Interceptor,
     direction: InterceptorSchema
-) = when (val interceptorFn = interceptor[direction] as InterceptorFn?) {
+): Context = when (val fn = interceptor[direction] as InterceptorFn?) {
     null -> context
-    else -> interceptorFn(context)
+    else -> fn(context)
 }
 
 /**
