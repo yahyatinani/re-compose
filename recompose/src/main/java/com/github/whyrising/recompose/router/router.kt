@@ -9,27 +9,27 @@ import com.github.whyrising.recompose.router.EventQueue.enqueue
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.q
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-// TODO: Queued state machine
 /**
  * This class is a FIFO PersistentQueue that allows us to handle incoming events
  * according to the producer-consumer pattern.
  */
 internal object EventQueue : ViewModel() {
-    internal val queueState = atom(q<Event>())
+    internal val qAtom = atom(q<Event>())
 
     @Volatile
     internal var deferredUntilEvent = CompletableDeferred<Unit>()
 
     private suspend fun dequeue() {
-        val queue = queueState()
+        val queue = qAtom()
         val event = queue.peek()
         if (event != null) {
             try {
-                if (queueState.compareAndSet(queue, queue.pop()))
+                if (qAtom.compareAndSet(queue, queue.pop()))
                     handle(event)
             } catch (e: Exception) {
                 purge()
@@ -47,9 +47,9 @@ internal object EventQueue : ViewModel() {
             dequeue()
     }
 
-    internal fun enqueue(event: Event) {
-        viewModelScope.launch {
-            queueState.swap { it.conj(event) }
+    internal fun enqueue(event: Event): Job {
+        return viewModelScope.launch {
+            qAtom.swap { it.conj(event) }
             deferredUntilEvent.complete(Unit)
         }
     }
@@ -58,14 +58,14 @@ internal object EventQueue : ViewModel() {
      * Empties the event queue.
      */
     fun purge() {
-        queueState.reset(q())
+        qAtom.reset(q())
     }
 
     // TODO: remove
     override fun onCleared() {
         super.onCleared()
 
-        queueState.reset(q())
+        qAtom.reset(q())
         viewModelScope.cancel()
     }
 }
