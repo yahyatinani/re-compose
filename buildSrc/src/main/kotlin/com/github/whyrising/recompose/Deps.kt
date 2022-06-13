@@ -5,7 +5,7 @@ object Deps {
     const val jdkDesugar = "com.android.tools:desugar_jdk_libs:1.1.5"
 
     object AndroidBuild {
-        const val compileSdk = 31
+        const val compileSdk = 32
         const val targetSdk = 32
         const val buildToolsVersion = "32.0.0"
     }
