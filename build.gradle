@@ -40,6 +40,7 @@ subprojects {
         }
     }
 
+
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             // Treat all Kotlin warnings as errors (disabled by default)
@@ -54,19 +55,13 @@ subprojects {
             freeCompilerArgs += '-Xopt-in=kotlin.Experimental'
 
             jvmTarget = "1.8"
+
         }
     }
 
-    tasks.withType(Test) {
-        def decimal = Runtime.getRuntime().availableProcessors() / 2
-        maxParallelForks = decimal > 0 ? decimal : 1
-        useJUnitPlatform()
-        testLogging { events("passed", "skipped", "failed") }
+    signing {
+        useGpgCmd()
+        required { Ci.isRelease() }
+        sign publishing.publications
     }
-}
-
-signing {
-    useGpgCmd()
-    required { Ci.isRelease() }
-    sign publishing.publications
 }

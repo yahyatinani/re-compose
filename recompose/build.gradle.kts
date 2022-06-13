@@ -48,6 +48,14 @@ android {
     }
 }
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    val decimal = Runtime.getRuntime().availableProcessors() / 2
+    maxParallelForks = if (decimal > 0) decimal else 1
+    useJUnitPlatform()
+    testLogging { events("passed", "skipped", "failed") }
+}
+
 dependencies {
     implementation(Deps.Androidx.core)
     implementation(Deps.Androidx.appcompat)
