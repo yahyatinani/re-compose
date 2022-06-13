@@ -43,55 +43,55 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun MyApp() {
-    val systemUiController = rememberSystemUiController()
-    RecomposeTheme {
-        val colors = MaterialTheme.colors
-        val primaryColor = colors.primary
-        SideEffect {
-            systemUiController.setSystemBarsColor(color = primaryColor)
-        }
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Re-compose Sample",
-                            color = colors.secondary,
-                            style = MaterialTheme.typography.h5,
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = { dispatch(v(Ids.exitApp)) }) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Exit"
-                            )
-                        }
-                    },
-                )
-            },
-        ) { padding ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                color = colors.background
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    DigitalWatch()
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    InputThemeForm(modifier = Modifier.fillMaxWidth())
-                }
-            }
-        }
+  val systemUiController = rememberSystemUiController()
+  RecomposeTheme {
+    val colors = MaterialTheme.colors
+    val primaryColor = colors.primary
+    SideEffect {
+      systemUiController.setSystemBarsColor(color = primaryColor)
     }
+    Scaffold(
+      topBar = {
+        TopAppBar(
+          title = {
+            Text(
+              text = "Re-compose Sample",
+              color = colors.secondary,
+              style = MaterialTheme.typography.h5,
+            )
+          },
+          actions = {
+            IconButton(onClick = { dispatch(v(Ids.exitApp)) }) {
+              Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Exit"
+              )
+            }
+          },
+        )
+      },
+    ) { padding ->
+      Surface(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(padding),
+        color = colors.background
+      ) {
+        Column(
+          modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+          verticalArrangement = Arrangement.Center
+        ) {
+          DigitalWatch()
+
+          Spacer(modifier = Modifier.height(32.dp))
+
+          InputThemeForm(modifier = Modifier.fillMaxWidth())
+        }
+      }
+    }
+  }
 }
 
 // -- App Preview --------------------------------------------------------------
@@ -99,29 +99,29 @@ fun MyApp() {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    MyApp()
+  MyApp()
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun DefaultDarkPreview() {
-    MyApp()
+  MyApp()
 }
 
 // -- Entry Point --------------------------------------------------------------
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        super.onCreate(savedInstanceState)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    installSplashScreen()
+    super.onCreate(savedInstanceState)
 
-        regAllEvents()
-        regAllCofx()
-        regAllFx(lifecycle.coroutineScope)
-        setContent {
-            regAllSubs(MaterialTheme.colors)
-            dispatch(v(startTicking))
-            MyApp()
-        }
+    regAllEvents()
+    regAllCofx()
+    regAllFx(lifecycle.coroutineScope)
+    setContent {
+      regAllSubs(MaterialTheme.colors)
+      dispatch(v(startTicking))
+      MyApp()
     }
+  }
 }

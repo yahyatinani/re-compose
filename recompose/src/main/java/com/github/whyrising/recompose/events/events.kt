@@ -26,20 +26,20 @@ typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
  * It preserves the order of `interceptors`.
  */
 internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
-    lazySeq {
-        interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
-            when (interceptor) {
-                is IPersistentVector<*> -> concat(interceptor, seq)
-                else -> conj(seq, interceptor) as ISeq<Any>
-            }
-        }
+  lazySeq {
+    interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
+      when (interceptor) {
+        is IPersistentVector<*> -> concat(interceptor, seq)
+        else -> conj(seq, interceptor) as ISeq<Any>
+      }
     }
+  }
 
 /***
  * Associate the given event `id` with the given collection of `interceptors`.
  */
 fun register(id: Any, interceptors: IPersistentVector<Any>) {
-    registerHandler(id, kind, flatten(interceptors))
+  registerHandler(id, kind, flatten(interceptors))
 }
 
 /*
@@ -50,7 +50,7 @@ typealias Event = IPersistentVector<Any>
 
 @Suppress("UNCHECKED_CAST")
 suspend fun handle(event: Event) {
-    val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
+  val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
 
-    execute(event, interceptors ?: return)
+  execute(event, interceptors ?: return)
 }

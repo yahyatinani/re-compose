@@ -24,17 +24,17 @@ internal var register: Atom<Register> = atom(m())
 enum class Kinds { Event, Fx, Cofx, Sub }
 
 fun getHandler(kind: Kinds, id: Any): Any? = register().valAt(kind).let {
-    it?.valAt(id)
+  it?.valAt(id)
 }
 
 @Suppress("UNCHECKED_CAST")
 fun registerHandler(
-    id: Any,
-    kind: Kinds,
-    handlerFn: Any
+  id: Any,
+  kind: Kinds,
+  handlerFn: Any
 ): Any {
-    register.swap(l(kind, id), handlerFn) { currentVal, ks, v ->
-        assocIn(currentVal, ks, v) as Register
-    }
-    return handlerFn
+  register.swap(l(kind, id), handlerFn) { currentVal, ks, v ->
+    assocIn(currentVal, ks, v) as Register
+  }
+  return handlerFn
 }

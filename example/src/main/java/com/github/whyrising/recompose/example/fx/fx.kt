@@ -11,16 +11,16 @@ import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 fun regAllFx(scope: CoroutineScope) {
-    regFx(id = ticktack) {
-        scope.launch {
-            while (true) {
-                dispatch(v(ticktack))
-                delay(1_000)
-            }
-        }
+  regFx(id = ticktack) {
+    scope.launch {
+      while (true) {
+        dispatch(v(ticktack))
+        delay(1_000)
+      }
     }
+  }
 
-    regFx(id = exitApp) {
-        exitProcess(-1)
-    }
+  regFx(id = exitApp) {
+    exitProcess(-1)
+  }
 }

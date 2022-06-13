@@ -13,50 +13,50 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 abstract class ReactionBase<T, O> : ViewModel(), Reaction<O>, Disposable {
-    internal abstract val state: MutableStateFlow<T>
+  internal abstract val state: MutableStateFlow<T>
 
-    internal abstract fun deref(state: State<T>): O
+  internal abstract fun deref(state: State<T>): O
 
-    internal fun initState(t: T): MutableStateFlow<T> = MutableStateFlow(t)
-        .apply {
-            subscriptionCount
-                .onEach { subCount ->
-                    // last subscriber just disappeared => composable left
-                    // the Composition tree.
-                    // Reaction is not used by any.
-                    if (subCount == 0 && !isFresh())
-                        onCleared()
+  internal fun initState(t: T): MutableStateFlow<T> = MutableStateFlow(t)
+    .apply {
+      subscriptionCount
+        .onEach { subCount ->
+          // last subscriber just disappeared => composable left
+          // the Composition tree.
+          // Reaction is not used by any.
+          if (subCount == 0 && !isFresh())
+            onCleared()
 
-                    if (isFresh())
-                        isFresh.reset(false)
-                }
-                .launchIn(viewModelScope)
+          if (isFresh())
+            isFresh.reset(false)
         }
-
-    internal val disposeFns = atom<ISeq<(ReactionBase<T, O>) -> Unit>>(l())
-
-    // this flag is used to track the last subscriber of this reaction
-    internal var isFresh = atom(true)
-    val id: String by lazy { str("rx", hashCode()) }
-
-    override fun addOnDispose(f: (ReactionBase<*, *>) -> Unit) {
-        disposeFns.swap { it.cons(f) }
+        .launchIn(viewModelScope)
     }
 
-    override fun dispose() {
-        var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns()
-        while (fs != null && fs.count > 0) {
-            val f = fs.first()
-            f(this)
-            fs = fs.next()
-        }
+  internal val disposeFns = atom<ISeq<(ReactionBase<T, O>) -> Unit>>(l())
 
-        viewModelScope.cancel("This reaction `$id` just got canceled.")
+  // this flag is used to track the last subscriber of this reaction
+  internal var isFresh = atom(true)
+  val id: String by lazy { str("rx", hashCode()) }
+
+  override fun addOnDispose(f: (ReactionBase<*, *>) -> Unit) {
+    disposeFns.swap { it.cons(f) }
+  }
+
+  override fun dispose() {
+    var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns()
+    while (fs != null && fs.count > 0) {
+      val f = fs.first()
+      f(this)
+      fs = fs.next()
     }
 
-    public override fun onCleared() {
-        super.onCleared()
+    viewModelScope.cancel("This reaction `$id` just got canceled.")
+  }
 
-        dispose()
-    }
+  public override fun onCleared() {
+    super.onCleared()
+
+    dispose()
+  }
 }

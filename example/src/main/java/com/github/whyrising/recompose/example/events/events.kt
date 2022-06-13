@@ -20,30 +20,30 @@ import com.github.whyrising.y.core.v
 import java.util.Date
 
 fun regAllEvents() {
-    regEventDb<Any>(id = initDb) { _, _ -> AppDb() }
-    dispatchSync(v(initDb))
+  regEventDb<Any>(id = initDb) { _, _ -> AppDb() }
+  dispatchSync(v(initDb))
 
-    regEventFx(
-        id = ticktack,
-        interceptors = v(injectCofx(Ids.now)),
-    ) { cofx, _ ->
-        val appDb = cofx[db] as AppDb
-        m(db to appDb.copy(time = cofx[Ids.now] as Date))
-    }
+  regEventFx(
+    id = ticktack,
+    interceptors = v(injectCofx(Ids.now)),
+  ) { cofx, _ ->
+    val appDb = cofx[db] as AppDb
+    m(db to appDb.copy(time = cofx[Ids.now] as Date))
+  }
 
-    regEventFx(id = startTicking) { _, _ ->
-        m(ticktack to null)
-    }
+  regEventFx(id = startTicking) { _, _ ->
+    m(ticktack to null)
+  }
 
-    regEventDb<AppDb>(id = setPrimaryColor) { db, (_, colorInput) ->
-        db.copy(primaryColor = colorInput as String)
-    }
+  regEventDb<AppDb>(id = setPrimaryColor) { db, (_, colorInput) ->
+    db.copy(primaryColor = colorInput as String)
+  }
 
-    regEventDb<AppDb>(id = Ids.setSecondaryColor) { db, (_, colorInput) ->
-        db.copy(secondaryColor = colorInput as String)
-    }
+  regEventDb<AppDb>(id = Ids.setSecondaryColor) { db, (_, colorInput) ->
+    db.copy(secondaryColor = colorInput as String)
+  }
 
-    regEventFx(exitApp) { _: Coeffects, _: Event ->
-        m(exitApp to null)
-    }
+  regEventFx(exitApp) { _: Coeffects, _: Event ->
+    m(exitApp to null)
+  }
 }

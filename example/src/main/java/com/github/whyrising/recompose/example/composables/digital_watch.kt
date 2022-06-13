@@ -26,50 +26,50 @@ import com.github.whyrising.y.core.v
 
 @Composable
 fun DigitalWatch(modifier: Modifier = Modifier) {
-    val colors = MaterialTheme.colors
-    val typography = MaterialTheme.typography
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Local time:",
-            modifier = Modifier.align(CenterHorizontally),
-            style = typography.h3.copy(fontWeight = FontWeight.Light),
-            color = colors.primary,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = subscribe<String>(v(formattedTime)).w(),
-            modifier = Modifier.align(CenterHorizontally),
-            color = colors.secondary,
-            style = typography.h1.copy(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 80.sp,
-            )
-        )
-    }
+  val colors = MaterialTheme.colors
+  val typography = MaterialTheme.typography
+  Column(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(8.dp)
+  ) {
+    Text(
+      text = "Local time:",
+      modifier = Modifier.align(CenterHorizontally),
+      style = typography.h3.copy(fontWeight = FontWeight.Light),
+      color = colors.primary,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+      text = subscribe<String>(v(formattedTime)).w(),
+      modifier = Modifier.align(CenterHorizontally),
+      color = colors.secondary,
+      style = typography.h1.copy(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 80.sp,
+      )
+    )
+  }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DigitalWatchPreview() {
-    regAllEvents()
-    regAllSubs(MaterialTheme.colors)
-    RecomposeTheme {
-        Surface {
-            DigitalWatch()
-        }
+  regAllEvents()
+  regAllSubs(MaterialTheme.colors)
+  RecomposeTheme {
+    Surface {
+      DigitalWatch()
     }
+  }
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun DigitalWatchDarkPreview() {
-    RecomposeTheme {
-        Surface {
-            DigitalWatch()
-        }
+  RecomposeTheme {
+    Surface {
+      DigitalWatch()
     }
+  }
 }

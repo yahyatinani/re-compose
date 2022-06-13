@@ -24,47 +24,47 @@ typealias InterceptorFn = suspend (context: Context) -> Context
 internal val defaultInterceptorFn: InterceptorFn = { it }
 
 fun toInterceptor(
-    id: Any,
-    before: InterceptorFn = defaultInterceptorFn,
-    after: InterceptorFn = defaultInterceptorFn
+  id: Any,
+  before: InterceptorFn = defaultInterceptorFn,
+  after: InterceptorFn = defaultInterceptorFn
 ): Interceptor = m(
-    InterceptorSchema.id to id,
-    InterceptorSchema.before to before,
-    InterceptorSchema.after to after,
+  InterceptorSchema.id to id,
+  InterceptorSchema.before to before,
+  InterceptorSchema.after to after,
 )
 
 fun assocCofx(
-    context: Context,
-    key: CoeffectsSchema,
-    value: Any
+  context: Context,
+  key: CoeffectsSchema,
+  value: Any
 ): Context = assocIn(context, l(coeffects, key), value) as Context
 
 internal fun enqueue(
-    context: Context,
-    interceptors: ISeq<Interceptor>?
+  context: Context,
+  interceptors: ISeq<Interceptor>?
 ): Context = context.assoc(queue, interceptors ?: l<Any>())
 
 /**
  * Create a fresh context.
  */
 internal fun context(
-    event: Event,
-    interceptors: ISeq<Interceptor>
+  event: Event,
+  interceptors: ISeq<Interceptor>
 ): Context = m<ContextSchema, Any>()
-    .let { assocCofx(it, CoeffectsSchema.event, event) }
-    .let { assocCofx(it, CoeffectsSchema.originalEvent, event) }
-    .let { enqueue(it, interceptors) }
+  .let { assocCofx(it, CoeffectsSchema.event, event) }
+  .let { assocCofx(it, CoeffectsSchema.originalEvent, event) }
+  .let { enqueue(it, interceptors) }
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 
 @Suppress("UNCHECKED_CAST")
 internal suspend fun invokeInterceptorFn(
-    context: Context,
-    interceptor: Interceptor,
-    direction: InterceptorSchema
+  context: Context,
+  interceptor: Interceptor,
+  direction: InterceptorSchema
 ): Context = when (val fn = interceptor[direction] as InterceptorFn?) {
-    null -> context
-    else -> fn(context)
+  null -> context
+  else -> fn(context)
 }
 
 /**
@@ -73,37 +73,37 @@ internal suspend fun invokeInterceptorFn(
  */
 @Suppress("UNCHECKED_CAST")
 internal suspend fun invokeInterceptors(
-    context: Context,
-    direction: InterceptorSchema
+  context: Context,
+  direction: InterceptorSchema
 ): Context {
-    tailrec suspend fun invokeInterceptors(context: Context): Context {
-        val que = context[queue] as ISeq<Interceptor>
-        return when (que.count) {
-            0 -> context
-            else -> {
-                val interceptor = que.first()
-                val stk = context[stack] as ISeq<Any>?
-                val newContext = context
-                    .assoc(queue, que.rest())
-                    .assoc(stack, conj(stk, interceptor))
-                    .let { invokeInterceptorFn(it, interceptor, direction) }
+  tailrec suspend fun invokeInterceptors(context: Context): Context {
+    val que = context[queue] as ISeq<Interceptor>
+    return when (que.count) {
+      0 -> context
+      else -> {
+        val interceptor = que.first()
+        val stk = context[stack] as ISeq<Any>?
+        val newContext = context
+          .assoc(queue, que.rest())
+          .assoc(stack, conj(stk, interceptor))
+          .let { invokeInterceptorFn(it, interceptor, direction) }
 
-                invokeInterceptors(newContext)
-            }
-        }
+        invokeInterceptors(newContext)
+      }
     }
+  }
 
-    return invokeInterceptors(context)
+  return invokeInterceptors(context)
 }
 
 @Suppress("UNCHECKED_CAST")
 internal fun changeDirection(context: Context): Context =
-    enqueue(context, context[stack] as ISeq<Interceptor>?)
+  enqueue(context, context[stack] as ISeq<Interceptor>?)
 
 suspend fun execute(
-    event: Event,
-    interceptors: ISeq<Interceptor>
+  event: Event,
+  interceptors: ISeq<Interceptor>
 ): Context = context(event, interceptors)
-    .let { invokeInterceptors(it, InterceptorSchema.before) }
-    .let { changeDirection(it) }
-    .let { invokeInterceptors(it, InterceptorSchema.after) }
+  .let { invokeInterceptors(it, InterceptorSchema.before) }
+  .let { changeDirection(it) }
+  .let { invokeInterceptors(it, InterceptorSchema.after) }
