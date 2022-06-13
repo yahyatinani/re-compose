@@ -24,15 +24,15 @@ import com.github.whyrising.recompose.schemas.InterceptorSchema.after
 import com.github.whyrising.recompose.schemas.InterceptorSchema.before
 import com.github.whyrising.recompose.schemas.InterceptorSchema.id
 import com.github.whyrising.recompose.schemas.Schema.db
-import com.github.whyrising.y.assocIn
-import com.github.whyrising.y.collections.concretions.list.PersistentList
-import com.github.whyrising.y.collections.map.IPersistentMap
-import com.github.whyrising.y.collections.seq.ISeq
-import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.get
-import com.github.whyrising.y.l
-import com.github.whyrising.y.m
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.assocIn
+import com.github.whyrising.y.core.collections.IPersistentMap
+import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.collections.ISeq
+import com.github.whyrising.y.core.collections.PersistentList
+import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.l
+import com.github.whyrising.y.core.m
+import com.github.whyrising.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -202,7 +202,7 @@ class InterceptorTest : FreeSpec({
             newContext[coeffects] shouldBe m(db to 3)
             (newContext[queue] as PersistentList<*>).shouldBeEmpty()
             (newContext[stack] as PersistentList<*>) shouldContainExactly
-                qu.reversed()
+                    qu.reversed()
         }
     }
 

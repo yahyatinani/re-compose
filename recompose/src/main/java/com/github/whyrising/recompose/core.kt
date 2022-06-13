@@ -2,7 +2,6 @@ package com.github.whyrising.recompose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.DbEventHandler

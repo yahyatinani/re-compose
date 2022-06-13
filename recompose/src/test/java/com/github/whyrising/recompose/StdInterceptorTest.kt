@@ -18,10 +18,10 @@ import com.github.whyrising.recompose.stdinterceptors.after
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.debug
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
-import com.github.whyrising.y.get
-import com.github.whyrising.y.m
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.collections.PersistentVector
+import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.m
+import com.github.whyrising.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs

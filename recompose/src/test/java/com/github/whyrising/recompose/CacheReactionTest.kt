@@ -5,7 +5,7 @@ import com.github.whyrising.recompose.subs.ExtractorReaction
 import com.github.whyrising.recompose.subs.ReactionBase
 import com.github.whyrising.recompose.subs.cacheReaction
 import com.github.whyrising.recompose.subs.reactionsCache
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
