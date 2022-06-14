@@ -235,7 +235,7 @@ class InterceptorTest : FreeSpec({
   }
 
   """
-        execute() should build context and run :before interceptors in the given 
+        execute() should build context and run :before interceptors in the given
         order, then :after interceptors in reversed order
     """ {
     val eventV = v(":test")

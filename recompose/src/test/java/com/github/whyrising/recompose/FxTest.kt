@@ -87,7 +87,7 @@ class FxTest : FreeSpec({
     }
 
     """
-            when passing an effect id with a value, execute the effect with 
+            when passing an effect id with a value, execute the effect with
             given value
         """ {
       regExecuteOrderedEffectsFx()

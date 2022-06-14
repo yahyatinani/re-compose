@@ -60,7 +60,7 @@ class CofxTest : FreeSpec({
   "injectCofx(..)" - {
     "injectCofx(id: Any)" - {
       """
-            injectCofx(id: Any) should return an Interceptor with before func 
+            injectCofx(id: Any) should return an Interceptor with before func
             that inject db value in coeffects.
             """ {
         appDb.emit(-22)
@@ -76,8 +76,8 @@ class CofxTest : FreeSpec({
       }
 
       """
-            injectCofx(id: Any) should return an Interceptor with before func 
-            that inject db value in coeffects, if coeffects doesn't exist in 
+            injectCofx(id: Any) should return an Interceptor with before func
+            that inject db value in coeffects, if coeffects doesn't exist in
             passed context, add one.
             """ {
         appDb.emit(-22)
@@ -109,7 +109,7 @@ class CofxTest : FreeSpec({
 
     "injectCofx(id: Any, value: Any)" - {
       """
-                when no cofx handler registered for `id`, return the passed 
+                when no cofx handler registered for `id`, return the passed
                 context
             """ {
         appDb.emit(-22)
@@ -123,7 +123,7 @@ class CofxTest : FreeSpec({
       }
 
       """
-                should return an Interceptor with before func that inject db 
+                should return an Interceptor with before func that inject db
                 value in coeffects.
             """ {
         val context: Context = m(coeffects to m(db to 10))
