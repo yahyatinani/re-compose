@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
-import com.github.whyrising.recompose.router.EventQueue.enqueue
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.q
 import kotlinx.coroutines.CompletableDeferred
@@ -18,7 +17,7 @@ import kotlinx.coroutines.runBlocking
  * This class is a FIFO PersistentQueue that allows us to handle incoming events
  * according to the producer-consumer pattern.
  */
-internal object EventQueue : ViewModel() {
+internal object EventQueueLegacy : ViewModel() {
   internal val qAtom = atom(q<Event>())
 
   @Volatile
@@ -70,6 +69,8 @@ internal object EventQueue : ViewModel() {
   }
 }
 
+internal val eventQueueFSM = EventQueueFSM(EventQueueImp())
+
 // -- Dispatching --------------------------------------------------------------
 
 private fun validate(event: Event) {
@@ -81,7 +82,8 @@ private fun validate(event: Event) {
 
 fun dispatch(event: Event) {
   validate(event)
-  enqueue(event)
+//  enqueue(event)
+  push(event)
 }
 
 fun dispatchSync(event: Event) {
