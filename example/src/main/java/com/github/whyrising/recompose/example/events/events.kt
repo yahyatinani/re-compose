@@ -2,11 +2,9 @@ package com.github.whyrising.recompose.example.events
 
 import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.cofx.injectCofx
-import com.github.whyrising.recompose.dispatchSync
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.example.Ids
 import com.github.whyrising.recompose.example.Ids.exitApp
-import com.github.whyrising.recompose.example.Ids.initDb
 import com.github.whyrising.recompose.example.Ids.setPrimaryColor
 import com.github.whyrising.recompose.example.Ids.startTicking
 import com.github.whyrising.recompose.example.Ids.ticktack
@@ -20,9 +18,6 @@ import com.github.whyrising.y.core.v
 import java.util.Date
 
 fun regAllEvents() {
-  regEventDb<Any>(id = initDb) { _, _ -> AppDb() }
-  dispatchSync(v(initDb))
-
   regEventFx(
     id = ticktack,
     interceptors = v(injectCofx(Ids.now)),
