@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
+import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.example.Ids.startTicking
 import com.github.whyrising.recompose.example.composables.DigitalWatch
 import com.github.whyrising.recompose.example.composables.InputThemeForm
@@ -37,7 +38,6 @@ import com.github.whyrising.recompose.example.events.regAllEvents
 import com.github.whyrising.recompose.example.fx.regAllFx
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
-import com.github.whyrising.recompose.router.dispatch
 import com.github.whyrising.y.core.v
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 

@@ -1,10 +1,6 @@
-package com.github.whyrising.recompose
+package com.github.whyrising.recompose.router
 
 import com.github.whyrising.recompose.events.Event
-import com.github.whyrising.recompose.router.EventQueueFSM
-import com.github.whyrising.recompose.router.EventQueueImp
-import com.github.whyrising.recompose.router.FsmEvent
-import com.github.whyrising.recompose.router.State
 import com.github.whyrising.y.core.v
 import io.kotest.assertions.timing.continually
 import io.kotest.core.spec.style.FreeSpec
@@ -46,7 +42,7 @@ class EventQueueFsmTest : FreeSpec({
       eventQueue.enqueue(testEvent3)
       eventQueue.enqueue(testEvent4)
 
-      eventQueue.processCurrentEvents(2)
+//      eventQueue.processCurrentEvents(2)
 
       eventQueue.queue.size shouldBe 2
     }

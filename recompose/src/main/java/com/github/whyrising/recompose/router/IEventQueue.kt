@@ -1,4 +1,4 @@
-package com.github.whyrising.recompose.router.fsm
+package com.github.whyrising.recompose.router
 
 /* Public API. */
 interface IEventQueue {
