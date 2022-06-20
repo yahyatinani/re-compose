@@ -49,7 +49,7 @@ fun register(id: Any, interceptors: IPersistentVector<Any>) {
 typealias Event = IPersistentVector<Any>
 
 @Suppress("UNCHECKED_CAST")
-suspend fun handle(event: Event) {
+fun handle(event: Event) {
   val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
 
   execute(event, interceptors ?: return)

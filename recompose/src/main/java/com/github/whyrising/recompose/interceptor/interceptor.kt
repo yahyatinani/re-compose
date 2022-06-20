@@ -19,7 +19,7 @@ typealias Context = IPersistentMap<ContextSchema, Any>
 
 typealias Interceptor = IPersistentMap<InterceptorSchema, Any>
 
-typealias InterceptorFn = suspend (context: Context) -> Context
+typealias InterceptorFn = (context: Context) -> Context
 
 internal val defaultInterceptorFn: InterceptorFn = { it }
 
@@ -58,7 +58,7 @@ internal fun context(
 // -- Execute Interceptor Chain  ----------------------------------------------
 
 @Suppress("UNCHECKED_CAST")
-internal suspend fun invokeInterceptorFn(
+internal fun invokeInterceptorFn(
   context: Context,
   interceptor: Interceptor,
   direction: InterceptorSchema
@@ -72,11 +72,11 @@ internal suspend fun invokeInterceptorFn(
  * IPersistentVector<*>.
  */
 @Suppress("UNCHECKED_CAST")
-internal suspend fun invokeInterceptors(
+internal fun invokeInterceptors(
   context: Context,
   direction: InterceptorSchema
 ): Context {
-  tailrec suspend fun invokeInterceptors(context: Context): Context {
+  tailrec fun invokeInterceptors(context: Context): Context {
     val que = context[queue] as ISeq<Interceptor>
     return when (que.count) {
       0 -> context
@@ -100,7 +100,7 @@ internal suspend fun invokeInterceptors(
 internal fun changeDirection(context: Context): Context =
   enqueue(context, context[stack] as ISeq<Interceptor>?)
 
-suspend fun execute(
+fun execute(
   event: Event,
   interceptors: ISeq<Interceptor>
 ): Context = context(event, interceptors)

@@ -111,14 +111,14 @@ class InterceptorTest : FreeSpec({
       stack to v(1, 2, 3)
     )
 
-    val f: suspend (
+    val f: (
       IPersistentMap<ContextSchema, Any>
     ) -> IPersistentMap<ContextSchema, Any> = { context ->
       val q = (context[queue] as IPersistentVector<Any>).conj(1)
       context.assoc(queue, q)
     }
 
-    val g: suspend (
+    val g: (
       IPersistentMap<ContextSchema, Any>
     ) -> IPersistentMap<ContextSchema, Any> = { context ->
       val q = (context[queue] as IPersistentVector<Any>).plus(1)
@@ -174,13 +174,13 @@ class InterceptorTest : FreeSpec({
             It should make a new context by invoking all interceptors in :queue
             and stack then in :stack while emptying the queue
         """ {
-      val f1: suspend (
+      val f1: (
         IPersistentMap<ContextSchema, Any>
       ) -> IPersistentMap<ContextSchema, Any> = { context ->
         val i = (context[coeffects] as Coeffects)[db] as Int
         context.assoc(coeffects, m(db to i.inc()))
       }
-      val f2: suspend (
+      val f2: (
         IPersistentMap<ContextSchema, Any>
       ) -> IPersistentMap<ContextSchema, Any> = { context ->
         val i = (context[coeffects] as Coeffects)[db] as Int

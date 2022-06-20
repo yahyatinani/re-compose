@@ -15,8 +15,8 @@ class RAtom<T>(v: T) : ReactiveAtom<T> {
     action(it)
   }
 
-  override suspend fun emit(value: T) {
-    state.emit(value)
+  override fun emit(value: T) {
+    state.tryEmit(value)
   }
 }
 

@@ -20,8 +20,8 @@ val kind: Kinds = Cofx
 
 typealias Coeffects = IPersistentMap<Any, Any>
 
-typealias CofxHandler1 = suspend (coeffects: Coeffects) -> Coeffects
-typealias CofxHandler2 = suspend (coeffects: Coeffects, value: Any) -> Coeffects
+typealias CofxHandler1 = (coeffects: Coeffects) -> Coeffects
+typealias CofxHandler2 = (coeffects: Coeffects, value: Any) -> Coeffects
 
 /**
  * @param id for the given cofx handler.

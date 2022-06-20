@@ -18,7 +18,7 @@ import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.get
 
 typealias Effects = IPersistentMap<Any, Any?>
-typealias EffectHandler = suspend (value: Any?) -> Unit
+typealias EffectHandler = (value: Any?) -> Unit
 
 @Suppress("EnumEntryName")
 enum class FxIds {

@@ -47,7 +47,7 @@ internal val scope = CoroutineScope(
 )
 
 internal class EventQueueFSM(
-  private val eventQueue: EventQueue,
+  private val eventQueue: EventQueueActions,
   start: State = IDLE
 ) {
   private val _state: Atom<State> = atom(start)

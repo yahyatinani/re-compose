@@ -4,38 +4,35 @@ import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.collections.PersistentQueue
 import com.github.whyrising.y.core.q
 
-/**
- * Not thread safe!!
- */
-internal class EventQueueImp(queue: PersistentQueue<Event> = q()) : EventQueue {
-  private val _eventQueueRef: Atom<PersistentQueue<Event>> = atom(queue)
+/** Not thread safe!! */
+internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions {
+  private val _eventQueueRef: Atom<EventQueue> = atom(queue)
 
-  val queue: PersistentQueue<Event>
+  val queue: EventQueue
     get() = _eventQueueRef()
 
   override val count: Int
     get() = queue.size
 
-  override fun enqueue(event: Event) {
-    _eventQueueRef.swap { it.conj(event) }
+  override fun enqueue(event: Event): EventQueue {
+    return _eventQueueRef.swap { it.conj(event) }
   }
 
-  override suspend fun processFirstEventInQueue() {
+  override fun processFirstEventInQueue(): EventQueue {
     val event = queue.peek()
-    if (event != null) {
-      try {
-        handle(event)
-        _eventQueueRef.swap { it.pop() }
-      } catch (e: Exception) {
-        TODO()
-      }
+    
+    if (event != null) try {
+      handle(event)
+      return _eventQueueRef.swap { it.pop() }
+    } catch (e: Exception) {
+      TODO()
     }
+    return queue
   }
 
-  override suspend fun processCurrentEvents() {
+  override fun processCurrentEvents() {
     for (i: Int in 0 until count)
       processFirstEventInQueue()
   }

@@ -37,7 +37,7 @@ class FxTest : FreeSpec({
   }
 
   "regFx(id, fxHandler)" {
-    val fxHandler: suspend (Any?) -> Unit = { }
+    val fxHandler: (Any?) -> Unit = { }
 
     regFx(":fx-test", fxHandler)
 
