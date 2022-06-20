@@ -12,5 +12,5 @@ internal interface EventQueueActions {
   fun processCurrentEvents()
   fun pause()
   fun resume()
-  fun exception()
+  fun exception(ex: Exception)
 }

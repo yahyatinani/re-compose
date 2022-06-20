@@ -6,8 +6,8 @@ import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.q
 
-/** Not thread safe!! */
-internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions {
+internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions,
+  IEventQueue {
   private val _eventQueueRef: Atom<EventQueue> = atom(queue)
 
   val queue: EventQueue
@@ -16,22 +16,23 @@ internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions {
   override val count: Int
     get() = queue.size
 
-  override fun enqueue(event: Event): EventQueue {
-    return _eventQueueRef.swap { it.conj(event) }
+  override fun enqueue(event: Event): EventQueue = _eventQueueRef.swap {
+    it.conj(event)
   }
 
-  override fun processFirstEventInQueue(): EventQueue {
-    val event = queue.peek()
-    
-    if (event != null) try {
-      handle(event)
-      return _eventQueueRef.swap { it.pop() }
-    } catch (e: Exception) {
-      TODO()
+  /** This function is thread safe. */
+  override fun processFirstEventInQueue() = synchronized(_eventQueueRef) {
+    when (val event = queue.peek()) {
+      null -> queue
+      else -> {
+        handle(event)
+        _eventQueueRef.swap { it.pop() }
+      }
     }
-    return queue
   }
 
+  /** This function is thread safe since it calls [processFirstEventInQueue],
+   * which is already thread safe. */
   override fun processCurrentEvents() {
     for (i: Int in 0 until count)
       processFirstEventInQueue()
@@ -45,7 +46,12 @@ internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions {
     TODO("Not yet implemented")
   }
 
-  override fun exception() {
-    TODO("Not yet implemented")
+  override fun exception(ex: Exception) {
+    purge()
+    throw ex
+  }
+
+  override fun purge() {
+    _eventQueueRef.reset(q())
   }
 }

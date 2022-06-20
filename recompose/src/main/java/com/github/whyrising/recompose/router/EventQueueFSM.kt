@@ -63,7 +63,11 @@ internal class EventQueueFSM(
 
   private fun processAllCurrentEvents(e: Event) {
     scope.launch {
-      eventQueue.processCurrentEvents()
+      try {
+        eventQueue.processCurrentEvents()
+      } catch (exception: Exception) {
+        TODO("handle(exception)")
+      }
       handle(FINISH_RUN)
     }
   }
