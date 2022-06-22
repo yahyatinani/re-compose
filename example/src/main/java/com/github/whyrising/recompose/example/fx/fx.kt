@@ -6,13 +6,14 @@ import com.github.whyrising.recompose.example.Ids.ticktack
 import com.github.whyrising.recompose.regFx
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 fun regAllFx(scope: CoroutineScope) {
   regFx(id = ticktack) {
-    scope.launch {
+    scope.launch(Dispatchers.Default) {
       while (true) {
         dispatch(v(ticktack))
         delay(1_000)
