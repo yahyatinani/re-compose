@@ -18,7 +18,6 @@ private fun validate(event: Event) {
 
 internal fun dispatch(event: Event) {
   validate(event)
-//  enqueue(event)
   push(event)
 }
 

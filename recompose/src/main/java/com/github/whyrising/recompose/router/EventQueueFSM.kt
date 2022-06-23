@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 
 internal enum class State {
   IDLE,
@@ -54,8 +53,6 @@ internal class EventQueueFSM(
 
   val state: State
     get() = _state()
-
-  private val mutex = Mutex()
 
   private fun runQueue(e: Event) {
     scope.launch { handle(RUN_QUEUE) }

@@ -44,7 +44,7 @@ fun toColor(color: String, default: Color = Color.Gray): Color = color
     }
   }
 
-private fun fib(nth: Long): Long = when {
+fun fib(nth: Long): Long = when {
   nth <= 2 -> 1
   else -> fib(nth - 1) + fib(nth - 2)
 }
