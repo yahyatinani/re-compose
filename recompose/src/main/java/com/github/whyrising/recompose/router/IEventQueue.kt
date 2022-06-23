@@ -1,6 +1,6 @@
 package com.github.whyrising.recompose.router
 
-/* Public API. */
+/* Public API for the event queue. */
 interface IEventQueue {
   fun purge()
   // TODO: addPostEventCallback

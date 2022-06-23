@@ -114,5 +114,3 @@ internal class EventQueueFSM(
     internal val identity: FsmAction = { _ -> }
   }
 }
-
-fun push(event: Event) = scope.launch { eventQueueFSM.handle(ADD_EVENT, event) }

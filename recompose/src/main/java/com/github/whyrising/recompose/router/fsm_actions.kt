@@ -4,7 +4,24 @@ import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
+import com.github.whyrising.y.core.collections.PersistentQueue
 import com.github.whyrising.y.core.q
+
+
+typealias EventQueue = PersistentQueue<Event>
+
+/** Internal API of the EventQueue for the FSM to consume. */
+internal interface EventQueueActions {
+  val count: Int
+  fun enqueue(event: Event): EventQueue
+  fun processFirstEventInQueue(): EventQueue
+  fun processCurrentEvents()
+  fun pause()
+  fun resume()
+  fun exception(ex: Exception)
+}
+
+/* Implementation */
 
 internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions,
   IEventQueue {
