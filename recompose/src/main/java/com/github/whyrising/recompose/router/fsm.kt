@@ -47,10 +47,9 @@ internal val scope = CoroutineScope(
 )
 
 internal class EventQueueFSM(
-  private val eventQueue: EventQueueActions,
+  internal val eventQueue: EventQueueActions,
   start: State = IDLE
 ) {
-
   private val _state: Atom<State> = atom(start)
 
   val state: State
@@ -60,12 +59,12 @@ internal class EventQueueFSM(
     scope.launch { handle(RUN_QUEUE) }
   }
 
-  private fun processAllCurrentEvents(arg: Any?) {
+  internal fun processAllCurrentEvents(arg: Any?) {
     scope.launch {
       try {
         eventQueue.processCurrentEvents()
-      } catch (exception: Exception) {
-        TODO("handle(exception)")
+      } catch (ex: Exception) {
+        handle(EXCEPTION, ex)
       }
       handle(FINISH_RUN)
     }
@@ -85,7 +84,6 @@ internal class EventQueueFSM(
   })
   private val RUNNING_processAllCurrentEvents =
     v(RUNNING, ::processAllCurrentEvents)
-
   private val IDLE_exception = v(IDLE, { ex: Exception ->
     eventQueue.exception(ex)
   })
