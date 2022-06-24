@@ -34,8 +34,8 @@ jobs:
         with:
           arguments: build --scan
 
-      - name: Run ktlint
-        run: ./gradlew :recompose:ktlintCheck
+      - name: Check lint
+        run: ./gradlew spotlessCheck
 
       - name: Run tests
         run: ./gradlew :recompose:check --stacktrace
