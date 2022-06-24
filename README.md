@@ -6,3 +6,5 @@ Re-compose
 ![GitHub](https://img.shields.io/github/license/whyrising/re-compose)
 [![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/com.github.whyrising.recompose/recompose?label=latest%20snapshot&server=https%3A%2F%2Foss.sonatype.org)](https://oss.sonatype.org/content/repositories/snapshots/com/github/whyrising/recompose/recompose/)
 
+`re-compose` is a data-oriented event driven framework for manging state in
+Android Compose applications.
