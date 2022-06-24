@@ -7,7 +7,6 @@ import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.PersistentQueue
 import com.github.whyrising.y.core.q
 
-
 typealias EventQueue = PersistentQueue<Event>
 
 /** Internal API of the EventQueue for the FSM to consume. */
@@ -23,7 +22,8 @@ internal interface EventQueueActions {
 
 /* Implementation */
 
-internal class EventQueueImp(queue: EventQueue = q()) : EventQueueActions,
+internal class EventQueueImp(queue: EventQueue = q()) :
+  EventQueueActions,
   IEventQueue {
   private val _eventQueueRef: Atom<EventQueue> = atom(queue)
 
