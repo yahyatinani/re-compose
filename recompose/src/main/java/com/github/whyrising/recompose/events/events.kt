@@ -7,11 +7,11 @@ import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.y.collections.seq.ISeq
-import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.concat
-import com.github.whyrising.y.conj
-import com.github.whyrising.y.lazySeq
+import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.collections.ISeq
+import com.github.whyrising.y.core.concat
+import com.github.whyrising.y.core.conj
+import com.github.whyrising.y.core.lazySeq
 
 val kind: Kinds = Kinds.Event
 
@@ -26,20 +26,20 @@ typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
  * It preserves the order of `interceptors`.
  */
 internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
-    lazySeq {
-        interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
-            when (interceptor) {
-                is IPersistentVector<*> -> concat(interceptor, seq)
-                else -> conj(seq, interceptor) as ISeq<Any>
-            }
-        }
+  lazySeq {
+    interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
+      when (interceptor) {
+        is IPersistentVector<*> -> concat(interceptor, seq)
+        else -> conj(seq, interceptor) as ISeq<Any>
+      }
     }
+  }
 
 /***
  * Associate the given event `id` with the given collection of `interceptors`.
  */
 fun register(id: Any, interceptors: IPersistentVector<Any>) {
-    registerHandler(id, kind, flatten(interceptors))
+  registerHandler(id, kind, flatten(interceptors))
 }
 
 /*
@@ -49,8 +49,8 @@ fun register(id: Any, interceptors: IPersistentVector<Any>) {
 typealias Event = IPersistentVector<Any>
 
 @Suppress("UNCHECKED_CAST")
-suspend fun handle(event: Event) {
-    val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
+fun handle(event: Event) {
+  val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
 
-    execute(event, interceptors ?: return)
+  execute(event, interceptors ?: return)
 }

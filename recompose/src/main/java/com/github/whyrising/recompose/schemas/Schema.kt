@@ -2,9 +2,9 @@ package com.github.whyrising.recompose.schemas
 
 @Suppress("EnumEntryName")
 enum class Schema {
-    dofx,
-    db,
-    notFound;
+  dofx,
+  db,
+  notFound;
 
-    override fun toString(): String = ":${super.toString()}"
+  override fun toString(): String = ":${super.toString()}"
 }

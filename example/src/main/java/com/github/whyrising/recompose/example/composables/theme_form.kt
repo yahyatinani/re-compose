@@ -24,43 +24,43 @@ import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.recompose.w
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.v
 
 @Composable
 fun InputThemeForm(modifier: Modifier = Modifier) {
-    val colors = MaterialTheme.colors
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        OutlinedTextField(
-            value = subscribe<String>(v(primaryColorStr)).w(),
-            onValueChange = { input ->
-                dispatch(v(setPrimaryColor, input))
-            },
-            placeholder = { Text(text = "Primary Color") },
-            singleLine = true,
-            maxLines = 1,
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                textColor = colors.primary,
-                focusedBorderColor = colors.primary,
-            ),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = subscribe<String>(v(secondaryColorStr)).w(),
-            onValueChange = { input ->
-                dispatch(v(setSecondaryColor, input))
-            },
-            placeholder = { Text(text = "Secondary Color") },
-            singleLine = true,
-            maxLines = 1,
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                textColor = colors.secondary,
-                focusedBorderColor = colors.secondary,
-            )
-        )
-    }
+  val colors = MaterialTheme.colors
+  Column(
+    modifier = modifier,
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    OutlinedTextField(
+      value = subscribe<String>(v(primaryColorStr)).w(),
+      onValueChange = { input ->
+        dispatch(v(setPrimaryColor, input))
+      },
+      placeholder = { Text(text = "Primary Color") },
+      singleLine = true,
+      maxLines = 1,
+      colors = TextFieldDefaults.outlinedTextFieldColors(
+        textColor = colors.primary,
+        focusedBorderColor = colors.primary,
+      ),
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    OutlinedTextField(
+      value = subscribe<String>(v(secondaryColorStr)).w(),
+      onValueChange = { input ->
+        dispatch(v(setSecondaryColor, input))
+      },
+      placeholder = { Text(text = "Secondary Color") },
+      singleLine = true,
+      maxLines = 1,
+      colors = TextFieldDefaults.outlinedTextFieldColors(
+        textColor = colors.secondary,
+        focusedBorderColor = colors.secondary,
+      )
+    )
+  }
 }
 
 // -- Previews -----------------------------------------------------------------
@@ -68,21 +68,21 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun InputThemeFormPreview() {
-    regAllEvents()
-    regAllSubs(MaterialTheme.colors)
-    RecomposeTheme {
-        Surface {
-            InputThemeForm()
-        }
+  regAllEvents()
+  regAllSubs(MaterialTheme.colors)
+  RecomposeTheme {
+    Surface {
+      InputThemeForm()
     }
+  }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun InputThemeFormDarkPreview() {
-    RecomposeTheme {
-        Surface {
-            InputThemeForm()
-        }
+  RecomposeTheme {
+    Surface {
+      InputThemeForm()
     }
+  }
 }

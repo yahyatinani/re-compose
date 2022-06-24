@@ -12,38 +12,38 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 class ExtractorReactionTest : FreeSpec({
-    val dispatcher = StandardTestDispatcher()
-    Dispatchers.setMain(dispatcher)
+  val dispatcher = StandardTestDispatcher()
+  Dispatchers.setMain(dispatcher)
 
-    "ctor" {
-        val reaction = ExtractorReaction(RAtom(1)) { it.inc() }
+  "ctor" {
+    val reaction = ExtractorReaction(RAtom(1)) { it.inc() }
 
-        reaction.deref() shouldBeExactly 2
+    reaction.deref() shouldBeExactly 2
+  }
+
+  "recompute()" {
+    val reaction = ExtractorReaction(RAtom(1)) { it.inc() }
+
+    reaction.recompute(3)
+
+    reaction.deref() shouldBeExactly 4
+  }
+
+  "collect()" {
+    runTest {
+      val r = ExtractorReaction(RAtom(1)) { it.inc() }
+      val reaction = ExtractorReaction(r) { it.inc() }
+
+      launch { r.state.emit(4) }
+      advanceUntilIdle()
+
+      reaction.deref() shouldBeExactly 5
     }
+  }
 
-    "recompute()" {
-        val reaction = ExtractorReaction(RAtom(1)) { it.inc() }
+  "deref()" {
+    val reaction = ExtractorReaction(RAtom(1)) { it.inc() }
 
-        reaction.recompute(3)
-
-        reaction.deref() shouldBeExactly 4
-    }
-
-    "collect()" {
-        runTest {
-            val r = ExtractorReaction(RAtom(1)) { it.inc() }
-            val reaction = ExtractorReaction(r) { it.inc() }
-
-            launch { r.state.emit(4) }
-            advanceUntilIdle()
-
-            reaction.deref() shouldBeExactly 5
-        }
-    }
-
-    "deref()" {
-        val reaction = ExtractorReaction(RAtom(1)) { it.inc() }
-
-        reaction.deref() shouldBeExactly 2
-    }
+    reaction.deref() shouldBeExactly 2
+  }
 })

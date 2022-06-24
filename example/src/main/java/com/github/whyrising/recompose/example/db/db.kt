@@ -6,13 +6,13 @@ import com.github.whyrising.recompose.example.Ids.now
 import java.util.Date
 
 data class AppDb(
-    val time: Date = Date(),
-    val primaryColor: String = "Red",
-    val secondaryColor: String = "Orange",
+  val time: Date = Date(),
+  val primaryColor: String = "Red",
+  val secondaryColor: String = "Orange",
 )
 
 fun regAllCofx() {
-    regCofx(now) { coeffects: Coeffects ->
-        coeffects.assoc(now, Date())
-    }
+  regCofx(now) { coeffects: Coeffects ->
+    coeffects.assoc(now, Date())
+  }
 }

@@ -19,8 +19,8 @@ import com.github.whyrising.recompose.subs.ReactionBase
 import com.github.whyrising.recompose.subs.ReactiveAtom
 import com.github.whyrising.recompose.subs.regCompSubscription
 import com.github.whyrising.recompose.subs.regDbSubscription
-import com.github.whyrising.y.collections.vector.IPersistentVector
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -30,13 +30,13 @@ internal const val TAG = "re-compose"
 // -- Dispatch -----------------------------------------------------------------
 
 fun dispatch(event: Event) =
-    com.github.whyrising.recompose.router.dispatch(event)
+  com.github.whyrising.recompose.router.dispatch(event)
 
 /**
  * This is a blocking function normally used to initialize the appDb.
  */
 fun dispatchSync(event: Event) =
-    com.github.whyrising.recompose.router.dispatchSync(event)
+  com.github.whyrising.recompose.router.dispatchSync(event)
 
 // -- Events -------------------------------------------------------------------
 
@@ -44,37 +44,37 @@ fun dispatchSync(event: Event) =
  * Register the given event `handler` (function) for the given `id`.
  */
 inline fun <T : Any> regEventDb(
-    id: Any,
-    interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: DbEventHandler<T>
+  id: Any,
+  interceptors: IPersistentVector<Interceptor> = v(),
+  crossinline handler: DbEventHandler<T>
 ) = register(
-    id = id,
-    interceptors = v(
-        injectDb,
-        doFx,
-        interceptors,
-        dbHandlerToInterceptor(handler)
-    )
+  id = id,
+  interceptors = v(
+    injectDb,
+    doFx,
+    interceptors,
+    dbHandlerToInterceptor(handler)
+  )
 )
 
 inline fun regEventFx(
-    id: Any,
-    interceptors: IPersistentVector<Interceptor> = v(),
-    crossinline handler: FxEventHandler
+  id: Any,
+  interceptors: IPersistentVector<Interceptor> = v(),
+  crossinline handler: FxEventHandler
 ) = register(
-    id = id,
-    interceptors = v(
-        injectDb,
-        doFx,
-        interceptors,
-        fxHandlerToInterceptor(handler)
-    )
+  id = id,
+  interceptors = v(
+    injectDb,
+    doFx,
+    interceptors,
+    fxHandlerToInterceptor(handler)
+  )
 )
 
 // -- Subscriptions ------------------------------------------------------------
 
 fun <T> subscribe(qvec: IPersistentVector<Any>): ReactionBase<Any, T> =
-    com.github.whyrising.recompose.subs.subscribe(qvec)
+  com.github.whyrising.recompose.subs.subscribe(qvec)
 
 /**
  * @param queryId a unique id for the subscription.
@@ -82,8 +82,8 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): ReactionBase<Any, T> =
  * further computation.
  */
 inline fun <T, R> regSub(
-    queryId: Any,
-    crossinline extractor: (db: T, queryVec: Query) -> R,
+  queryId: Any,
+  crossinline extractor: (db: T, queryVec: Query) -> R,
 ) = regDbSubscription(queryId, extractor)
 
 /**
@@ -101,18 +101,18 @@ inline fun <T, R> regSub(
  * computes derived data from it.
  */
 inline fun <T, R> regSub(
-    queryId: Any,
-    placeholder: R? = null,
-    context: CoroutineContext = EmptyCoroutineContext,
-    crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
-    crossinline computationFn: (input: T, queryVec: Query) -> R,
+  queryId: Any,
+  placeholder: R? = null,
+  context: CoroutineContext = EmptyCoroutineContext,
+  crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
+  crossinline computationFn: (input: T, queryVec: Query) -> R,
 ) = regCompSubscription(
-    queryId = queryId,
-    signalsFn = { queryVec -> v(signalsFn(queryVec)) },
-    initial = placeholder,
-    context = context,
+  queryId = queryId,
+  signalsFn = { queryVec -> v(signalsFn(queryVec)) },
+  initial = placeholder,
+  context = context,
 ) { persistentVector, qVec ->
-    computationFn(persistentVector[0], qVec)
+  computationFn(persistentVector[0], qVec)
 }
 
 /**
@@ -133,13 +133,13 @@ inline fun <T, R> regSub(
  * compute derived data from it.
  */
 inline fun <R> regSubM(
-    queryId: Any,
-    placeholder: R? = null,
-    context: CoroutineContext = EmptyCoroutineContext,
-    crossinline signalsFn:
-        (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
-    crossinline computationFn:
-        (subscriptions: IPersistentVector<Any>, queryVec: Query) -> R
+  queryId: Any,
+  placeholder: R? = null,
+  context: CoroutineContext = EmptyCoroutineContext,
+  crossinline signalsFn:
+    (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
+  crossinline computationFn:
+    (subscriptions: IPersistentVector<Any>, queryVec: Query) -> R
 ) = regCompSubscription(queryId, signalsFn, placeholder, context, computationFn)
 
 /**
@@ -152,7 +152,7 @@ inline fun <R> regSubM(
  */
 @Composable
 fun <T> ReactionBase<Any, T>.w(
-    context: CoroutineContext = EmptyCoroutineContext
+  context: CoroutineContext = EmptyCoroutineContext
 ): T = deref(state.collectAsState(context = context))
 
 // -- Effects ------------------------------------------------------------------
@@ -164,4 +164,4 @@ fun <T> ReactionBase<Any, T>.w(
  * and whose return value is ignored.
  */
 fun regFx(id: Any, handler: EffectHandler) =
-    com.github.whyrising.recompose.fx.regFx(id, handler)
+  com.github.whyrising.recompose.fx.regFx(id, handler)

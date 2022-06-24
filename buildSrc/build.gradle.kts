@@ -1,9 +1,14 @@
-import org.gradle.kotlin.dsl.`kotlin-dsl`
-
 plugins {
-    `kotlin-dsl`
+  `kotlin-dsl`
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
+  google()
+  gradlePluginPortal()
+}
+
+dependencies {
+  implementation(deps.android.gradle.plugin)
+  implementation(deps.android.library.gradle.plugin)
 }
