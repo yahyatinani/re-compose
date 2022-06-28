@@ -4,6 +4,7 @@ import android.util.Log
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.dispatch
+import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.toInterceptor
@@ -23,8 +24,7 @@ typealias EffectHandler = (value: Any?) -> Unit
 @Suppress("EnumEntryName")
 enum class FxIds {
   fx,
-  dispatch,
-  dispatchN;
+  dispatch;
 
   override fun toString(): String = ":${super.toString()}"
 }
@@ -68,8 +68,8 @@ val doFx: Interceptor = toInterceptor(
 // -- Builtin Effect Handlers --------------------------------------------------
 
 /**
- * Registers the [EffectHandler] to [fx] id which is responsible for
- * executing, in the given order, every effect in the vector of effects.
+ * Registers an [EffectHandler] called [FxIds.fx] which is responsible for
+ * executing, in the given order, every effect in the seq of effects.
  */
 fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
   if (vecOfFx is IPersistentVector<*>) {
@@ -110,45 +110,24 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
   }
 }
 
-fun regUpdateDbFx() = regFx(id = db) { newAppDb ->
-  // emit() doesn't set if the newVal == the currentVal
-  if (newAppDb != null)
-    appDb.emit(newAppDb)
-}
-
-fun regDispatchEventFxHandler(): Unit = regFx(id = FxIds.dispatch) { event ->
-  if (event !is IPersistentVector<*>) {
-    Log.e(
-      "regFx",
-      "ignoring bad :dispatch value. Expected Vector, but got: $event"
-    )
-    return@regFx
-  }
-
-  // TODO: review this cast
-  dispatch(event as IPersistentVector<Any>)
-}
-
-fun regDispatchNeventFxHandler(): Unit = regFx(id = FxIds.dispatchN) { events ->
-  if (events !is IPersistentVector<*>) {
-    Log.e(
-      "regFx",
-      "ignoring bad :dispatchN value. Expected a list, but got: $events"
-    )
-    return@regFx
-  }
-
-  // TODO: review this cast
-  events.forEach { event: Any? ->
-    dispatch(event as IPersistentVector<Any>)
-  }
-}
 
 internal fun initBuiltinEffectHandlers() {
   regExecuteOrderedEffectsFx()
-  regUpdateDbFx()
-  regDispatchEventFxHandler()
-  regDispatchNeventFxHandler()
+  regFx(id = db) { newAppDb ->
+    if (newAppDb != null)
+      appDb.emit(newAppDb)
+  }
+  regFx(id = FxIds.dispatch) { event ->
+    if (event !is IPersistentVector<*>) {
+      Log.e(
+        "regFx",
+        "ignoring bad :dispatch value. Expected Vector, but got: $event"
+      )
+      return@regFx
+    }
+
+    dispatch(event as Event)
+  }
 }
 
 val exec = initBuiltinEffectHandlers()

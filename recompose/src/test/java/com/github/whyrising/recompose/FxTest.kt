@@ -4,15 +4,11 @@ import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.fx.FxIds.dispatch
-import com.github.whyrising.recompose.fx.FxIds.dispatchN
 import com.github.whyrising.recompose.fx.FxIds.fx
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.fx.initBuiltinEffectHandlers
-import com.github.whyrising.recompose.fx.regDispatchEventFxHandler
-import com.github.whyrising.recompose.fx.regDispatchNeventFxHandler
 import com.github.whyrising.recompose.fx.regExecuteOrderedEffectsFx
 import com.github.whyrising.recompose.fx.regFx
-import com.github.whyrising.recompose.fx.regUpdateDbFx
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
@@ -45,7 +41,10 @@ class FxTest : FreeSpec({
   }
 
   "doFx interceptor should update the appDb and apply other effects" {
-    regUpdateDbFx()
+    regFx(id = db) { newAppDb ->
+      if (newAppDb != null)
+        appDb.emit(newAppDb)
+    }
     var i = 0
     regFx(id = ":add-to-i") { i += (it as Int) }
     regFx(id = ":subtract-from-i") { i -= (it as Int) }
@@ -67,7 +66,10 @@ class FxTest : FreeSpec({
   "`fx` effect handler should execute, in order, the vector of effects" - {
     "when passing an effect id without a value, execute the effect" {
       regExecuteOrderedEffectsFx()
-      regUpdateDbFx()
+      regFx(id = db) { newAppDb ->
+        if (newAppDb != null)
+          appDb.emit(newAppDb)
+      }
       var i = 0
       regFx(id = ":inc-i") { i = i.inc() }
       val effects: Effects = m(
@@ -91,7 +93,10 @@ class FxTest : FreeSpec({
             given value
         """ {
       regExecuteOrderedEffectsFx()
-      regUpdateDbFx()
+      regFx(id = db) { newAppDb ->
+        if (newAppDb != null)
+          appDb.emit(newAppDb)
+      }
       var i = 0
       regFx(id = ":inc&add-i") { i = i.inc() + it as Int }
       val effects: Effects = m(
@@ -112,7 +117,10 @@ class FxTest : FreeSpec({
 
     "when passing an effect id with a null value, execute the effect" {
       regExecuteOrderedEffectsFx()
-      regUpdateDbFx()
+      regFx(id = db) { newAppDb ->
+        if (newAppDb != null)
+          appDb.emit(newAppDb)
+      }
       var i = 0
       regFx(id = ":inc-i") { i = i.inc() }
       val effects: Effects = m(
@@ -166,33 +174,15 @@ class FxTest : FreeSpec({
     }
   }
 
-  "regDispatchEventFxHandler()" {
-    regDispatchEventFxHandler()
-
-    val fxHandler: Any? = myRegister()[Kinds.Fx]!![dispatch]
-
-    fxHandler.shouldNotBeNull()
-  }
-
-  "regDispatchNeventFxHandler()" {
-    regDispatchNeventFxHandler()
-
-    val fxHandler: Any? = myRegister()[Kinds.Fx]!![dispatchN]
-
-    fxHandler.shouldNotBeNull()
-  }
-
   "initBuiltinEffectHandlers()" {
     initBuiltinEffectHandlers()
 
     val fxFxHandler: Any? = myRegister()[Kinds.Fx]!![fx]
     val dbFxHandler: Any? = myRegister()[Kinds.Fx]!![db]
     val dispatchFxHandler: Any? = myRegister()[Kinds.Fx]!![dispatch]
-    val dispatchNfxHandler: Any? = myRegister()[Kinds.Fx]!![dispatchN]
 
     fxFxHandler.shouldNotBeNull()
     dbFxHandler.shouldNotBeNull()
     dispatchFxHandler.shouldNotBeNull()
-    dispatchNfxHandler.shouldNotBeNull()
   }
 })
