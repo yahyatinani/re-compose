@@ -15,6 +15,7 @@ class RAtom<T>(v: T) : ReactiveAtom<T> {
     action(it)
   }
 
+  /** It doesn't emit the value if the newVal == the currentVal */
   override fun emit(value: T) {
     state.tryEmit(value)
   }

@@ -74,8 +74,7 @@ val doFx: Interceptor = toInterceptor(
 fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
   if (vecOfFx is IPersistentVector<*>) {
     val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
-
-    effects.forEach { effect: IPersistentVector<Any?>? ->
+    for (effect: IPersistentVector<Any?>? in effects) {
       if (effect == null) return@regFx
 
       val effectKey = effect.nth(0, null)
@@ -85,10 +84,7 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
         Log.w(TAG, "\":fx\" effect should not contain a :db effect")
 
       if (effectKey == null) {
-        Log.w(
-          TAG,
-          "in :fx effect, null is not a valid effectKey. Skip."
-        )
+        Log.w(TAG, "in :fx effect, null is not a valid effectKey. Skip.")
         return@regFx
       }
 
@@ -109,7 +105,6 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
     Log.e(TAG, "\":fx\" effect expects a vector, but was given $type")
   }
 }
-
 
 internal fun initBuiltinEffectHandlers() {
   regExecuteOrderedEffectsFx()
