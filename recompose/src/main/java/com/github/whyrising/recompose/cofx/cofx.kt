@@ -82,7 +82,5 @@ fun registerDbInjectorCofx() {
   }
 }
 
-val registerDbInjectorCofx = registerDbInjectorCofx()
-
 // Because this interceptor is used so much, we reify it
 val injectDb = injectCofx(db)

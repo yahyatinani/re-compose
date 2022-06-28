@@ -6,9 +6,9 @@ import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.fx.FxIds.dispatch
 import com.github.whyrising.recompose.fx.FxIds.fx
 import com.github.whyrising.recompose.fx.doFx
-import com.github.whyrising.recompose.fx.initBuiltinEffectHandlers
 import com.github.whyrising.recompose.fx.regExecuteOrderedEffectsFx
 import com.github.whyrising.recompose.fx.regFx
+import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
@@ -175,7 +175,7 @@ class FxTest : FreeSpec({
   }
 
   "initBuiltinEffectHandlers()" {
-    initBuiltinEffectHandlers()
+    registerBuiltinEffectHandlers()
 
     val fxFxHandler: Any? = myRegister()[Kinds.Fx]!![fx]
     val dbFxHandler: Any? = myRegister()[Kinds.Fx]!![db]

@@ -106,7 +106,7 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
   }
 }
 
-internal fun initBuiltinEffectHandlers() {
+internal fun registerBuiltinEffectHandlers() {
   regExecuteOrderedEffectsFx()
   regFx(id = db) { newAppDb ->
     if (newAppDb != null)
@@ -124,5 +124,3 @@ internal fun initBuiltinEffectHandlers() {
     dispatch(event as Event)
   }
 }
-
-val exec = initBuiltinEffectHandlers()

@@ -4,7 +4,7 @@ import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
-import com.github.whyrising.recompose.fx.initBuiltinEffectHandlers
+import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
 import com.github.whyrising.recompose.multiThreadedRun
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.schemas.Schema
@@ -28,7 +28,7 @@ class EventQueueActionsTest : FreeSpec({
     appDb.emit(DEFAULT_APP_DB_VALUE)
     registerDbInjectorCofx()
     injectCofx(Schema.db)
-    initBuiltinEffectHandlers()
+    registerBuiltinEffectHandlers()
   }
 
   "enqueue()" {
