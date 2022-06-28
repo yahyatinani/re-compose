@@ -14,8 +14,14 @@ open class Recompose : Application() {
   override fun onCreate() {
     super.onCreate()
 
-    regCofx(id = db) { coeffects -> coeffects.assoc(db, appDb.deref()) }
+    init()
+  }
 
-    registerBuiltinEffectHandlers()
+  companion object {
+    internal fun init() {
+      regCofx(id = db) { coeffects -> coeffects.assoc(db, appDb.deref()) }
+
+      registerBuiltinEffectHandlers()
+    }
   }
 }

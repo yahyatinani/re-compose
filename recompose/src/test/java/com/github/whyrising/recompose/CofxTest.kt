@@ -48,7 +48,7 @@ class CofxTest : FreeSpec({
 
   "when `cofxDb` loaded, it should register the appDb injector cofx" {
     appDb.emit(-22)
-    registerDbInjectorCofx
+    registerDbInjectorCofx()
     val coeffects: Coeffects = m(db to -1)
 
     val dbInjectorCofx = getHandler(Kinds.Cofx, db) as CofxHandler1
@@ -64,7 +64,7 @@ class CofxTest : FreeSpec({
             that inject db value in coeffects.
             """ {
         appDb.emit(-22)
-        registerDbInjectorCofx
+        registerDbInjectorCofx()
         val context: Context = m(coeffects to m(db to 10))
 
         val dbInjector: Interceptor = injectCofx(db)
@@ -81,7 +81,7 @@ class CofxTest : FreeSpec({
             passed context, add one.
             """ {
         appDb.emit(-22)
-        registerDbInjectorCofx
+        registerDbInjectorCofx()
 
         val dbInjector: Interceptor = injectCofx(db)
 

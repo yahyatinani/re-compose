@@ -11,6 +11,7 @@ import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -55,12 +56,15 @@ internal class EventQueueFSM(
   val state: State
     get() = _state()
 
+  var handler = CoroutineExceptionHandler { _, exception -> }
+
   private fun runQueue(arg: Any?) {
     scope.launch { handle(RUN_QUEUE) }
   }
 
   internal fun processAllCurrentEvents(arg: Any?) {
-    scope.launch {
+    // todo: pass when done, when exception
+    scope.launch(handler) {
       try {
         eventQueue.processCurrentEvents()
       } catch (ex: Exception) {

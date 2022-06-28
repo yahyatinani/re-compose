@@ -1,5 +1,6 @@
 package com.github.whyrising.recompose.router
 
+import com.github.whyrising.recompose.Recompose
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.router.FsmEvent.ADD_EVENT
 import com.github.whyrising.recompose.router.FsmEvent.RUN_QUEUE
@@ -10,6 +11,7 @@ import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -17,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 class EventQueueFsmTest : FreeSpec({
+  Recompose.init()
   Dispatchers.setMain(StandardTestDispatcher())
 
   "initial state of FSM" {
@@ -152,17 +155,22 @@ class EventQueueFsmTest : FreeSpec({
     }
 
     "should throw an exception" {
-      regEventDb<Any>("ex-event") { _, _ -> throw IllegalStateException() }
+      regEventDb<Any>("ex-event") { _, _ ->
+        throw IllegalStateException("test")
+      }
       val eventQueue = EventQueueImp().apply {
         enqueue(v("ex-event"))
       }
 
       runTest {
-        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
-
+        var e: Throwable? = null
+        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING).apply {
+          handler = CoroutineExceptionHandler { _, exception -> e = exception }
+        }
         eventQueueFSM.processAllCurrentEvents(null)
-
         advanceUntilIdle()
+        shouldThrowExactly<IllegalStateException> { throw e!! }
+
         eventQueueFSM.state shouldBe IDLE
       }
     }
