@@ -1,6 +1,9 @@
 package com.github.whyrising.recompose.router
 
+import com.github.whyrising.recompose.cofx.regCofx
+import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
 import com.github.whyrising.recompose.router.FsmEvent.ADD_EVENT
 import com.github.whyrising.recompose.router.FsmEvent.EXCEPTION
 import com.github.whyrising.recompose.router.FsmEvent.FINISH_RUN
@@ -8,9 +11,11 @@ import com.github.whyrising.recompose.router.FsmEvent.RUN_QUEUE
 import com.github.whyrising.recompose.router.State.IDLE
 import com.github.whyrising.recompose.router.State.RUNNING
 import com.github.whyrising.recompose.router.State.SCHEDULING
+import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,29 +54,42 @@ internal val scope = CoroutineScope(
 
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
-  start: State = IDLE
+  start: State = IDLE,
+  handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
 ) {
+  private var consumeSignal = CompletableDeferred<Unit>()
+
+  init {
+    registerBuiltInStuff()
+    // events consumer coroutine.
+    scope.launch(handler) {
+      while (true) {
+        consumeSignal.await()
+        try {
+          eventQueue.processCurrentEvents()
+        } catch (ex: Exception) {
+          handle(EXCEPTION, ex)
+        }
+        // this doesn't execute when an exception occurs because handle() throws
+        // again in catch block.
+        handle(FINISH_RUN)
+
+        consumeSignal = CompletableDeferred()
+      }
+    }
+  }
+
   private val _state: Atom<State> = atom(start)
 
   val state: State
     get() = _state()
-
-  var handler = CoroutineExceptionHandler { _, exception -> }
 
   private fun runQueue(arg: Any?) {
     scope.launch { handle(RUN_QUEUE) }
   }
 
   internal fun processAllCurrentEvents(arg: Any?) {
-    // todo: pass when done, when exception
-    scope.launch(handler) {
-      try {
-        eventQueue.processCurrentEvents()
-      } catch (ex: Exception) {
-        handle(EXCEPTION, ex)
-      }
-      handle(FINISH_RUN)
-    }
+    consumeSignal.complete(Unit)
   }
 
   private val IDLE_identity = v(IDLE, identity)
@@ -119,5 +137,12 @@ internal class EventQueueFSM(
 
   companion object {
     internal val identity: FsmAction = { _ -> }
+    internal fun registerBuiltInStuff() {
+      regCofx(id = Schema.db) { coeffects ->
+        coeffects.assoc(Schema.db, appDb.deref())
+      }
+
+      registerBuiltinEffectHandlers()
+    }
   }
 }
