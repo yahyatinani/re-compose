@@ -1,7 +1,10 @@
 package com.github.whyrising.recompose
 
 object Ci {
-  private const val snapshotBase = "0.0.6"
+  const val groupId = "com.github.whyrising.recompose"
+  const val artifactId = "recompose"
+
+  private const val snapshotBase = "0.1.0"
 
   private fun githubBuildNumber() = System.getenv("GITHUB_RUN_NUMBER")
 
@@ -16,6 +19,4 @@ object Ci {
 
   val publishVersion: String = releaseVersion() ?: snapshotVersion()
 
-  val groupId = "com.github.whyrising.recompose"
-  val artifactId = "recompose"
 }
