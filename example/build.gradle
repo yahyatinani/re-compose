@@ -62,18 +62,16 @@ android {
 dependencies {
   implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.ui.ui
+  implementation deps.androidx.compose.ui.tooling
+  implementation deps.androidx.compose.runtime
+  implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.material.material
-  implementation deps.androidx.compose.ui.uiToolingPreview
+
   implementation deps.androidx.activity.activityCompose
   implementation deps.androidx.core.splashscreen
   implementation deps.accompanist.systemuicontroller
-  implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
   implementation project(':recompose')
 
-  testImplementation "junit:junit:4.13.2"
-  androidTestImplementation "androidx.test.ext:junit:1.1.3"
-  androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
-  androidTestImplementation deps.androidx.compose.ui.test
   debugImplementation deps.androidx.compose.ui.tooling
 
   coreLibraryDesugaring deps.android.tools.desugar
