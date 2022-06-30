@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.whyrising.recompose.example.Ids.formattedTime
 import com.github.whyrising.recompose.example.events.regAllEvents
+import com.github.whyrising.recompose.example.initAppDb
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
@@ -55,6 +56,7 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun DigitalWatchPreview() {
+  initAppDb()
   regAllEvents()
   regAllSubs(MaterialTheme.colors)
   RecomposeTheme {
@@ -67,6 +69,8 @@ fun DigitalWatchPreview() {
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun DigitalWatchDarkPreview() {
+  regAllEvents()
+  regAllSubs(MaterialTheme.colors)
   RecomposeTheme {
     Surface {
       DigitalWatch()

@@ -30,14 +30,18 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
 import com.github.whyrising.recompose.dispatch
+import com.github.whyrising.recompose.dispatchSync
+import com.github.whyrising.recompose.example.Ids.initDb
 import com.github.whyrising.recompose.example.Ids.startTicking
 import com.github.whyrising.recompose.example.composables.DigitalWatch
 import com.github.whyrising.recompose.example.composables.InputThemeForm
+import com.github.whyrising.recompose.example.db.AppDb
 import com.github.whyrising.recompose.example.db.regAllCofx
 import com.github.whyrising.recompose.example.events.regAllEvents
 import com.github.whyrising.recompose.example.fx.regAllFx
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
+import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.y.core.v
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -109,6 +113,13 @@ fun DefaultDarkPreview() {
 }
 
 // -- Entry Point --------------------------------------------------------------
+
+fun initAppDb() {
+  regEventDb<Any>(id = initDb) { _, _ ->
+    AppDb()
+  }
+  dispatchSync(v(initDb))
+}
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
