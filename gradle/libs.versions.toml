@@ -1,7 +1,7 @@
 [versions]
-kotlin = "1.6.21"
+kotlin = "1.7.0"
 ylib = "0.2.0"
-kotest = "5.3.0"
+kotest = "5.3.2"
 ktlint = "0.43.0"
 kover = "0.5.1"
 gradleplugin = "7.2.1"

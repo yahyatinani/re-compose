@@ -1,5 +1,7 @@
 package com.github.whyrising.recompose
 
 object Versions {
-  val compose = "1.2.0-beta03"
+  const val COMPOSE_COMPILER = "1.2.0"
+  const val KOTLIN = "1.7"
+  const val JVM = "1.8"
 }

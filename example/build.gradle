@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-  compileSdk 32
+  compileSdk 33
 
   defaultConfig {
     applicationId 'com.github.whyrising.recompose.example'
     minSdkVersion 22
-    targetSdkVersion 32
+    targetSdkVersion 33
     versionCode 1
     versionName '1.0'
     testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -55,7 +55,7 @@ android {
   }
 
   composeOptions {
-    kotlinCompilerExtensionVersion Versions.compose
+    kotlinCompilerExtensionVersion Versions.COMPOSE_COMPILER
   }
 }
 

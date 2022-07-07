@@ -42,7 +42,7 @@ android {
   }
 
   composeOptions {
-    kotlinCompilerExtensionVersion = Versions.compose
+    kotlinCompilerExtensionVersion = Versions.COMPOSE_COMPILER
   }
 
   compileOptions {
@@ -52,10 +52,6 @@ android {
 
   testOptions {
     unitTests.isReturnDefaultValues = true
-  }
-
-  composeOptions {
-    kotlinCompilerExtensionVersion = Versions.compose
   }
 
   publishing {
