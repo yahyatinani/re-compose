@@ -4,6 +4,7 @@ import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
+import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.router.FsmEvent.ADD_EVENT
 import com.github.whyrising.recompose.router.FsmEvent.EXCEPTION
 import com.github.whyrising.recompose.router.FsmEvent.FINISH_RUN
@@ -11,7 +12,6 @@ import com.github.whyrising.recompose.router.FsmEvent.RUN_QUEUE
 import com.github.whyrising.recompose.router.State.IDLE
 import com.github.whyrising.recompose.router.State.RUNNING
 import com.github.whyrising.recompose.router.State.SCHEDULING
-import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
@@ -138,8 +138,8 @@ internal class EventQueueFSM(
   companion object {
     internal val identity: FsmAction = { _ -> }
     internal fun registerBuiltInStuff() {
-      regCofx(id = Schema.db) { coeffects ->
-        coeffects.assoc(Schema.db, appDb.deref())
+      regCofx(id = recompose.db) { coeffects ->
+        coeffects.assoc(recompose.db, appDb.deref())
       }
 
       registerBuiltinEffectHandlers()

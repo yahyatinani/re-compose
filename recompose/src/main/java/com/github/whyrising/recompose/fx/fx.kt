@@ -5,15 +5,15 @@ import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.ids.context.effects
+import com.github.whyrising.recompose.ids.recompose
+import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
-import com.github.whyrising.recompose.schemas.ContextSchema.effects
-import com.github.whyrising.recompose.schemas.Schema
-import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.get
@@ -39,7 +39,7 @@ fun regFx(id: Any, handler: EffectHandler) {
 // -- Interceptor --------------------------------------------------------------
 
 val doFx: Interceptor = toInterceptor(
-  id = Schema.dofx,
+  id = recompose.dofx,
   after = { context: Context ->
     val effects: Effects = context[effects] as Effects
     val effectsWithoutDb: Effects = effects.dissoc(db)

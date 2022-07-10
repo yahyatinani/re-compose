@@ -9,12 +9,12 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.fx.regExecuteOrderedEffectsFx
 import com.github.whyrising.recompose.fx.regFx
 import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
+import com.github.whyrising.recompose.ids.context
+import com.github.whyrising.recompose.ids.interceptor.after
+import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds
-import com.github.whyrising.recompose.schemas.ContextSchema
-import com.github.whyrising.recompose.schemas.InterceptorSchema.after
-import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
@@ -53,7 +53,7 @@ class FxTest : FreeSpec({
       ":add-to-i" to 18,
       ":subtract-from-i" to 3
     )
-    val context = m(ContextSchema.effects to effects)
+    val context = m(context.effects to effects)
     val applyFx = doFx[after] as InterceptorFn
 
     val newContext = applyFx(context)
@@ -78,7 +78,7 @@ class FxTest : FreeSpec({
           v(":inc-i")
         )
       )
-      val context: Context = m(ContextSchema.effects to effects)
+      val context: Context = m(context.effects to effects)
       val applyFx = doFx[after] as InterceptorFn
 
       val newContext = applyFx(context)
@@ -105,7 +105,7 @@ class FxTest : FreeSpec({
           v(":inc&add-i", 4)
         )
       )
-      val context: Context = m(ContextSchema.effects to effects)
+      val context: Context = m(context.effects to effects)
       val applyFx = doFx[after] as InterceptorFn
 
       val newContext = applyFx(context)
@@ -129,7 +129,7 @@ class FxTest : FreeSpec({
           v(":inc-i", null)
         )
       )
-      val context: Context = m(ContextSchema.effects to effects)
+      val context: Context = m(context.effects to effects)
       val applyFx = doFx[after] as InterceptorFn
 
       val newContext = applyFx(context)
@@ -146,7 +146,7 @@ class FxTest : FreeSpec({
       val effects: Effects = m(
         fx to v(null)
       )
-      val context: Context = m(ContextSchema.effects to effects)
+      val context: Context = m(context.effects to effects)
       val applyFx = doFx[after] as InterceptorFn
 
       val newContext = applyFx(context)
@@ -163,7 +163,7 @@ class FxTest : FreeSpec({
       val effects: Effects = m(
         fx to v(v(null))
       )
-      val context: Context = m(ContextSchema.effects to effects)
+      val context: Context = m(context.effects to effects)
       val applyFx = doFx[after] as InterceptorFn
 
       val newContext = applyFx(context)

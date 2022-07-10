@@ -12,9 +12,9 @@ import com.github.whyrising.recompose.example.Ids.startTicking
 import com.github.whyrising.recompose.example.Ids.ticker
 import com.github.whyrising.recompose.example.db.AppDb
 import com.github.whyrising.recompose.fx.FxIds.fx
+import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.recompose.regEventFx
-import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v

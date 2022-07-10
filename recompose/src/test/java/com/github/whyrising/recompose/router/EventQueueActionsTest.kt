@@ -5,9 +5,9 @@ import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
+import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.multiThreadedRun
 import com.github.whyrising.recompose.regEventDb
-import com.github.whyrising.recompose.schemas.Schema
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
@@ -27,7 +27,7 @@ class EventQueueActionsTest : FreeSpec({
     com.github.whyrising.recompose.registrar.register.reset(m())
     appDb.emit(DEFAULT_APP_DB_VALUE)
     registerDbInjectorCofx()
-    injectCofx(Schema.db)
+    injectCofx(recompose.db)
     registerBuiltinEffectHandlers()
   }
 

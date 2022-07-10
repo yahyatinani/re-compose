@@ -1,6 +1,17 @@
 package com.github.whyrising.recompose
 
 import com.github.whyrising.recompose.cofx.Coeffects
+import com.github.whyrising.recompose.ids.coeffects.event
+import com.github.whyrising.recompose.ids.coeffects.originalEvent
+import com.github.whyrising.recompose.ids.context
+import com.github.whyrising.recompose.ids.context.coeffects
+import com.github.whyrising.recompose.ids.context.queue
+import com.github.whyrising.recompose.ids.context.stack
+import com.github.whyrising.recompose.ids.interceptor
+import com.github.whyrising.recompose.ids.interceptor.after
+import com.github.whyrising.recompose.ids.interceptor.before
+import com.github.whyrising.recompose.ids.interceptor.id
+import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.interceptor.InterceptorFn
@@ -13,17 +24,6 @@ import com.github.whyrising.recompose.interceptor.execute
 import com.github.whyrising.recompose.interceptor.invokeInterceptorFn
 import com.github.whyrising.recompose.interceptor.invokeInterceptors
 import com.github.whyrising.recompose.interceptor.toInterceptor
-import com.github.whyrising.recompose.schemas.CoeffectsSchema.event
-import com.github.whyrising.recompose.schemas.CoeffectsSchema.originalEvent
-import com.github.whyrising.recompose.schemas.ContextSchema
-import com.github.whyrising.recompose.schemas.ContextSchema.coeffects
-import com.github.whyrising.recompose.schemas.ContextSchema.queue
-import com.github.whyrising.recompose.schemas.ContextSchema.stack
-import com.github.whyrising.recompose.schemas.InterceptorSchema
-import com.github.whyrising.recompose.schemas.InterceptorSchema.after
-import com.github.whyrising.recompose.schemas.InterceptorSchema.before
-import com.github.whyrising.recompose.schemas.InterceptorSchema.id
-import com.github.whyrising.recompose.schemas.Schema.db
 import com.github.whyrising.y.core.assocIn
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
@@ -92,7 +92,7 @@ class InterceptorTest : FreeSpec({
 
   "context(event, interceptors) should return a fresh context" {
     val eventVec = v<Any>(":id", 12)
-    val interceptors = l<IPersistentMap<InterceptorSchema, Any>>()
+    val interceptors = l<IPersistentMap<interceptor, Any>>()
 
     val context = context(eventVec, interceptors)
 
@@ -106,21 +106,21 @@ class InterceptorTest : FreeSpec({
   }
 
   "invokeInterceptorFn() should call the interceptor fun based direction" - {
-    val context0 = m<ContextSchema, Any>(
+    val context0 = m<context, Any>(
       queue to v<Any>(),
       stack to v(1, 2, 3)
     )
 
     val f: (
-      IPersistentMap<ContextSchema, Any>
-    ) -> IPersistentMap<ContextSchema, Any> = { context ->
+      IPersistentMap<context, Any>
+    ) -> IPersistentMap<context, Any> = { context ->
       val q = (context[queue] as IPersistentVector<Any>).conj(1)
       context.assoc(queue, q)
     }
 
     val g: (
-      IPersistentMap<ContextSchema, Any>
-    ) -> IPersistentMap<ContextSchema, Any> = { context ->
+      IPersistentMap<context, Any>
+    ) -> IPersistentMap<context, Any> = { context ->
       val q = (context[queue] as IPersistentVector<Any>).plus(1)
       context.assoc(queue, q)
     }
@@ -135,7 +135,7 @@ class InterceptorTest : FreeSpec({
 
       val context = invokeInterceptorFn(context0, addToQ, before)
 
-      context shouldBe m<ContextSchema, Any>(
+      context shouldBe m<context, Any>(
         queue to v(1),
         stack to v(1, 2, 3)
       )
@@ -145,7 +145,7 @@ class InterceptorTest : FreeSpec({
       val context =
         invokeInterceptorFn(context0, addToQAfter, after)
 
-      context shouldBe m<ContextSchema, Any>(
+      context shouldBe m<context, Any>(
         queue to v(1),
         stack to v(1, 2, 3)
       )
@@ -160,7 +160,7 @@ class InterceptorTest : FreeSpec({
 
   "invokeInterceptors(context)" - {
     "should return the same given context when the :queue is empty" {
-      val context = m<ContextSchema, Any>(
+      val context = m<context, Any>(
         queue to l<Any>(),
         stack to l<Any>()
       )
@@ -175,14 +175,14 @@ class InterceptorTest : FreeSpec({
             and stack then in :stack while emptying the queue
         """ {
       val f1: (
-        IPersistentMap<ContextSchema, Any>
-      ) -> IPersistentMap<ContextSchema, Any> = { context ->
+        IPersistentMap<context, Any>
+      ) -> IPersistentMap<context, Any> = { context ->
         val i = (context[coeffects] as Coeffects)[db] as Int
         context.assoc(coeffects, m(db to i.inc()))
       }
       val f2: (
-        IPersistentMap<ContextSchema, Any>
-      ) -> IPersistentMap<ContextSchema, Any> = { context ->
+        IPersistentMap<context, Any>
+      ) -> IPersistentMap<context, Any> = { context ->
         val i = (context[coeffects] as Coeffects)[db] as Int
 
         context.assoc(coeffects, m(db to i + 2))
@@ -208,13 +208,13 @@ class InterceptorTest : FreeSpec({
 
   "changeDirection(context)" - {
     "should put the stack into a new the queue" {
-      val context = m<ContextSchema, Any>(
+      val context = m<context, Any>(
         queue to l<Any>(),
         stack to l(1, 2, 3)
       )
       val c = changeDirection(context)
 
-      c shouldBe m<ContextSchema, Any>(
+      c shouldBe m<context, Any>(
         queue to l<Any>(1, 2, 3),
         stack to l(1, 2, 3)
       )

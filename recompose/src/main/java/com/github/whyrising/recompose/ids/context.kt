@@ -1,7 +1,7 @@
-package com.github.whyrising.recompose.schemas
+package com.github.whyrising.recompose.ids
 
 @Suppress("EnumEntryName")
-enum class ContextSchema {
+enum class context {
   coeffects,
   effects,
   queue,
