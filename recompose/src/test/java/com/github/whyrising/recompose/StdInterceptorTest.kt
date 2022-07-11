@@ -5,11 +5,10 @@ import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.events.DbEventHandler
 import com.github.whyrising.recompose.events.FxEventHandler
 import com.github.whyrising.recompose.ids.coeffects
-import com.github.whyrising.recompose.ids.context
-import com.github.whyrising.recompose.ids.context.coeffects
 import com.github.whyrising.recompose.ids.context.effects
-import com.github.whyrising.recompose.ids.interceptor
+import com.github.whyrising.recompose.ids.interceptor.after
 import com.github.whyrising.recompose.ids.interceptor.before
+import com.github.whyrising.recompose.ids.interceptor.id
 import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
@@ -27,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.every
 import io.mockk.mockkStatic
+import com.github.whyrising.recompose.ids.context as ctx
 
 class StdInterceptorTest : FreeSpec({
   mockkStatic(Log::class)
@@ -36,7 +36,7 @@ class StdInterceptorTest : FreeSpec({
   "dbHandlerToInterceptor() should add new db value to effects in Context" {
     val coeffects: Coeffects =
       m(recompose.db to 1, coeffects.event to v("id", 5))
-    val context: Context = m(context.coeffects to coeffects)
+    val context: Context = m(ctx.coeffects to coeffects)
     val addToDbHandler: DbEventHandler<Int> = { db, event ->
       db + event[1] as Int
     }
@@ -45,9 +45,9 @@ class StdInterceptorTest : FreeSpec({
     val fn: InterceptorFn = interceptor[before] as InterceptorFn
     val newContext = fn(context)
 
-    interceptor[interceptor.id] shouldBe ":db-handler"
+    interceptor[id] shouldBe ":db-handler"
     newContext shouldBe m(
-      context.coeffects to coeffects,
+      com.github.whyrising.recompose.ids.context.coeffects to coeffects,
       effects to m(recompose.db to 6)
     )
   }
@@ -55,7 +55,7 @@ class StdInterceptorTest : FreeSpec({
   "fxHandlerToInterceptor() should assoc new effects value to Context" {
     val coeffects: Coeffects =
       m(recompose.db to 1, coeffects.event to v("id", 5))
-    val context: Context = m(context.coeffects to coeffects)
+    val context: Context = m(ctx.coeffects to coeffects)
     val newEffects = m("fx-test" to 15)
     val handler: FxEventHandler = { _, _ -> newEffects }
 
@@ -63,9 +63,9 @@ class StdInterceptorTest : FreeSpec({
     val fn: InterceptorFn = interceptor[before] as InterceptorFn
     val newContext = fn(context)
 
-    interceptor[interceptor.id] shouldBe ":fx-handler"
+    interceptor[id] shouldBe ":fx-handler"
     newContext shouldBe m(
-      context.coeffects to coeffects,
+      ctx.coeffects to coeffects,
       effects to newEffects
     )
   }
@@ -74,20 +74,20 @@ class StdInterceptorTest : FreeSpec({
     "before() should log the event and return the same context" {
       val event = v<Any>("id", 45)
       val context: Context =
-        m(coeffects to m(coeffects.event to event))
+        m(ctx.coeffects to m(coeffects.event to event))
       val before = debug[before] as InterceptorFn
 
-      debug[interceptor.id] shouldBe ":debug"
+      debug[id] shouldBe ":debug"
       before(context) shouldBeSameInstanceAs context
     }
 
     "after()" {
       val event = v<Any>("id", 45)
       val context: Context =
-        m(coeffects to m(coeffects.event to event))
-      val after = debug[interceptor.after] as InterceptorFn
+        m(ctx.coeffects to m(coeffects.event to event))
+      val after = debug[after] as InterceptorFn
 
-      debug[interceptor.id] shouldBe ":debug"
+      debug[id] shouldBe ":debug"
       after(context) shouldBeSameInstanceAs context
     }
   }
@@ -100,7 +100,7 @@ class StdInterceptorTest : FreeSpec({
       var eventVal = v<Any>()
       val context: Context = m(
         effects to m(),
-        coeffects to m(
+        ctx.coeffects to m(
           coeffects.event to expectedEvent,
           recompose.db to expectedDbVal
         )
@@ -110,9 +110,9 @@ class StdInterceptorTest : FreeSpec({
         dbVal = db
         eventVal = event as PersistentVector<Any>
       }
-      val afterFn = interceptor[interceptor.after] as InterceptorFn
+      val afterFn = interceptor[after] as InterceptorFn
 
-      interceptor[interceptor.id] shouldBe ":after"
+      interceptor[id] shouldBe ":after"
       afterFn(context) shouldBeSameInstanceAs context
       dbVal shouldBe expectedDbVal
       eventVal shouldBeSameInstanceAs expectedEvent
@@ -125,7 +125,7 @@ class StdInterceptorTest : FreeSpec({
       var eventVal = v<Any>()
       val context: Context = m(
         effects to m(recompose.db to expectedDbVal),
-        coeffects to m(
+        ctx.coeffects to m(
           coeffects.event to expectedEvent,
           recompose.db to 10
         )
@@ -135,9 +135,9 @@ class StdInterceptorTest : FreeSpec({
         dbVal = db
         eventVal = event as PersistentVector<Any>
       }
-      val afterFn = interceptor[interceptor.after] as InterceptorFn
+      val afterFn = interceptor[after] as InterceptorFn
 
-      interceptor[interceptor.id] shouldBe ":after"
+      interceptor[id] shouldBe ":after"
       afterFn(context) shouldBeSameInstanceAs context
       dbVal shouldBe expectedDbVal
       eventVal shouldBeSameInstanceAs expectedEvent

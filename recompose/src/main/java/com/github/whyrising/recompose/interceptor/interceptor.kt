@@ -2,8 +2,6 @@ package com.github.whyrising.recompose.interceptor
 
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.ids.coeffects
-import com.github.whyrising.recompose.ids.context
-import com.github.whyrising.recompose.ids.context.coeffects
 import com.github.whyrising.recompose.ids.context.queue
 import com.github.whyrising.recompose.ids.context.stack
 import com.github.whyrising.recompose.ids.interceptor
@@ -14,8 +12,9 @@ import com.github.whyrising.y.core.conj
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.l
 import com.github.whyrising.y.core.m
+import com.github.whyrising.recompose.ids.context as ctx
 
-typealias Context = IPersistentMap<context, Any>
+typealias Context = IPersistentMap<ctx, Any>
 
 typealias Interceptor = IPersistentMap<interceptor, Any>
 
@@ -35,9 +34,9 @@ fun toInterceptor(
 
 fun assocCofx(
   context: Context,
-  key: com.github.whyrising.recompose.ids.coeffects,
+  key: coeffects,
   value: Any
-): Context = assocIn(context, l(coeffects, key), value) as Context
+): Context = assocIn(context, l(ctx.coeffects, key), value) as Context
 
 internal fun enqueue(
   context: Context,
@@ -50,7 +49,7 @@ internal fun enqueue(
 internal fun context(
   event: Event,
   interceptors: ISeq<Interceptor>
-): Context = m<context, Any>()
+): Context = m<ctx, Any>()
   .let { assocCofx(it, coeffects.event, event) }
   .let { assocCofx(it, coeffects.originalEvent, event) }
   .let { enqueue(it, interceptors) }
