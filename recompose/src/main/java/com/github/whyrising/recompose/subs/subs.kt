@@ -39,8 +39,9 @@ internal fun <T> subscribe(query: Query): ReactionBase<Any, T> {
   val cacheKey = v(query, v())
   val cachedReaction = reactionsCache[cacheKey] as ReactionBase<Any, T>?
 
-  if (cachedReaction != null)
+  if (cachedReaction != null) {
     return cachedReaction
+  }
 
   val (queryId) = query
   val subHandler = getHandler(kind, queryId) as (SubHandler<Any, T>)?

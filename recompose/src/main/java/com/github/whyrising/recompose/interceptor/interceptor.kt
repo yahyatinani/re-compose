@@ -29,7 +29,7 @@ fun toInterceptor(
 ): Interceptor = m(
   interceptor.id to id,
   interceptor.before to before,
-  interceptor.after to after,
+  interceptor.after to after
 )
 
 fun assocCofx(

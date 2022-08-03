@@ -52,15 +52,17 @@ class ComputationReaction<I, O>(
     while (true) {
       val old = state.value
       val oldArgs = old[inputsKey] as PersistentVector<I>? ?: v()
-      if (oldArgs.count > index && oldArgs[index] == arg)
+      if (oldArgs.count > index && oldArgs[index] == arg) {
         return
+      }
 
       val newArgs = oldArgs.assoc(index, arg)
       val materializedView = withContext(context) { f(newArgs) }
       val new = m(stateKey to materializedView, inputsKey to newArgs)
 
-      if (state.compareAndSet(old, new))
+      if (state.compareAndSet(old, new)) {
         return
+      }
     }
   }
 

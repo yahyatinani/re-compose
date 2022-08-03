@@ -24,11 +24,13 @@ abstract class ReactionBase<T, O> : ViewModel(), Reaction<O>, Disposable {
           // last subscriber just disappeared => composable left
           // the Composition tree.
           // Reaction is not used by any.
-          if (subCount == 0 && !isFresh())
+          if (subCount == 0 && !isFresh()) {
             onCleared()
+          }
 
-          if (isFresh())
+          if (isFresh()) {
             isFresh.reset(false)
+          }
         }
         .launchIn(viewModelScope)
     }

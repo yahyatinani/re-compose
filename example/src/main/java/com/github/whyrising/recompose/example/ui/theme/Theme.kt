@@ -38,7 +38,7 @@ fun RecomposeTheme(
   colors: Colors = subscribe<Colors>(
     v(themeColors, if (darkTheme) DarkColorPalette else LightColorPalette)
   ).w(),
-  content: @Composable () -> Unit,
+  content: @Composable () -> Unit
 ) = MaterialTheme(
   colors = colors,
   typography = Typography,

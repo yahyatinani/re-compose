@@ -258,7 +258,7 @@ class InterceptorTest : FreeSpec({
     context shouldBe m(
       coeffects to m(event to eventV, originalEvent to eventV, db to 12),
       queue to l<Any>(),
-      stack to l(interceptor1, interceptor2, interceptor2, interceptor1),
+      stack to l(interceptor1, interceptor2, interceptor2, interceptor1)
     )
   }
 })

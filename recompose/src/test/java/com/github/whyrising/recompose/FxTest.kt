@@ -42,8 +42,9 @@ class FxTest : FreeSpec({
 
   "doFx interceptor should update the appDb and apply other effects" {
     regFx(id = db) { newAppDb ->
-      if (newAppDb != null)
+      if (newAppDb != null) {
         appDb.emit(newAppDb)
+      }
     }
     var i = 0
     regFx(id = ":add-to-i") { i += (it as Int) }
@@ -67,8 +68,9 @@ class FxTest : FreeSpec({
     "when passing an effect id without a value, execute the effect" {
       regExecuteOrderedEffectsFx()
       regFx(id = db) { newAppDb ->
-        if (newAppDb != null)
+        if (newAppDb != null) {
           appDb.emit(newAppDb)
+        }
       }
       var i = 0
       regFx(id = ":inc-i") { i = i.inc() }
@@ -94,8 +96,9 @@ class FxTest : FreeSpec({
         """ {
       regExecuteOrderedEffectsFx()
       regFx(id = db) { newAppDb ->
-        if (newAppDb != null)
+        if (newAppDb != null) {
           appDb.emit(newAppDb)
+        }
       }
       var i = 0
       regFx(id = ":inc&add-i") { i = i.inc() + it as Int }
@@ -118,8 +121,9 @@ class FxTest : FreeSpec({
     "when passing an effect id with a null value, execute the effect" {
       regExecuteOrderedEffectsFx()
       regFx(id = db) { newAppDb ->
-        if (newAppDb != null)
+        if (newAppDb != null) {
           appDb.emit(newAppDb)
+        }
       }
       var i = 0
       regFx(id = ":inc-i") { i = i.inc() }

@@ -80,8 +80,9 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
       val effectKey = effect.nth(0, null)
       val effectValue = effect.nth(1, null)
 
-      if (effectKey == db)
+      if (effectKey == db) {
         Log.w(TAG, "\":fx\" effect should not contain a :db effect")
+      }
 
       if (effectKey == null) {
         Log.w(TAG, "in :fx effect, null is not a valid effectKey. Skip.")
@@ -90,9 +91,9 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
 
       val fxFn = getHandler(kind, effectKey) as EffectHandler?
 
-      if (fxFn != null)
+      if (fxFn != null) {
         fxFn(effectValue)
-      else Log.w(
+      } else Log.w(
         TAG,
         "in :fx, effect: $effectKey has no associated handler. Skip."
       )
@@ -109,8 +110,9 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
 internal fun registerBuiltinEffectHandlers() {
   regExecuteOrderedEffectsFx()
   regFx(id = db) { newAppDb ->
-    if (newAppDb != null)
+    if (newAppDb != null) {
       appDb.emit(newAppDb)
+    }
   }
   regFx(id = FxIds.dispatch) { event ->
     if (event !is IPersistentVector<*>) {

@@ -11,10 +11,11 @@ internal val eventQueueFSM = EventQueueFSM(EventQueueImp())
 // -- Dispatching --------------------------------------------------------------
 
 private fun validate(event: Event) {
-  if (event.count == 0)
+  if (event.count == 0) {
     throw IllegalArgumentException(
       "$TAG: `dispatch` was called with an empty event vector."
     )
+  }
 }
 
 internal fun dispatch(event: Event) {

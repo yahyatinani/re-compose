@@ -23,7 +23,7 @@ import java.util.Date
 fun regAllEvents() {
   regEventFx(
     id = nextTick,
-    interceptors = v(injectCofx(Ids.now)),
+    interceptors = v(injectCofx(Ids.now))
   ) { cofx, _ ->
     val appDb = cofx[db] as AppDb
     m(db to appDb.copy(time = cofx[Ids.now] as Date))

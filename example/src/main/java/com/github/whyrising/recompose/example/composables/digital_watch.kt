@@ -38,7 +38,7 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
       text = "Local time:",
       modifier = Modifier.align(CenterHorizontally),
       style = typography.h3.copy(fontWeight = FontWeight.Light),
-      color = colors.primary,
+      color = colors.primary
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
@@ -47,7 +47,7 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
       color = colors.secondary,
       style = typography.h1.copy(
         fontWeight = FontWeight.SemiBold,
-        fontSize = 80.sp,
+        fontSize = 80.sp
       )
     )
   }

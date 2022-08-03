@@ -62,7 +62,7 @@ fun regAllSubs(defaultColors: Colors) {
     queryId = formattedTime,
 //        context = Dispatchers.Default,
 //        placeholder = "...",
-    signalsFn = { subscribe(v(time)) },
+    signalsFn = { subscribe(v(time)) }
   ) { date: Date, _: Query ->
     val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
 //        heavyComp()

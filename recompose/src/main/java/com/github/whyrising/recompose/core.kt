@@ -83,7 +83,7 @@ fun <T> subscribe(qvec: IPersistentVector<Any>): ReactionBase<Any, T> =
  */
 inline fun <T, R> regSub(
   queryId: Any,
-  crossinline extractor: (db: T, queryVec: Query) -> R,
+  crossinline extractor: (db: T, queryVec: Query) -> R
 ) = regDbSubscription(queryId, extractor)
 
 /**
@@ -105,12 +105,12 @@ inline fun <T, R> regSub(
   placeholder: R? = null,
   context: CoroutineContext = EmptyCoroutineContext,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
-  crossinline computationFn: (input: T, queryVec: Query) -> R,
+  crossinline computationFn: (input: T, queryVec: Query) -> R
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = { queryVec -> v(signalsFn(queryVec)) },
   initial = placeholder,
-  context = context,
+  context = context
 ) { persistentVector, qVec ->
   computationFn(persistentVector[0], qVec)
 }

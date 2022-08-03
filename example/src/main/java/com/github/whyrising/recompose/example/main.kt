@@ -61,7 +61,7 @@ fun MyApp() {
             Text(
               text = "Re-compose Sample",
               color = colors.secondary,
-              style = MaterialTheme.typography.h5,
+              style = MaterialTheme.typography.h5
             )
           },
           actions = {
@@ -71,9 +71,9 @@ fun MyApp() {
                 contentDescription = "Exit"
               )
             }
-          },
+          }
         )
-      },
+      }
     ) { padding ->
       Surface(
         modifier = Modifier
