@@ -2,7 +2,7 @@
 kotlin = "1.7.10"
 ylib = "0.2.0"
 kotest = "5.4.0"
-ktlint = "0.43.0"
+ktlint = "0.46.1"
 kover = "0.5.1"
 gradleplugin = "7.2.1"
 compose = "1.2.0"
@@ -15,6 +15,7 @@ appcompat = "1.4.2"
 lifecycle = "2.5.0"
 coroutines = "1.6.4"
 mockk = "1.12.0"
+spotless = "6.9.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
@@ -57,5 +58,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "gradleplugin" }
 android-application = { id = "com.android.application", version.ref = "gradleplugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-spotless = { id = "com.diffplug.spotless", version = "6.6.0" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

@@ -1,4 +1,0 @@
-[*.{kt, kts}]
-max_line_length = 80
-indent_size = 2
-indent_style = space # or "tab"
