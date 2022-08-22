@@ -48,19 +48,31 @@ class ComputationReaction<I, O>(
     )
   }
 
-  internal suspend fun recompute(arg: I, index: Int) {
+  private fun isSameInput(
+    currentInputs: PersistentVector<I>,
+    index: Int,
+    newInput: I
+  ) = currentInputs.count > index && currentInputs[index] == newInput
+
+  private fun isStateSetToDefault(currentState: IPersistentMap<Any, Any?>) =
+    currentState[stateKey] != initial
+
+  internal suspend fun recompute(input: I, inputIndex: Int) {
     while (true) {
-      val old = state.value
-      val oldArgs = old[inputsKey] as PersistentVector<I>? ?: v()
-      if (oldArgs.count > index && oldArgs[index] == arg) {
+      val currState = state.value
+      val currInputs = currState[inputsKey] as PersistentVector<I>? ?: v()
+
+      if (isSameInput(currInputs, inputIndex, input) &&
+        isStateSetToDefault(currState)
+      ) {
         return
       }
 
-      val newArgs = oldArgs.assoc(index, arg)
-      val materializedView = withContext(context) { f(newArgs) }
-      val new = m(stateKey to materializedView, inputsKey to newArgs)
+      val newInputs = currInputs.assoc(inputIndex, input)
+      val materializedView = withContext(context) { f(newInputs) }
+      val newState = m(stateKey to materializedView, inputsKey to newInputs)
 
-      if (state.compareAndSet(old, new)) {
+      if (state.compareAndSet(currState, newState)) {
         return
       }
     }
