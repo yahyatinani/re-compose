@@ -20,6 +20,7 @@ import com.github.whyrising.recompose.example.Ids.secondaryColorStr
 import com.github.whyrising.recompose.example.Ids.setPrimaryColor
 import com.github.whyrising.recompose.example.Ids.setSecondaryColor
 import com.github.whyrising.recompose.example.events.regAllEvents
+import com.github.whyrising.recompose.example.initAppDb
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.subscribe
@@ -68,6 +69,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun InputThemeFormPreview() {
+  initAppDb()
   regAllEvents()
   regAllSubs(MaterialTheme.colors)
   RecomposeTheme {
