@@ -130,8 +130,10 @@ class MainActivity : ComponentActivity() {
     regAllCofx()
     regAllFx(lifecycle.coroutineScope)
     setContent {
+      SideEffect {
+        dispatch(v(startTicking))
+      }
       regAllSubs(MaterialTheme.colors)
-      dispatch(v(startTicking))
       MyApp()
     }
   }
