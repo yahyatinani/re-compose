@@ -75,9 +75,9 @@ inline fun <I, O> regCompSubscription(
   crossinline signalsFn: (
     queryVec: Query
   ) -> IPersistentVector<Reaction<I>>,
-  initial: O?,
+  initial: O,
   context: CoroutineContext,
-  crossinline computationFn: (
+  crossinline computationFn: suspend (
     subscriptions: IPersistentVector<I>,
     queryVec: Query
   ) -> O

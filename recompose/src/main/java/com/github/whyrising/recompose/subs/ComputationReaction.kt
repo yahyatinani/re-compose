@@ -9,9 +9,9 @@ import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 internal const val stateKey = "state"
@@ -25,27 +25,22 @@ fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
 /**
  * @param inputSignals are the nodes (Reactions) that signal the current
  * [ComputationReaction] to recalculate its value when new values are provided.
- * @param initial when it's null, the first value calculation of this [ComputationReaction]
- * happens on the main thread.
- * @param context on which further values' calculations of this [ComputationReaction]
- * will happen.
+ * @param initial when it's null, the first value calculation of this
+ * [ComputationReaction] happens on the main thread.
+ * @param context on which further values' calculations of this
+ * [ComputationReaction] will happen.
  * @param f is the function that calculates the sequence of values of this
  * [ComputationReaction].
  */
 class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
   val context: CoroutineContext,
-  private val initial: O?,
-  val f: (signalsValues: IPersistentVector<I>) -> O
+  private val initial: O,
+  private val context2: CoroutineContext = Dispatchers.Default,
+  val f: suspend (signalsValues: IPersistentVector<I>) -> O
 ) : ReactionBase<IPersistentMap<Any, Any?>, O>() {
   override val state: MutableStateFlow<IPersistentMap<Any, Any?>> by lazy {
-    val inputs = deref(inputSignals)
-    initState(
-      m<String, Any?>(
-        inputsKey to inputs,
-        stateKey to (initial ?: f(inputs))
-      )
-    )
+    initState(m<String, Any?>(stateKey to initial))
   }
 
   private fun isSameInput(
@@ -54,22 +49,17 @@ class ComputationReaction<I, O>(
     newInput: I
   ) = currentInputs.count > index && currentInputs[index] == newInput
 
-  private fun isStateSetToDefault(currentState: IPersistentMap<Any, Any?>) =
-    currentState[stateKey] != initial
-
   internal suspend fun recompute(input: I, inputIndex: Int) {
     while (true) {
       val currState = state.value
       val currInputs = currState[inputsKey] as PersistentVector<I>? ?: v()
 
-      if (isSameInput(currInputs, inputIndex, input) &&
-        isStateSetToDefault(currState)
-      ) {
+      if (isSameInput(currInputs, inputIndex, input)) {
         return
       }
 
       val newInputs = currInputs.assoc(inputIndex, input)
-      val materializedView = withContext(context) { f(newInputs) }
+      val materializedView = f(newInputs)
       val newState = m(stateKey to materializedView, inputsKey to newInputs)
 
       if (state.compareAndSet(currState, newState)) {
@@ -80,12 +70,19 @@ class ComputationReaction<I, O>(
 
   // init should be after state property.
   init {
-    for ((i, inputNode) in inputSignals.withIndex())
-      viewModelScope.launch {
-        inputNode.collect { newInput: I ->
-          recompute(newInput, i)
+    viewModelScope.launch(context) {
+      val inputs = deref(inputSignals)
+      state.value = m(
+        inputsKey to inputs,
+        stateKey to f(inputs)
+      )
+      for ((i, inputNode) in inputSignals.withIndex())
+        viewModelScope.launch(context2) {
+          inputNode.collect { newInput: I ->
+            recompute(newInput, i)
+          }
         }
-      }
+    }
   }
 
   override fun deref(state: State<IPersistentMap<Any, Any?>>): O =
