@@ -36,6 +36,7 @@ class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
   val context: CoroutineContext,
   private val initial: O,
+  private val context2: CoroutineContext = Dispatchers.Default,
   val f: suspend (signalsValues: IPersistentVector<I>) -> O
 ) : ReactionBase<IPersistentMap<Any, Any?>, O>() {
   override val state: MutableStateFlow<IPersistentMap<Any, Any?>> by lazy {
@@ -76,7 +77,7 @@ class ComputationReaction<I, O>(
         stateKey to f(inputs)
       )
       for ((i, inputNode) in inputSignals.withIndex())
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(context2) {
           inputNode.collect { newInput: I ->
             recompute(newInput, i)
           }
