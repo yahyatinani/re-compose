@@ -21,6 +21,7 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -33,6 +34,10 @@ import kotlin.time.Duration.Companion.seconds
 class ComputationReactionTest : FreeSpec({
   val testDispatcher = StandardTestDispatcher()
   Dispatchers.setMain(testDispatcher)
+
+  afterTest {
+    testDispatcher.cancel()
+  }
 
   "ctor" - {
     "default values" {
@@ -76,10 +81,8 @@ class ComputationReactionTest : FreeSpec({
   }
 
   "dispose()" - {
-    """
-        should call all functions in disposeFns atom and cancel the
-        viewModelScope
-        """ {
+    """should call all functions in disposeFns atom and cancel the
+       viewModelScope""" {
       var isDisposed = false
       val reaction =
         ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 0 }
@@ -126,6 +129,7 @@ class ComputationReactionTest : FreeSpec({
         val reaction = ComputationReaction(
           inputSignals = v(input1, input2),
           context = testDispatcher,
+          context2 = testDispatcher,
           initial = initial
         ) { (a, b) ->
           a.inc() + b.inc()
@@ -148,14 +152,26 @@ class ComputationReactionTest : FreeSpec({
     "when the same arg passed it should not recompute" {
       runTest {
         val initial = -1
-        val r1 =
-          ComputationReaction<Int, Int>(v(), testDispatcher, initial) { 1 }
-        val r2 =
-          ComputationReaction<Int, Int>(v(), testDispatcher, initial) { 2 }
-        val reaction =
-          ComputationReaction(v(r1, r2), testDispatcher, initial) { (a, b) ->
-            a.inc() + b.inc()
-          }
+        val r1 = ComputationReaction<Int, Int>(
+          inputSignals = v(),
+          context = testDispatcher,
+          initial = initial,
+          context2 = testDispatcher
+        ) { 1 }
+        val r2 = ComputationReaction<Int, Int>(
+          inputSignals = v(),
+          context = testDispatcher,
+          context2 = testDispatcher,
+          initial = initial
+        ) { 2 }
+        val reaction = ComputationReaction(
+          inputSignals = v(r1, r2),
+          context = testDispatcher,
+          initial = initial,
+          context2 = testDispatcher
+        ) { (a, b) ->
+          a.inc() + b.inc()
+        }
         advanceUntilIdle()
 
         reaction.deref() shouldBe 5
@@ -169,12 +185,25 @@ class ComputationReactionTest : FreeSpec({
 
   "deref(subscriptions) should return a vector of dereferenced reactions" {
     runTest {
-      val reaction1 =
-        ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 1 }
-      val reaction2 =
-        ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 2 }
-      val reaction3 =
-        ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 3 }
+      val initial = -1
+      val reaction1 = ComputationReaction<Int, Int>(
+        v(),
+        testDispatcher,
+        initial,
+        context2 = testDispatcher
+      ) { 1 }
+      val reaction2 = ComputationReaction<Int, Int>(
+        inputSignals = v(),
+        context = testDispatcher,
+        initial,
+        context2 = testDispatcher
+      ) { 2 }
+      val reaction3 = ComputationReaction<Int, Int>(
+        v(),
+        testDispatcher,
+        initial = initial,
+        context2 = testDispatcher
+      ) { 3 }
 
       advanceUntilIdle()
 
