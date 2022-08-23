@@ -16,6 +16,8 @@ import com.github.whyrising.recompose.regSubM
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.core.v
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,8 +62,7 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSub<Date, String>(
     queryId = formattedTime,
-//        context = Dispatchers.Default,
-//        placeholder = "...",
+    placeholder = "...",
     signalsFn = { subscribe(v(time)) }
   ) { date: Date, _: Query ->
     val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
@@ -79,6 +80,8 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSub(
     queryId = primaryColor,
+    placeholder = Color.Gray,
+//    context = Dispatchers.Main.immediate,
     signalsFn = { subscribe<String>(v(primaryColorStr)) }
   ) { colorName, _ ->
     toColor(colorName)
@@ -86,6 +89,8 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSub(
     queryId = secondaryColor,
+    placeholder = Color.Gray,
+//    context = Dispatchers.Main.immediate,
     signalsFn = { subscribe<String>(v(secondaryColorStr)) }
   ) { colorName, _ ->
     toColor(colorName)
@@ -93,6 +98,8 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSubM(
     queryId = themeColors,
+    placeholder = defaultColors,
+//    context = Dispatchers.Main.immediate,
     signalsFn = {
       v(
         subscribe(v(primaryColor)),
@@ -100,9 +107,11 @@ fun regAllSubs(defaultColors: Colors) {
       )
     }
   ) { (primary, secondary), (_, colors) ->
-    (colors as Colors).copy(
-      primary = primary as Color,
-      secondary = secondary as Color
-    )
+    withContext(Dispatchers.Main.immediate) {
+      (colors as Colors).copy(
+        primary = primary as Color,
+        secondary = secondary as Color
+      )
+    }
   }
 }
