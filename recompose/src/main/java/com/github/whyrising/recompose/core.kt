@@ -22,8 +22,14 @@ import com.github.whyrising.recompose.subs.regDbSubscription
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+
+typealias ComputationFn1<T, V> = suspend (input: T, queryVec: Query) -> V
+
+typealias ComputationFn2<T> =
+  suspend (subscriptions: IPersistentVector<Any>, queryVec: Query) -> T
 
 internal const val TAG = "re-compose"
 
@@ -91,21 +97,21 @@ inline fun <T, R> regSub(
  * @param signalsFn a function that returns a [ReactiveAtom], by subscribing to
  * other nodes, and provides [computationFn] function with new input whenever
  * it changes.
- * @param placeholder is the initial value and you should provide this argument
- * only if the computation is heavy, since the initialization is always done
- * synchronously.
- * @param context on which further values' calculations will be executed. If the
- * computation is heavy you should use [Dispatchers.Default] while providing a
- * [placeholder] value.
- * @param computationFn a function that obtains input data from [signalsFn], and
- * computes derived data from it.
+ * @param placeholder is just an initial value for this [Reaction] so the UI can
+ * render until the right value is dine calculating asynchronously.
+ * @param context on which the first value calculation/initialization will be
+ * executed. It's set to [Dispatchers.Default] by default.
+ * @param computationFn a suspend function that obtains input data from
+ * [signalsFn], and computes derived data from it. Consider using [withContext]
+ * with [Dispatchers.Main] when you have computations that should run on the UI
+ * thread to avoid snapshots exceptions.
  */
 inline fun <T, R> regSub(
   queryId: Any,
-  placeholder: R? = null,
-  context: CoroutineContext = EmptyCoroutineContext,
+  placeholder: R,
+  context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
-  crossinline computationFn: (input: T, queryVec: Query) -> R
+  crossinline computationFn: ComputationFn1<T, R>
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = { queryVec -> v(signalsFn(queryVec)) },
@@ -123,23 +129,21 @@ inline fun <T, R> regSub(
  * @param signalsFn a function that returns a vector of [ReactiveAtom]s,
  * by subscribing to other nodes, and provides [computationFn] function with new
  * set of input whenever it one of them changes.
- * @param placeholder is the initial value and you should provide this argument
- * only if the computation is heavy, since the initialization is always done
- * synchronously.
- * @param context on which further values' calculations will be executed. If the
- * computation is heavy you should use [Dispatchers.Default] while providing a
- * [placeholder] value.
- * @param computationFn a function that obtains data from [signalsFn], and
- * compute derived data from it.
+ * @param placeholder is just an initial value for this [Reaction] so the UI can
+ * render until the right value is dine calculating asynchronously.
+ * @param context on which the first value calculation/initialization will be
+ * executed. It's set to [Dispatchers.Default] by default.
+ * @param computationFn a suspend function that obtains data from [signalsFn],
+ * and compute derived data from it. Consider using [withContext] with
+ * [Dispatchers.Main] when you have computations that should run on the UI
+ * thread to avoid snapshots exceptions.
  */
 inline fun <R> regSubM(
   queryId: Any,
-  placeholder: R? = null,
-  context: CoroutineContext = EmptyCoroutineContext,
-  crossinline signalsFn:
-    (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
-  crossinline computationFn:
-    (subscriptions: IPersistentVector<Any>, queryVec: Query) -> R
+  placeholder: R,
+  context: CoroutineContext = Dispatchers.Default,
+  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
+  crossinline computationFn: ComputationFn2<R>
 ) = regCompSubscription(queryId, signalsFn, placeholder, context, computationFn)
 
 /**
