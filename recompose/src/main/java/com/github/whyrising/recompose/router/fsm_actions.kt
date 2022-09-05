@@ -25,7 +25,7 @@ internal interface EventQueueActions {
 internal class EventQueueImp(queue: EventQueue = q()) :
   EventQueueActions,
   IEventQueue {
-  private val _eventQueueRef: Atom<EventQueue> = atom(queue)
+  internal val _eventQueueRef: Atom<EventQueue> = atom(queue)
 
   val queue: EventQueue
     get() = _eventQueueRef()

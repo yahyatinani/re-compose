@@ -3,7 +3,6 @@ package com.github.whyrising.recompose.router
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 internal val eventQueueFSM = EventQueueFSM(EventQueueImp())
@@ -20,9 +19,7 @@ private fun validate(event: Event) {
 
 internal fun dispatch(event: Event) {
   validate(event)
-  scope.launch {
-    eventQueueFSM.handle(FsmEvent.ADD_EVENT, event)
-  }
+  eventQueueFSM.handle(FsmEvent.ADD_EVENT, event)
 }
 
 internal fun dispatchSync(event: Event) {

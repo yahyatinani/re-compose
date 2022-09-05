@@ -15,11 +15,10 @@ import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 internal enum class State {
@@ -48,48 +47,35 @@ internal val RUNNING__EXCEPTION = v(RUNNING, EXCEPTION)
 
 typealias FsmAction = (arg: Any?) -> Unit
 
-internal val scope = CoroutineScope(
-  context = SupervisorJob() + Dispatchers.Default
-)
-
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
+  defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
 ) {
-  private var consumeSignal = CompletableDeferred<Unit>()
+  internal val _state: Atom<State> = atom(start)
+  private val scope = CoroutineScope(defaultDispatcher)
 
   init {
     registerBuiltInStuff()
-    // events consumer coroutine.
-    scope.launch(handler) {
-      while (true) {
-        consumeSignal.await()
-        try {
-          eventQueue.processCurrentEvents()
-        } catch (ex: Exception) {
-          handle(EXCEPTION, ex)
-        }
-        // this doesn't execute when an exception occurs because handle() throws
-        // again in catch block.
-        handle(FINISH_RUN)
-
-        consumeSignal = CompletableDeferred()
-      }
-    }
   }
-
-  private val _state: Atom<State> = atom(start)
 
   val state: State
     get() = _state()
 
   private fun runQueue(arg: Any?) {
-    scope.launch { handle(RUN_QUEUE) }
+    handle(RUN_QUEUE)
   }
 
   internal fun processAllCurrentEvents(arg: Any?) {
-    consumeSignal.complete(Unit)
+    try {
+      eventQueue.processCurrentEvents()
+    } catch (ex: Exception) {
+      handle(EXCEPTION, ex)
+    }
+    // this doesn't execute when an exception occurs because handle() throws
+    // again in catch block.
+    handle(FINISH_RUN)
   }
 
   private val IDLE_identity = v(IDLE, identity)
@@ -125,18 +111,21 @@ internal class EventQueueFSM(
     }
 
   fun handle(fsmEvent: FsmEvent, arg: Any? = null) {
-    while (true) {
-      val givenFsmState = state
-      val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
-      if (_state.compareAndSet(givenFsmState, newFsmState as State)) {
-        (actionFn as FsmAction)(arg)
-        break
+    scope.launch(handler) {
+      while (true) {
+        val givenFsmState = state
+        val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
+        if (_state.compareAndSet(givenFsmState, newFsmState as State)) {
+          (actionFn as FsmAction)(arg)
+          break
+        }
       }
     }
   }
 
   companion object {
     internal val identity: FsmAction = { _ -> }
+
     internal fun registerBuiltInStuff() {
       regCofx(id = recompose.db) { coeffects ->
         coeffects.assoc(recompose.db, appDb.deref())

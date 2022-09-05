@@ -13,14 +13,17 @@ import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.time.Duration.Companion.seconds
 
+@ExperimentalCoroutinesApi
 class EventQueueFsmTest : FreeSpec({
-  Dispatchers.setMain(StandardTestDispatcher())
+  val testDispatcher = StandardTestDispatcher()
+  Dispatchers.setMain(testDispatcher)
 
   "initial state of FSM" {
     val eventQueue = EventQueueImp()
@@ -31,16 +34,27 @@ class EventQueueFsmTest : FreeSpec({
   }
 
   "Given we're in IDLE state" - {
-    "when ADD_EVENT event, then go to SCHEDULING state and enqueue and run" {
+    "when ADD_EVENT event, set state to SCHEDULING, enqueue and run" {
       runTest {
         val eventQueue = EventQueueImp()
-        val eventQueueFSM = EventQueueFSM(eventQueue)
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          defaultDispatcher = testDispatcher
+        )
+        var state1: State? = null
+        var isEventQueued = false
+        eventQueueFSM._state.addWatch("scheduling") { _, _, _, new ->
+          if (new == SCHEDULING) state1 = new
+        }
+        eventQueue._eventQueueRef.addWatch("count") { _, _, _, new ->
+          if (new.count > 0) isEventQueued = true
+        }
 
         eventQueueFSM.handle(ADD_EVENT, v("new-event"))
+        advanceUntilIdle()
 
-        eventQueueFSM.eventQueue.count shouldBe 1
-        eventQueueFSM.state shouldBe SCHEDULING
-        advanceUntilIdle() // wait for the queue to be exhausted.
+        state1 shouldBe SCHEDULING
+        isEventQueued shouldBe true
         eventQueueFSM.state shouldBe IDLE
         eventQueueFSM.eventQueue.count shouldBe 0
       }
@@ -48,31 +62,43 @@ class EventQueueFsmTest : FreeSpec({
   }
 
   "Given we're in SCHEDULING state" - {
-    "when ADD_EVENT event, then stay in SCHEDULING state and enqueue event" {
+    "when ADD_EVENT event, stay in SCHEDULING state and enqueue the new event" {
       runTest {
         val eventQueue = EventQueueImp()
-        val eventQueueFSM = EventQueueFSM(eventQueue, SCHEDULING)
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          start = SCHEDULING,
+          defaultDispatcher = testDispatcher
+        )
 
         eventQueueFSM.handle(ADD_EVENT, v("new-event"))
         eventQueueFSM.handle(ADD_EVENT, v("new-event"))
+        advanceUntilIdle()
 
         eventQueueFSM.eventQueue.count shouldBe 2
         eventQueueFSM.state shouldBe SCHEDULING
       }
     }
 
-    "when RUN_QUEUE event, then go to RUNNING state and run queue" {
+    "when RUN_QUEUE event, go to RUNNING state and run queue" {
       runTest {
         val eventQueue = EventQueueImp().apply {
           enqueue(v(":event1", "arg"))
           enqueue(v(":event2", "arg"))
         }
-        val eventQueueFSM = EventQueueFSM(eventQueue, SCHEDULING)
-
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          start = SCHEDULING,
+          defaultDispatcher = testDispatcher
+        )
+        var state1: State? = null
+        eventQueueFSM._state.addWatch("running") { _, _, _, new ->
+          if (new == RUNNING) state1 = new
+        }
         eventQueueFSM.handle(RUN_QUEUE)
-
-        eventQueueFSM.state shouldBe RUNNING
         advanceUntilIdle()
+
+        state1 shouldBe RUNNING
         eventQueueFSM.eventQueue.count shouldBe 0
         eventQueueFSM.state shouldBe IDLE
       }
@@ -81,41 +107,61 @@ class EventQueueFsmTest : FreeSpec({
 
   "Given we're in RUNNING state" - {
     "when EXCEPTION event happens, then go to IDLE and call exception()" {
-      val eventQueue = EventQueueImp().apply {
-        enqueue(v(":event1", "arg"))
-        enqueue(v(":event2", "arg"))
-      }
-      val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
-
-      shouldThrowExactly<RuntimeException> {
+      runTest {
+        var e: Throwable? = null
+        val eventQueue = EventQueueImp().apply {
+          enqueue(v(":event1", "arg"))
+          enqueue(v(":event2", "arg"))
+        }
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          start = RUNNING,
+          defaultDispatcher = testDispatcher,
+          handler = CoroutineExceptionHandler { _, exception -> e = exception }
+        )
         eventQueueFSM.handle(FsmEvent.EXCEPTION, RuntimeException())
-      }
+        advanceUntilIdle()
 
-      eventQueueFSM.state shouldBe IDLE
-      eventQueue.queue.isEmpty() shouldBe true
+        shouldThrowExactly<RuntimeException> { throw e!! }
+        eventQueueFSM.state shouldBe IDLE
+        eventQueue.queue.isEmpty() shouldBe true
+      }
     }
 
-    """when ADD_EVENT event, then stay in RUNNING and enqueue that event in the
-       EventQueue""" {
-      val eventQueue = EventQueueImp().apply {
-        enqueue(v(":event1", "arg"))
-        enqueue(v(":event2", "arg"))
+    "when ADD_EVENT event, stay in RUNNING and enqueue that event" {
+      runTest {
+        val eventQueue = EventQueueImp().apply {
+          enqueue(v(":event1", "arg"))
+          enqueue(v(":event2", "arg"))
+        }
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          start = RUNNING,
+          defaultDispatcher = testDispatcher
+        )
+
+        eventQueueFSM.handle(ADD_EVENT, v("new-event"))
+        advanceUntilIdle()
+
+        eventQueueFSM.state shouldBe RUNNING
+        eventQueueFSM.eventQueue.count shouldBe 3
       }
-      val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
-
-      eventQueueFSM.handle(ADD_EVENT, v("new-event"))
-
-      eventQueueFSM.state shouldBe RUNNING
-      eventQueueFSM.eventQueue.count shouldBe 3
     }
 
     "when FINISH_RUN event and queue is empty, then go IDLE state" {
-      val eventQueue = EventQueueImp()
-      val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
+      runTest {
+        val eventQueue = EventQueueImp()
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          start = RUNNING,
+          defaultDispatcher = testDispatcher
+        )
 
-      eventQueueFSM.handle(FsmEvent.FINISH_RUN)
+        eventQueueFSM.handle(FsmEvent.FINISH_RUN)
+        advanceUntilIdle()
 
-      eventQueueFSM.state shouldBe IDLE
+        eventQueueFSM.state shouldBe IDLE
+      }
     }
 
     "when FINISH_RUN event and queue is not empty, then run the queue" {
@@ -125,12 +171,20 @@ class EventQueueFsmTest : FreeSpec({
           enqueue(v(":event2", "arg"))
           enqueue(v(":event2", "arg"))
         }
-        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          start = RUNNING,
+          defaultDispatcher = testDispatcher
+        )
+        var state1: State? = null
+        eventQueueFSM._state.addWatch("scheduling") { _, _, _, new ->
+          if (new == SCHEDULING) state1 = new
+        }
 
         eventQueueFSM.handle(FsmEvent.FINISH_RUN)
+        advanceUntilIdle()
 
-        eventQueueFSM.state shouldBe SCHEDULING
-        advanceUntilIdle() // wait for the queue to be exhausted.
+        state1 shouldBe SCHEDULING
         eventQueueFSM.state shouldBe IDLE
         eventQueueFSM.eventQueue.count shouldBe 0
       }
@@ -163,9 +217,12 @@ class EventQueueFsmTest : FreeSpec({
           val eventQueue = EventQueueImp().apply { enqueue(v("ex-event")) }
           var e: Throwable? = null
           val eventQueueFSM = EventQueueFSM(
-            eventQueue,
-            RUNNING,
-            CoroutineExceptionHandler { _, exception -> e = exception }
+            eventQueue = eventQueue,
+            start = RUNNING,
+            defaultDispatcher = testDispatcher,
+            handler = CoroutineExceptionHandler { _, exception ->
+              e = exception
+            }
           )
           eventQueueFSM.processAllCurrentEvents(null)
           advanceUntilIdle()
