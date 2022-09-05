@@ -34,7 +34,7 @@ fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
  */
 class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
-  val context: CoroutineContext,
+  private val context: CoroutineContext,
   private val initial: O,
   private val context2: CoroutineContext = Dispatchers.Default,
   val f: suspend (signalsValues: IPersistentVector<I>) -> O
