@@ -49,7 +49,7 @@ internal val RUNNING__EXCEPTION = v(RUNNING, EXCEPTION)
 typealias FsmAction = (arg: Any?) -> Unit
 
 internal val scope = CoroutineScope(
-  context = SupervisorJob() + Dispatchers.Main.immediate
+  context = SupervisorJob() + Dispatchers.Default
 )
 
 internal class EventQueueFSM(
