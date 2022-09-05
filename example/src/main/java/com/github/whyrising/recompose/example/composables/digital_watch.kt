@@ -47,7 +47,7 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
       color = colors.secondary,
       style = typography.h1.copy(
         fontWeight = FontWeight.SemiBold,
-        fontSize = 80.sp
+        fontSize = 72.sp
       )
     )
   }
