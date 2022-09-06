@@ -17,11 +17,13 @@ coroutines = "1.6.4"
 mockk = "1.12.0"
 spotless = "6.9.0"
 profileinstaller = "1.2.0"
+junit4 = "4.13.2"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 
 y-core = { module = "com.github.whyrising.y:y-core", version.ref = "ylib" }
 y-concurrency = { module = "com.github.whyrising.y:y-concurrency", version.ref = "ylib" }
