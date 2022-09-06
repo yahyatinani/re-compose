@@ -32,7 +32,7 @@ android {
 
   buildTypes {
     debug {
-//      applicationIdSuffix = ".debug"
+      //      applicationIdSuffix = ".debug"
     }
 
     release {
@@ -47,7 +47,7 @@ android {
       initWith buildTypes.release
       signingConfig signingConfigs.debug
       matchingFallbacks.add("release")
-//      applicationIdSuffix = ".benchmark"
+      //      applicationIdSuffix = ".benchmark"
     }
   }
 

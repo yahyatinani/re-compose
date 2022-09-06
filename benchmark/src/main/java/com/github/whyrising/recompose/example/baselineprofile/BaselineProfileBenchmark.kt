@@ -43,16 +43,16 @@ class BaselineProfileBenchmark {
   }
 }
 
-//BaselineProfileBenchmark_startupNoCompilation
-//timeToInitialDisplayMs   min 1,150.3,   median 1,207.9,   max 1,239.9
-//Traces: Iteration 0 1 2 3 4 5 6 7 8 9
-//BaselineProfileBenchmark_startupBaselineProfile
-//timeToInitialDisplayMs   min   974.7,   median 1,013.7,   max 1,061.6
-//Traces: Iteration 0 1 2 3 4 5 6 7 8 9
+// BaselineProfileBenchmark_startupNoCompilation
+// timeToInitialDisplayMs   min 1,150.3,   median 1,207.9,   max 1,239.9
+// Traces: Iteration 0 1 2 3 4 5 6 7 8 9
+// BaselineProfileBenchmark_startupBaselineProfile
+// timeToInitialDisplayMs   min   974.7,   median 1,013.7,   max 1,061.6
+// Traces: Iteration 0 1 2 3 4 5 6 7 8 9
 
-//BaselineProfileBenchmark_startupNoCompilation
-//timeToInitialDisplayMs   min 1,128.2,   median 1,203.0,   max 1,259.5
-//Traces: Iteration 0 1 2 3 4 5 6 7 8 9
-//BaselineProfileBenchmark_startupBaselineProfile
-//timeToInitialDisplayMs   min 815.8,   median 874.9,   max 912.5
-//Traces: Iteration 0 1 2 3 4 5 6 7 8 9
+// BaselineProfileBenchmark_startupNoCompilation
+// timeToInitialDisplayMs   min 1,128.2,   median 1,203.0,   max 1,259.5
+// Traces: Iteration 0 1 2 3 4 5 6 7 8 9
+// BaselineProfileBenchmark_startupBaselineProfile
+// timeToInitialDisplayMs   min 815.8,   median 874.9,   max 912.5
+// Traces: Iteration 0 1 2 3 4 5 6 7 8 9
