@@ -68,6 +68,7 @@ dependencies {
   implementation deps.androidx.compose.runtime
   implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.material.material
+  implementation deps.androidx.profileinstaller
 
   implementation deps.androidx.activity.activityCompose
   implementation deps.androidx.core.splashscreen
