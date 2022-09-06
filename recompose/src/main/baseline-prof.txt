@@ -57,6 +57,7 @@ HSPLandroidx/activity/h;->d()Lt/q1;
 HSPLandroidx/activity/h;->e()V
 HSPLandroidx/activity/h;->onCreate(Landroid/os/Bundle;)V
 HSPLandroidx/activity/h;->onSaveInstanceState(Landroid/os/Bundle;)V
+HSPLandroidx/activity/h;->onTrimMemory(I)V
 HSPLandroidx/activity/h;->setContentView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
 HSPLandroidx/activity/i;-><init>(I)V
 HSPLandroidx/activity/i;-><init>(Landroidx/activity/i;Lk1/s;)V
@@ -171,6 +172,7 @@ HSPLandroidx/compose/ui/platform/e1;->a(Ljava/lang/Object;)Z
 HSPLandroidx/compose/ui/platform/e2;-><clinit>()V
 HSPLandroidx/compose/ui/platform/f0;-><init>(Lp3/r;Lb1/a;)V
 HSPLandroidx/compose/ui/platform/f0;->onConfigurationChanged(Landroid/content/res/Configuration;)V
+HSPLandroidx/compose/ui/platform/f0;->onTrimMemory(I)V
 HSPLandroidx/compose/ui/platform/g0;-><clinit>()V
 HSPLandroidx/compose/ui/platform/g0;->a(Landroidx/compose/ui/platform/AndroidComposeView;Lo3/e;Lt/h;I)V
 HSPLandroidx/compose/ui/platform/g1;-><init>(Lb4/n;Lh3/d;)V
@@ -1037,6 +1039,7 @@ HSPLe3/k;-><clinit>()V
 HSPLe3/k;-><init>()V
 HSPLe3/l;-><init>(Lo3/a;)V
 HSPLe3/l;->getValue()Ljava/lang/Object;
+HSPLe4/a;-><init>()V
 HSPLe4/b;-><clinit>()V
 HSPLe4/b;-><init>()V
 HSPLe4/b;->a(Ljava/lang/Object;)Ljava/lang/Object;
@@ -2671,7 +2674,6 @@ HSPLq/n3;->e()Ljava/lang/Object;
 HSPLq/n;-><clinit>()V
 HSPLq/n;-><init>()V
 HSPLq/o1;-><init>(Ljava/lang/String;Lo3/c;Le0/k;ZZLe1/y;Lo3/e;Lo3/e;Lo3/e;Lo3/e;ZLk1/b0;Lo/m0;Lo/l0;ZILj/m;Lj0/c0;Lq/o3;III)V
-HSPLq/o1;->y(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 HSPLq/o4;-><clinit>()V
 HSPLq/o;-><clinit>()V
 HSPLq/p3;-><init>(Lq/s3;ZZLj/l;Lq/o3;Lj0/c0;FFII)V
@@ -3881,6 +3883,7 @@ HSPLy2/b;->L(Ljava/lang/Object;)Ljava/lang/Object;
 HSPLy2/c;-><init>(Ly2/d;Ly2/f;Ljava/lang/Object;Lh3/d;)V
 HSPLy2/c;->a(Ljava/lang/Object;Lh3/d;)Lh3/d;
 HSPLy2/c;->g(Ljava/lang/Object;)Ljava/lang/Object;
+HSPLy2/d;-><clinit>()V
 HSPLy2/d;-><init>(Ly2/e;)V
 HSPLy2/d;->a(Ly2/f;Ljava/lang/Object;)V
 HSPLy2/e;-><init>()V
@@ -3889,13 +3892,12 @@ HSPLy2/e;->b()Lb3/b1;
 HSPLy2/e;->c()V
 HSPLy2/f;-><clinit>()V
 HSPLy2/f;-><init>(Ljava/lang/String;I)V
-HSPLy2/g;-><clinit>()V
-HSPLy2/h;-><init>(Lb3/a0;Lh3/d;)V
-HSPLy2/h;->a(Ljava/lang/Object;Lh3/d;)Lh3/d;
-HSPLy2/h;->g(Ljava/lang/Object;)Ljava/lang/Object;
+HSPLy2/g;-><init>(Lb3/a0;Lh3/d;)V
+HSPLy2/g;->a(Ljava/lang/Object;Lh3/d;)Lh3/d;
+HSPLy2/g;->g(Ljava/lang/Object;)Ljava/lang/Object;
+HSPLy2/h;-><clinit>()V
 HSPLy2/i;-><clinit>()V
-HSPLy2/j;-><clinit>()V
-HSPLy2/j;-><init>(Ljava/lang/String;I)V
+HSPLy2/i;-><init>(Ljava/lang/String;I)V
 HSPLy3/a;-><clinit>()V
 HSPLy3/a;-><init>(I)V
 HSPLy3/b;-><clinit>()V
@@ -4107,6 +4109,7 @@ HSPLz3/n1;->z(Ljava/lang/Throwable;)Z
 HSPLz3/o0;-><init>()V
 HSPLz3/o0;->m(Z)V
 HSPLz3/o0;->o(Z)J
+HSPLz3/o0;->p(Lz3/d0;)V
 HSPLz3/o0;->r(Z)V
 HSPLz3/o0;->s()Z
 HSPLz3/o0;->u()Z
@@ -4577,6 +4580,7 @@ Le3/f;
 Le3/h;
 Le3/k;
 Le3/l;
+Le4/a;
 Le4/b;
 Le4/c;
 Le4/d;
@@ -5017,10 +5021,12 @@ Lk1/k;
 Lk1/l;
 Lk1/m;
 Lk1/n;
+Lk1/o;
 Lk1/s;
 Lk1/t;
 Lk1/w;
 Lk1/x;
+Lk1/y;
 Lk1/z;
 Lk3/b;
 Lk3/c;
@@ -5122,8 +5128,10 @@ Lo/f1;
 Lo/g1;
 Lo/h0;
 Lo/i0;
+Lo/i;
 Lo/j0;
 Lo/j1;
+Lo/j;
 Lo/k0;
 Lo/k1;
 Lo/k;
@@ -5635,7 +5643,6 @@ Ly2/f;
 Ly2/g;
 Ly2/h;
 Ly2/i;
-Ly2/j;
 Ly3/a;
 Ly3/b;
 Ly3/c;
@@ -5728,4 +5735,9 @@ PLf4/i;->a(ILjava/lang/Object;)V
 PLh2/d;-><clinit>()V
 PLh2/d;-><init>(I)V
 PLh2/f;->run()V
+PLr0/c;->R([II)I
 PLz3/x;->U0(Landroid/content/Context;Ljava/util/concurrent/Executor;Lh2/e;Z)V
+Lcom/github/whyrising/recompose/router/EventQueueFSM;
+Lcom/github/whyrising/recompose/router/EventQueueImp;
+Lcom/github/whyrising/recompose/router/FsmEvent;
+Lcom/github/whyrising/recompose/router/State;

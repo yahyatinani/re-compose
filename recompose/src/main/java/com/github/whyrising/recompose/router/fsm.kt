@@ -37,14 +37,6 @@ internal enum class FsmEvent {
   EXCEPTION
 }
 
-/* FSM transitions:*/
-internal val IDLE__ADD_EVENT = v(IDLE, ADD_EVENT)
-internal val SCHEDULING__RUN_QUEUE = v(SCHEDULING, RUN_QUEUE)
-internal val RUNNING__FINISH_RUN = v(RUNNING, FINISH_RUN)
-internal val RUNNING__ADD_EVENT = v(RUNNING, ADD_EVENT)
-internal val SCHEDULING__ADD_EVENT = v(SCHEDULING, ADD_EVENT)
-internal val RUNNING__EXCEPTION = v(RUNNING, EXCEPTION)
-
 typealias FsmAction = (arg: Any?) -> Unit
 
 internal class EventQueueFSM(
@@ -125,6 +117,14 @@ internal class EventQueueFSM(
 
   companion object {
     internal val identity: FsmAction = { _ -> }
+
+    /* FSM transitions:*/
+    internal val IDLE__ADD_EVENT = v(IDLE, ADD_EVENT)
+    internal val SCHEDULING__RUN_QUEUE = v(SCHEDULING, RUN_QUEUE)
+    internal val RUNNING__FINISH_RUN = v(RUNNING, FINISH_RUN)
+    internal val RUNNING__ADD_EVENT = v(RUNNING, ADD_EVENT)
+    internal val SCHEDULING__ADD_EVENT = v(SCHEDULING, ADD_EVENT)
+    internal val RUNNING__EXCEPTION = v(RUNNING, EXCEPTION)
 
     internal fun registerBuiltInStuff() {
       regCofx(id = recompose.db) { coeffects ->
