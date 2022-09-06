@@ -1,0 +1,19 @@
+Lcom/github/whyrising/recompose/router/*;
+Lcom/github/whyrising/recompose/db/*;
+Lcom/github/whyrising/recompose/subs/*;
+
+# router. include everything
+HSPLcom/github/whyrising/recompose/router/**->**(**)**
+
+# db. include everything
+HSPLcom/github/whyrising/recompose/db/**->**(**)**
+
+HSPLcom/github/whyrising/recompose/cofx/**->**(**)**
+HSPLcom/github/whyrising/recompose/events/**->**(**)**
+HSPLcom/github/whyrising/recompose/fx/**->**(**)**
+HSPLcom/github/whyrising/recompose/ids/**->**(**)**
+HSPLcom/github/whyrising/recompose/interceptor/**->**(**)**
+HSPLcom/github/whyrising/recompose/registrar/**->**(**)**
+HSPLcom/github/whyrising/recompose/stdinterceptors/**->**(**)**
+HSPLcom/github/whyrising/recompose/subs/**->**(**)**
+HSPLcom/github/whyrising/recompose/**->**(**)**

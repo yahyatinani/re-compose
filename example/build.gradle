@@ -32,15 +32,22 @@ android {
 
   buildTypes {
     debug {
-      signingConfig signingConfigs.debug
+      //      applicationIdSuffix = ".debug"
     }
 
     release {
       minifyEnabled true
       shrinkResources true
-
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
         'proguard-rules.pro'
+      signingConfig signingConfigs.debug
+    }
+
+    benchmark {
+      initWith buildTypes.release
+      signingConfig signingConfigs.debug
+      matchingFallbacks.add("release")
+      //      applicationIdSuffix = ".benchmark"
     }
   }
 
@@ -68,6 +75,7 @@ dependencies {
   implementation deps.androidx.compose.runtime
   implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.material.material
+  implementation deps.androidx.profileinstaller
 
   implementation deps.androidx.activity.activityCompose
   implementation deps.androidx.core.splashscreen
@@ -77,4 +85,13 @@ dependencies {
   debugImplementation deps.androidx.compose.ui.tooling
 
   coreLibraryDesugaring deps.android.tools.desugar
+
+  // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
+  configurations.configureEach {
+    resolutionStrategy {
+      force(deps.junit4)
+      // Temporary workaround for https://issuetracker.google.com/174733673
+      force("org.objenesis:objenesis:2.6")
+    }
+  }
 }
