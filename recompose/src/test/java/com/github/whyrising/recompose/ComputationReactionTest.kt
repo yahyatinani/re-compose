@@ -1,5 +1,6 @@
 package com.github.whyrising.recompose
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.RAtom
 import com.github.whyrising.recompose.subs.ComputationReaction
@@ -57,13 +58,23 @@ class ComputationReactionTest : FreeSpec({
     }
   }
 
-  "deref()" {
+  "deref() should return the computation value of the reaction" {
     val defaultVal = 0
     val f = { _: IPersistentVector<Int> -> defaultVal }
     val reaction =
       ComputationReaction(v(), testDispatcher, initial = defaultVal, f = f)
 
     reaction.deref() shouldBe defaultVal
+  }
+
+  "deref(state) should return the computation value of the reaction" {
+    val defaultVal = 0
+    val f = { _: IPersistentVector<Int> -> defaultVal }
+    val reaction =
+      ComputationReaction(v(), testDispatcher, initial = defaultVal, f = f)
+
+    reaction.deref(mutableStateOf(m(inputsKey to 2, stateKey to "2"))) shouldBe
+      "2"
   }
 
   "addOnDispose(f)" {
