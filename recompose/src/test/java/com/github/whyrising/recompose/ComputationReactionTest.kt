@@ -5,10 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.RAtom
 import com.github.whyrising.recompose.subs.ComputationReaction
 import com.github.whyrising.recompose.subs.ExtractorReaction
+import com.github.whyrising.recompose.subs.Ids.computation_value
+import com.github.whyrising.recompose.subs.Ids.signals_value
 import com.github.whyrising.recompose.subs.ReactionBase
 import com.github.whyrising.recompose.subs.deref
-import com.github.whyrising.recompose.subs.inputsKey
-import com.github.whyrising.recompose.subs.stateKey
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.inc
 import com.github.whyrising.y.core.l
@@ -54,7 +54,7 @@ class ComputationReactionTest : FreeSpec({
 
       reaction.isFresh.deref().shouldBeTrue()
       reaction.id shouldBe "rx${reaction.hashCode()}"
-      reaction.state.value shouldBe m(stateKey to defaultVal)
+      reaction.state.value shouldBe m(computation_value to defaultVal)
     }
   }
 
@@ -70,11 +70,15 @@ class ComputationReactionTest : FreeSpec({
   "deref(state) should return the computation value of the reaction" {
     val defaultVal = 0
     val f = { _: IPersistentVector<Int> -> defaultVal }
-    val reaction =
-      ComputationReaction(v(), testDispatcher, initial = defaultVal, f = f)
+    val state = mutableStateOf(m(signals_value to 2, computation_value to "2"))
+    val reaction = ComputationReaction(
+      inputSignals = v(),
+      context = testDispatcher,
+      initial = defaultVal,
+      f = f
+    )
 
-    reaction.deref(mutableStateOf(m(inputsKey to 2, stateKey to "2"))) shouldBe
-      "2"
+    reaction.deref(state) shouldBe "2"
   }
 
   "collect(action) should return the computation value of the reaction" {
@@ -183,8 +187,8 @@ class ComputationReactionTest : FreeSpec({
 
         reaction.deref() shouldBe -1
         reaction.state.value shouldBe m(
-          stateKey to -1,
-          inputsKey to v(-5, 2)
+          computation_value to -1,
+          signals_value to v(-5, 2)
         )
       }
     }
