@@ -17,23 +17,24 @@ abstract class ReactionBase<T, O> : ViewModel(), Reaction<O>, Disposable {
 
   internal abstract fun deref(state: State<T>): O
 
-  internal fun initState(t: T): MutableStateFlow<T> = MutableStateFlow(t)
-    .apply {
-      subscriptionCount
-        .onEach { subCount ->
-          // last subscriber just disappeared => composable left
-          // the Composition tree.
-          // Reaction is not used by any.
-          if (subCount == 0 && !isFresh()) {
-            onCleared()
-          }
+  internal fun initState(stateValue: T): MutableStateFlow<T> =
+    MutableStateFlow(stateValue)
+      .apply {
+        subscriptionCount
+          .onEach { subCount ->
+            // last subscriber just disappeared => composable left
+            // the Composition tree.
+            // Reaction is not used by any.
+            if (subCount == 0 && !isFresh()) {
+              onCleared()
+            }
 
-          if (isFresh()) {
-            isFresh.reset(false)
+            if (isFresh()) {
+              isFresh.reset(false)
+            }
           }
-        }
-        .launchIn(viewModelScope)
-    }
+          .launchIn(viewModelScope)
+      }
 
   internal val disposeFns = atom<ISeq<(ReactionBase<T, O>) -> Unit>>(l())
 

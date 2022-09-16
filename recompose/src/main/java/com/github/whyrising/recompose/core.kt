@@ -98,7 +98,8 @@ inline fun <T, R> regSub(
  * other nodes, and provides [computationFn] function with new input whenever
  * it changes.
  * @param initial is the first value for this [Reaction] so the UI can
- * render until the right value is done calculating asynchronously.
+ * render until the right value is done calculating asynchronously. If null
+ * then the first computation happens synchronously on the main thread.
  * @param context on which the first value calculation/initialization will be
  * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains input data from
@@ -108,7 +109,7 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
   queryId: Any,
-  initial: R,
+  initial: R? = null,
   context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
   crossinline computationFn: ComputationFn1<T, R>
@@ -130,7 +131,8 @@ inline fun <T, R> regSub(
  * by subscribing to other nodes, and provides [computationFn] function with new
  * set of input whenever it one of them changes.
  * @param initial is the first value for this [Reaction] so the UI can
- * render until the right value is done calculating asynchronously.
+ * render until the right value is done calculating asynchronously. If null
+ * then the first computation happens synchronously on the main thread.
  * @param context on which the first value calculation/initialization will be
  * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains data from [signalsFn],
@@ -140,7 +142,7 @@ inline fun <T, R> regSub(
  */
 inline fun <R> regSubM(
   queryId: Any,
-  initial: R,
+  initial: R? = null,
   context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
   crossinline computationFn: ComputationFn2<R>

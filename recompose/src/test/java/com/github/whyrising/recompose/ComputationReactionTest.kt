@@ -41,20 +41,35 @@ class ComputationReactionTest : FreeSpec({
   }
 
   "ctor" - {
-    "default values" {
+    "default values with initial" {
       val defaultVal = 0
 
       val reaction = ComputationReaction(
         inputSignals = v(),
         context = testDispatcher,
         initial = defaultVal
-      ) { _: IPersistentVector<Int> ->
-        defaultVal
-      }
+      ) { _: IPersistentVector<Int> -> defaultVal }
 
       reaction.isFresh.deref().shouldBeTrue()
       reaction.id shouldBe "rx${reaction.hashCode()}"
       reaction.state.value shouldBe m(computation_value to defaultVal)
+    }
+
+    "when initial's null, calculate the first value" {
+      val reaction = ComputationReaction(
+        inputSignals = v(ExtractorReaction(RAtom(93)) { it }),
+        context = testDispatcher,
+        initial = null
+      ) { (i) ->
+        i + 1
+      }
+
+      reaction.isFresh.deref().shouldBeTrue()
+      reaction.id shouldBe "rx${reaction.hashCode()}"
+      reaction.state.value shouldBe m(
+        signals_value to v(93),
+        computation_value to 94
+      )
     }
   }
 

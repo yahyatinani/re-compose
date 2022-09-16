@@ -3,9 +3,11 @@ package com.github.whyrising.recompose.subs
 import androidx.compose.runtime.State
 import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.subs.Ids.computation_value
+import com.github.whyrising.recompose.subs.Ids.signals_value
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.collections.PersistentArrayMap
 import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
@@ -13,6 +15,7 @@ import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 
 @Suppress("EnumEntryName")
@@ -39,12 +42,29 @@ fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
 class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
   private val context: CoroutineContext,
-  private val initial: O,
+  private val initial: O?,
   private val context2: CoroutineContext = Dispatchers.Default,
   val f: suspend (signalsValues: IPersistentVector<I>) -> O
 ) : ReactionBase<IPersistentMap<Any, Any?>, O>() {
+  private fun withInitial() = initial != null
+
+  private suspend fun calcFirstValue(
+    inputSignals: IPersistentVector<Reaction<I>>
+  ): PersistentArrayMap<Ids, Any?> {
+    val inputs = deref(inputSignals)
+    return m(
+      signals_value to inputs,
+      computation_value to f(inputs)
+    )
+  }
+
   override val state: MutableStateFlow<IPersistentMap<Any, Any?>> by lazy {
-    initState(m<Any, Any?>(computation_value to initial))
+    initState(
+      stateValue = when {
+        withInitial() -> m<Any, Any?>(computation_value to initial)
+        else -> runBlocking { calcFirstValue(inputSignals) }
+      }
+    )
   }
 
   private fun isSameInput(
@@ -57,17 +77,16 @@ class ComputationReaction<I, O>(
     while (true) {
       val currentValue = state.value
       val currInputs =
-        currentValue[Ids.signals_value] as PersistentVector<I>? ?: v()
+        currentValue[signals_value] as PersistentVector<I>? ?: v()
 
       if (isSameInput(currInputs, inputIndex, input)) {
         return
       }
 
       val newInputs = currInputs.assoc(inputIndex, input)
-      val materializedView = f(newInputs)
       val newState = m(
-        computation_value to materializedView,
-        Ids.signals_value to newInputs
+        computation_value to f(newInputs),
+        signals_value to newInputs
       )
 
       if (state.compareAndSet(currentValue, newState)) {
@@ -79,11 +98,10 @@ class ComputationReaction<I, O>(
   // init should be after state property.
   init {
     viewModelScope.launch(context) {
-      val inputs = deref(inputSignals)
-      state.value = m(
-        Ids.signals_value to inputs,
-        computation_value to f(inputs)
-      )
+      if (withInitial()) {
+        // calc first value
+        state.value = calcFirstValue(inputSignals)
+      }
       for ((i, inputNode) in inputSignals.withIndex())
         viewModelScope.launch(context2) {
           inputNode.collect { newInput: I ->
