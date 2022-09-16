@@ -97,8 +97,8 @@ inline fun <T, R> regSub(
  * @param signalsFn a function that returns a [ReactiveAtom], by subscribing to
  * other nodes, and provides [computationFn] function with new input whenever
  * it changes.
- * @param placeholder is just an initial value for this [Reaction] so the UI can
- * render until the right value is dine calculating asynchronously.
+ * @param initial is the first value for this [Reaction] so the UI can
+ * render until the right value is done calculating asynchronously.
  * @param context on which the first value calculation/initialization will be
  * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains input data from
@@ -108,14 +108,14 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
   queryId: Any,
-  placeholder: R,
+  initial: R,
   context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
   crossinline computationFn: ComputationFn1<T, R>
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = { queryVec -> v(signalsFn(queryVec)) },
-  initial = placeholder,
+  initial = initial,
   context = context
 ) { persistentVector, qVec ->
   computationFn(persistentVector[0], qVec)
@@ -129,8 +129,8 @@ inline fun <T, R> regSub(
  * @param signalsFn a function that returns a vector of [ReactiveAtom]s,
  * by subscribing to other nodes, and provides [computationFn] function with new
  * set of input whenever it one of them changes.
- * @param placeholder is just an initial value for this [Reaction] so the UI can
- * render until the right value is dine calculating asynchronously.
+ * @param initial is the first value for this [Reaction] so the UI can
+ * render until the right value is done calculating asynchronously.
  * @param context on which the first value calculation/initialization will be
  * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains data from [signalsFn],
@@ -140,11 +140,11 @@ inline fun <T, R> regSub(
  */
 inline fun <R> regSubM(
   queryId: Any,
-  placeholder: R,
+  initial: R,
   context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
   crossinline computationFn: ComputationFn2<R>
-) = regCompSubscription(queryId, signalsFn, placeholder, context, computationFn)
+) = regCompSubscription(queryId, signalsFn, initial, context, computationFn)
 
 /**
  * Collects values from this Reaction and represents its latest value.
