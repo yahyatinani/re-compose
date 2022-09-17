@@ -2,9 +2,12 @@ package com.github.whyrising.recompose.subs
 
 import androidx.compose.runtime.State
 import androidx.lifecycle.viewModelScope
+import com.github.whyrising.recompose.subs.Ids.computation_value
+import com.github.whyrising.recompose.subs.Ids.signals_value
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.collections.PersistentArrayMap
 import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
@@ -12,10 +15,14 @@ import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 
-internal const val stateKey = "state"
-internal const val inputsKey = "input"
+@Suppress("EnumEntryName")
+internal enum class Ids {
+  signals_value,
+  computation_value
+}
 
 fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
   refs.fold(v()) { acc, r ->
@@ -35,12 +42,29 @@ fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
 class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
   private val context: CoroutineContext,
-  private val initial: O,
+  private val initial: O?,
   private val context2: CoroutineContext = Dispatchers.Default,
   val f: suspend (signalsValues: IPersistentVector<I>) -> O
 ) : ReactionBase<IPersistentMap<Any, Any?>, O>() {
+  private fun withInitial() = initial != null
+
+  private suspend fun calcFirstValue(
+    inputSignals: IPersistentVector<Reaction<I>>
+  ): PersistentArrayMap<Ids, Any?> {
+    val inputs = deref(inputSignals)
+    return m(
+      signals_value to inputs,
+      computation_value to f(inputs)
+    )
+  }
+
   override val state: MutableStateFlow<IPersistentMap<Any, Any?>> by lazy {
-    initState(m<String, Any?>(stateKey to initial))
+    initState(
+      stateValue = when {
+        withInitial() -> m<Any, Any?>(computation_value to initial)
+        else -> runBlocking { calcFirstValue(inputSignals) }
+      }
+    )
   }
 
   private fun isSameInput(
@@ -51,18 +75,21 @@ class ComputationReaction<I, O>(
 
   internal suspend fun recompute(input: I, inputIndex: Int) {
     while (true) {
-      val currState = state.value
-      val currInputs = currState[inputsKey] as PersistentVector<I>? ?: v()
+      val currentValue = state.value
+      val currInputs =
+        currentValue[signals_value] as PersistentVector<I>? ?: v()
 
       if (isSameInput(currInputs, inputIndex, input)) {
         return
       }
 
       val newInputs = currInputs.assoc(inputIndex, input)
-      val materializedView = f(newInputs)
-      val newState = m(stateKey to materializedView, inputsKey to newInputs)
+      val newState = m(
+        computation_value to f(newInputs),
+        signals_value to newInputs
+      )
 
-      if (state.compareAndSet(currState, newState)) {
+      if (state.compareAndSet(currentValue, newState)) {
         return
       }
     }
@@ -71,11 +98,10 @@ class ComputationReaction<I, O>(
   // init should be after state property.
   init {
     viewModelScope.launch(context) {
-      val inputs = deref(inputSignals)
-      state.value = m(
-        inputsKey to inputs,
-        stateKey to f(inputs)
-      )
+      if (withInitial()) {
+        // calc first value
+        state.value = calcFirstValue(inputSignals)
+      }
       for ((i, inputNode) in inputSignals.withIndex())
         viewModelScope.launch(context2) {
           inputNode.collect { newInput: I ->
@@ -86,11 +112,11 @@ class ComputationReaction<I, O>(
   }
 
   override fun deref(state: State<IPersistentMap<Any, Any?>>): O =
-    state.value[stateKey] as O
+    state.value[computation_value] as O
 
-  override fun deref(): O = state.value[stateKey] as O
+  override fun deref(): O = state.value[computation_value] as O
 
   override suspend fun collect(action: suspend (O) -> Unit) = state.collect {
-    action(it[stateKey] as O)
+    action(it[computation_value] as O)
   }
 }

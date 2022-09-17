@@ -4,9 +4,12 @@ import androidx.compose.runtime.State
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class ExtractorReaction<I, O>(
   inputSignal: Reaction<I>,
+  context: CoroutineContext = EmptyCoroutineContext,
   val f: (signalValue: I) -> O
 ) : ReactionBase<O, O>() {
   override val state: MutableStateFlow<O> = initState(f(inputSignal.deref()))
@@ -17,7 +20,7 @@ class ExtractorReaction<I, O>(
 
   // init should be after state property.
   init {
-    viewModelScope.launch {
+    viewModelScope.launch(context) {
       inputSignal.collect { newInput: I ->
         recompute(newInput)
       }

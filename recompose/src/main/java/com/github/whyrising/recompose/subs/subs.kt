@@ -72,10 +72,8 @@ inline fun <I, O> regDbSubscription(
 
 inline fun <I, O> regCompSubscription(
   queryId: Any,
-  crossinline signalsFn: (
-    queryVec: Query
-  ) -> IPersistentVector<Reaction<I>>,
-  initial: O,
+  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<I>>,
+  initial: O?,
   context: CoroutineContext,
   crossinline computationFn: suspend (
     subscriptions: IPersistentVector<I>,
