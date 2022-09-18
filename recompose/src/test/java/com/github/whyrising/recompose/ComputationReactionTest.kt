@@ -98,7 +98,8 @@ class ComputationReactionTest : FreeSpec({
 
   "collect(action) should return the computation value of the reaction" {
     runTest {
-      val input1 = ExtractorReaction(RAtom(0)) { 0 }
+      val input1 = ExtractorReaction(RAtom(0), testDispatcher) { 0 }
+      advanceUntilIdle()
       val input2 = ComputationReaction(
         inputSignals = v(input1),
         context = testDispatcher,
@@ -107,6 +108,7 @@ class ComputationReactionTest : FreeSpec({
       ) { args ->
         inc(args[0])
       }
+      advanceUntilIdle()
       val r2 = ComputationReaction(
         inputSignals = v(input2),
         context = testDispatcher,
