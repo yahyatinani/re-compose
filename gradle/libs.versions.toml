@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.10"
-ylib = "0.2.0"
+ylib = "0.2.0.16-SNAPSHOT" #FIXME:
 kotest = "5.4.0"
 ktlint = "0.46.1"
 kover = "0.5.1"
