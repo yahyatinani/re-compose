@@ -29,7 +29,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 typealias ComputationFn1<T, V> = suspend (input: T, queryVec: Query) -> V
 
 typealias ComputationFn2<T> =
-  suspend (subscriptions: IPersistentVector<Any>, queryVec: Query) -> T
+  suspend (subscriptions: IPersistentVector<Any?>, queryVec: Query) -> T
 
 internal const val TAG = "re-compose"
 
@@ -144,7 +144,7 @@ inline fun <R> regSubM(
   queryId: Any,
   initial: R? = null,
   context: CoroutineContext = Dispatchers.Default,
-  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any>>,
+  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any?>>,
   crossinline computationFn: ComputationFn2<R>
 ) = regCompSubscription(queryId, signalsFn, initial, context, computationFn)
 
