@@ -97,33 +97,35 @@ class ComputationReactionTest : FreeSpec({
   }
 
   "collect(action) should return the computation value of the reaction" {
-    runTest {
-      val input1 = ExtractorReaction(RAtom(0), testDispatcher) { 0 }
-      advanceUntilIdle()
-      val input2 = ComputationReaction(
-        inputSignals = v(input1),
-        context = testDispatcher,
-        initial = -1,
-        context2 = testDispatcher
-      ) { args ->
-        inc(args[0])
-      }
-      advanceUntilIdle()
-      val r2 = ComputationReaction(
-        inputSignals = v(input2),
-        context = testDispatcher,
-        initial = -1,
-        context2 = testDispatcher
-      ) { args ->
-        "${inc(args[0])}"
-      }
-      advanceUntilIdle()
+    continually(10.seconds) {
+      runTest {
+        val input1 = ExtractorReaction(RAtom(0), testDispatcher) { 0 }
+        advanceUntilIdle()
+        val input2 = ComputationReaction(
+          inputSignals = v(input1),
+          context = testDispatcher,
+          initial = -1,
+          context2 = testDispatcher
+        ) { args ->
+          inc(args[0])
+        }
+        advanceUntilIdle()
+        val r2 = ComputationReaction(
+          inputSignals = v(input2),
+          context = testDispatcher,
+          initial = -1,
+          context2 = testDispatcher
+        ) { args ->
+          "${inc(args[0])}"
+        }
+        advanceUntilIdle()
 
-      input1.state.emit(5)
-      advanceUntilIdle()
+        input1.state.emit(5)
+        advanceUntilIdle()
 
-      input2.deref() shouldBe 6
-      r2.deref() shouldBe "7"
+        input2.deref() shouldBe 6
+        r2.deref() shouldBe "7"
+      }
     }
   }
 
