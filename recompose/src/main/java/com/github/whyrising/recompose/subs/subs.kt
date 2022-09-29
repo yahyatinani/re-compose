@@ -11,7 +11,6 @@ import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.v
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
-import kotlin.coroutines.CoroutineContext
 
 val kind: Kinds = Sub
 
@@ -74,7 +73,6 @@ inline fun <I, O> regCompSubscription(
   queryId: Any,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<I>>,
   initial: O?,
-  context: CoroutineContext,
   crossinline computationFn: suspend (
     subscriptions: IPersistentVector<I>,
     queryVec: Query
@@ -86,7 +84,6 @@ inline fun <I, O> regCompSubscription(
     handlerFn = { _: Reaction<I>, queryVec: Query ->
       ComputationReaction(
         inputSignals = signalsFn(queryVec),
-        context = context,
         initial = initial
       ) { signalsValues ->
         computationFn(signalsValues, queryVec)

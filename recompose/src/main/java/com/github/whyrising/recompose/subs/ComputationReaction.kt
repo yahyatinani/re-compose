@@ -1,7 +1,6 @@
 package com.github.whyrising.recompose.subs
 
 import androidx.compose.runtime.State
-import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.subs.Ids.computation_value
 import com.github.whyrising.recompose.subs.Ids.signals_value
 import com.github.whyrising.y.concurrency.IDeref
@@ -12,7 +11,9 @@ import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -41,11 +42,12 @@ fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
  */
 class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
-  private val context: CoroutineContext,
   private val initial: O?,
-  private val context2: CoroutineContext = Dispatchers.Default,
+  context: CoroutineContext = Dispatchers.Default,
   val f: suspend (signalsValues: IPersistentVector<I>) -> O
 ) : ReactionBase<IPersistentMap<Any, Any?>, O>() {
+  override val reactionScope = CoroutineScope(SupervisorJob() + context)
+
   private fun withInitial() = initial != null
 
   private suspend fun calcFirstValue(
@@ -97,13 +99,13 @@ class ComputationReaction<I, O>(
 
   // init should be after state property.
   init {
-    viewModelScope.launch(context) {
+    reactionScope.launch {
       if (withInitial()) {
         // calc first value
         state.value = calcFirstValue(inputSignals)
       }
       for ((i, inputNode) in inputSignals.withIndex())
-        viewModelScope.launch(context2) {
+        reactionScope.launch {
           inputNode.collect { newInput: I ->
             recompute(newInput, i)
           }

@@ -110,14 +110,12 @@ inline fun <T, R> regSub(
 inline fun <T, R> regSub(
   queryId: Any,
   initial: R? = null,
-  context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
   crossinline computationFn: ComputationFn1<T, R>
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = { queryVec -> v(signalsFn(queryVec)) },
-  initial = initial,
-  context = context
+  initial = initial
 ) { persistentVector, qVec ->
   computationFn(persistentVector[0], qVec)
 }
@@ -143,10 +141,9 @@ inline fun <T, R> regSub(
 inline fun <R> regSubM(
   queryId: Any,
   initial: R? = null,
-  context: CoroutineContext = Dispatchers.Default,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any?>>,
   crossinline computationFn: ComputationFn2<R>
-) = regCompSubscription(queryId, signalsFn, initial, context, computationFn)
+) = regCompSubscription(queryId, signalsFn, initial, computationFn)
 
 /**
  * Collects values from this Reaction and represents its latest value.

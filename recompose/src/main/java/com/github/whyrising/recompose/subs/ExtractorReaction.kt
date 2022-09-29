@@ -1,7 +1,8 @@
 package com.github.whyrising.recompose.subs
 
 import androidx.compose.runtime.State
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -12,6 +13,8 @@ class ExtractorReaction<I, O>(
   context: CoroutineContext = EmptyCoroutineContext,
   val f: (signalValue: I) -> O
 ) : ReactionBase<O, O>() {
+  override val reactionScope: CoroutineScope = MainScope()
+
   override val state: MutableStateFlow<O> = initState(f(inputSignal.deref()))
 
   internal fun recompute(arg: I) {
@@ -20,7 +23,7 @@ class ExtractorReaction<I, O>(
 
   // init should be after state property.
   init {
-    viewModelScope.launch(context) {
+    reactionScope.launch(context) {
       inputSignal.collect { newInput: I ->
         recompute(newInput)
       }
