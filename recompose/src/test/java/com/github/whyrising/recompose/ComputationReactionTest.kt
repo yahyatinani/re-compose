@@ -1,7 +1,6 @@
 package com.github.whyrising.recompose
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.viewModelScope
 import com.github.whyrising.recompose.db.RAtom
 import com.github.whyrising.recompose.subs.ComputationReaction
 import com.github.whyrising.recompose.subs.ExtractorReaction
@@ -76,8 +75,12 @@ class ComputationReactionTest : FreeSpec({
   "deref() should return the computation value of the reaction" {
     val defaultVal = 0
     val f = { _: IPersistentVector<Int> -> defaultVal }
-    val reaction =
-      ComputationReaction(v(), testDispatcher, initial = defaultVal, f = f)
+    val reaction = ComputationReaction(
+      inputSignals = v(),
+      initial = defaultVal,
+      context = testDispatcher,
+      f = f
+    )
 
     reaction.deref() shouldBe defaultVal
   }
@@ -97,43 +100,42 @@ class ComputationReactionTest : FreeSpec({
   }
 
   "collect(action) should return the computation value of the reaction" {
-    runTest {
-      val input1 = ExtractorReaction(RAtom(0), testDispatcher) { 0 }
-      advanceUntilIdle()
-      val input2 = ComputationReaction(
-        inputSignals = v(input1),
-        context = testDispatcher,
-        initial = -1,
-        context2 = testDispatcher
-      ) { args ->
-        inc(args[0])
-      }
-      advanceUntilIdle()
-      val r2 = ComputationReaction(
-        inputSignals = v(input2),
-        context = testDispatcher,
-        initial = -1,
-        context2 = testDispatcher
-      ) { args ->
-        "${inc(args[0])}"
-      }
-      advanceUntilIdle()
+    continually(10.seconds) {
+      runTest {
+        val input1 = ExtractorReaction(RAtom(0), testDispatcher) { 0 }
+        advanceUntilIdle()
+        val input2 = ComputationReaction(
+          inputSignals = v(input1),
+          initial = -1,
+          context = testDispatcher
+        ) { args ->
+          inc(args[0])
+        }
+        advanceUntilIdle()
+        val r2 = ComputationReaction(
+          inputSignals = v(input2),
+          context = testDispatcher,
+          initial = -1
+        ) { args ->
+          "${inc(args[0])}"
+        }
+        advanceUntilIdle()
 
-      input1.state.emit(5)
-      advanceUntilIdle()
+        input1.state.emit(5)
+        advanceUntilIdle()
 
-      input2.deref() shouldBe 6
-      r2.deref() shouldBe "7"
+        input2.deref() shouldBe 6
+        r2.deref() shouldBe "7"
+      }
     }
   }
 
   "addOnDispose(f)" {
-    val reaction =
-      ComputationReaction(
-        v(),
-        testDispatcher,
-        -1
-      ) { _: IPersistentVector<Int> -> 1 }
+    val reaction = ComputationReaction<Int, Int>(
+      inputSignals = v(),
+      initial = -1,
+      context = testDispatcher
+    ) { 1 }
     val f: (ReactionBase<*, *>) -> Unit = { }
 
     reaction.addOnDispose(f)
@@ -142,43 +144,35 @@ class ComputationReactionTest : FreeSpec({
   }
 
   "dispose()" - {
-    """should call all functions in disposeFns atom and cancel the
-       viewModelScope""" {
+    """should call all functions in disposeFns and cancel reactionScope""" {
       var isDisposed = false
-      val reaction =
-        ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 0 }
+      val reaction = ComputationReaction<Int, Int>(
+        inputSignals = v(),
+        initial = -1,
+        context = testDispatcher
+      ) { 0 }
       val f: (ReactionBase<*, *>) -> Unit = { isDisposed = true }
       reaction.addOnDispose(f)
       reaction.state.value
 
-      reaction.dispose()
+      val b = reaction.dispose()
 
+      b.shouldBeTrue()
       isDisposed.shouldBeTrue()
-      reaction.viewModelScope.isActive.shouldBeFalse()
+      reaction.reactionScope.isActive.shouldBeFalse()
     }
 
     "when no dispose functions added and scope not active, skip " {
-      val reaction =
-        ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 0 }
+      val reaction = ComputationReaction<Int, Int>(
+        inputSignals = v(),
+        initial = -1,
+        context = testDispatcher
+      ) { 0 }
 
       reaction.dispose()
 
-      reaction.viewModelScope.isActive.shouldBeFalse()
+      reaction.reactionScope.isActive.shouldBeFalse()
     }
-  }
-
-  "onCleared() should call dispose" {
-    var isDisposed = false
-    val reaction =
-      ComputationReaction<Int, Int>(v(), testDispatcher, -1) { 0 }
-    val f: (ReactionBase<*, *>) -> Unit = { isDisposed = true }
-    reaction.addOnDispose(f)
-    reaction.state.value
-
-    reaction.onCleared()
-
-    isDisposed.shouldBeTrue()
-    reaction.viewModelScope.isActive.shouldBeFalse()
   }
 
   "recompute()" - {
@@ -190,7 +184,6 @@ class ComputationReactionTest : FreeSpec({
         val reaction = ComputationReaction(
           inputSignals = v(input1, input2),
           context = testDispatcher,
-          context2 = testDispatcher,
           initial = initial
         ) { (a, b) ->
           a.inc() + b.inc()
@@ -216,20 +209,17 @@ class ComputationReactionTest : FreeSpec({
         val r1 = ComputationReaction<Int, Int>(
           inputSignals = v(),
           context = testDispatcher,
-          initial = initial,
-          context2 = testDispatcher
+          initial = initial
         ) { 1 }
         val r2 = ComputationReaction<Int, Int>(
           inputSignals = v(),
           context = testDispatcher,
-          context2 = testDispatcher,
           initial = initial
         ) { 2 }
         val reaction = ComputationReaction(
           inputSignals = v(r1, r2),
           context = testDispatcher,
-          initial = initial,
-          context2 = testDispatcher
+          initial = initial
         ) { (a, b) ->
           a.inc() + b.inc()
         }
@@ -248,22 +238,19 @@ class ComputationReactionTest : FreeSpec({
     runTest {
       val initial = -1
       val reaction1 = ComputationReaction<Int, Int>(
-        v(),
-        testDispatcher,
-        initial,
-        context2 = testDispatcher
+        inputSignals = v(),
+        initial = initial,
+        context = testDispatcher
       ) { 1 }
       val reaction2 = ComputationReaction<Int, Int>(
         inputSignals = v(),
-        context = testDispatcher,
-        initial,
-        context2 = testDispatcher
+        initial = initial,
+        context = testDispatcher
       ) { 2 }
       val reaction3 = ComputationReaction<Int, Int>(
-        v(),
-        testDispatcher,
+        inputSignals = v(),
         initial = initial,
-        context2 = testDispatcher
+        context = testDispatcher
       ) { 3 }
 
       advanceUntilIdle()
@@ -278,9 +265,8 @@ class ComputationReactionTest : FreeSpec({
         val input = ExtractorReaction(RAtom(0)) { 0 }
         val r = ComputationReaction(
           inputSignals = v(input),
-          context = testDispatcher,
           initial = -1,
-          context2 = testDispatcher
+          context = testDispatcher
         ) { args ->
           inc(args[0])
         }
@@ -300,9 +286,8 @@ class ComputationReactionTest : FreeSpec({
         val input2 = ExtractorReaction(RAtom(0)) { 0 }
         val node = ComputationReaction(
           inputSignals = v(input1, input2),
-          context = testDispatcher,
           initial = -1,
-          context2 = testDispatcher
+          context = testDispatcher
         ) { (a, b) ->
           inc(a + b)
         }
@@ -324,9 +309,8 @@ class ComputationReactionTest : FreeSpec({
           val input2 = ExtractorReaction(RAtom(0)) { 0 }
           val r = ComputationReaction(
             inputSignals = v(input1, input2),
-            context = standardTestDispatcher,
             initial = -1,
-            context2 = standardTestDispatcher
+            context = standardTestDispatcher
           ) { (a, b) ->
             inc(a + b)
           }
