@@ -11,7 +11,7 @@ group = groupId
 
 android {
   namespace = groupId
-  compileSdk = 32
+  compileSdk = 33
 
   buildFeatures {
     compose = true
@@ -19,7 +19,7 @@ android {
 
   defaultConfig {
     minSdk = 22
-    targetSdk = 32
+    targetSdk = 33
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     consumerProguardFiles("consumer-rules.pro")
     aarMetadata {
@@ -29,7 +29,6 @@ android {
 
   buildTypes {
     release {
-      isMinifyEnabled = false
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro"
