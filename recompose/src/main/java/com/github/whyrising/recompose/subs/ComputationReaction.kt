@@ -44,7 +44,7 @@ class ComputationReaction<I, O>(
   inputSignals: IPersistentVector<Reaction<I>>,
   private val initial: O?,
   context: CoroutineContext = Dispatchers.Default,
-  val f: suspend (signalsValues: IPersistentVector<I>) -> O
+  val f: suspend (signalsValues: IPersistentVector<I>, oldComp: O?) -> O
 ) : ReactionBase<IPersistentMap<Any, Any?>, O>() {
   override val reactionScope = CoroutineScope(SupervisorJob() + context)
 
@@ -56,7 +56,7 @@ class ComputationReaction<I, O>(
     val inputs = deref(inputSignals)
     return m(
       signals_value to inputs,
-      computation_value to f(inputs)
+      computation_value to f(inputs, initial)
     )
   }
 
@@ -77,21 +77,21 @@ class ComputationReaction<I, O>(
 
   internal suspend fun recompute(input: I, inputIndex: Int) {
     while (true) {
-      val currentValue = state.value
-      val currInputs =
-        currentValue[signals_value] as PersistentVector<I>? ?: v()
+      val oldState = state.value
+      val oldInputs = oldState[signals_value] as PersistentVector<I>? ?: v()
 
-      if (isSameInput(currInputs, inputIndex, input)) {
+      if (isSameInput(oldInputs, inputIndex, input)) {
         return
       }
 
-      val newInputs = currInputs.assoc(inputIndex, input)
+      val oldCompVal = oldState[computation_value] as O?
+      val newInputs = oldInputs.assoc(inputIndex, input)
       val newState = m(
-        computation_value to f(newInputs),
+        computation_value to f(newInputs, oldCompVal),
         signals_value to newInputs
       )
 
-      if (state.compareAndSet(currentValue, newState)) {
+      if (state.compareAndSet(oldState, newState)) {
         return
       }
     }

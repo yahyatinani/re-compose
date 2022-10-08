@@ -75,6 +75,7 @@ inline fun <I, O> regCompSubscription(
   initial: O?,
   crossinline computationFn: suspend (
     subscriptions: IPersistentVector<I>,
+    oldComp: O?,
     queryVec: Query
   ) -> O
 ) {
@@ -85,8 +86,8 @@ inline fun <I, O> regCompSubscription(
       ComputationReaction(
         inputSignals = signalsFn(queryVec),
         initial = initial
-      ) { signalsValues ->
-        computationFn(signalsValues, queryVec)
+      ) { signalsValues, oldComp ->
+        computationFn(signalsValues, oldComp, queryVec)
       }
     }
   )
