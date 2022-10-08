@@ -12,9 +12,9 @@ dependencies {
   api deps.y.concurrency
 
   testImplementation deps.kotlin.reflect
-  testImplementation deps.kotlinx.coroutines.test
   testImplementation deps.kotest.jvm.runner
   testImplementation deps.kotest.assertions
+  testImplementation deps.kotlinx.coroutines.test
   testImplementation deps.mockk
   testImplementation deps.mockkjvm
 }
