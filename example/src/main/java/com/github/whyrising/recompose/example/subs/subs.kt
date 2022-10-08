@@ -60,11 +60,11 @@ fun regAllSubs(defaultColors: Colors) {
     db.time
   }
 
-  regSub<Date, String>(
+  regSub(
     queryId = formattedTime,
     initial = "...",
     signalsFn = { subscribe(v(time)) }
-  ) { date: Date, _: Query ->
+  ) { date: Date, _, _: Query ->
     val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
 //    heavyComp()
     formattedTime.format(date)
@@ -82,7 +82,7 @@ fun regAllSubs(defaultColors: Colors) {
     queryId = primaryColor,
     initial = Color.Gray,
     signalsFn = { subscribe<String>(v(primaryColorStr)) }
-  ) { colorName, _ ->
+  ) { colorName, _, _ ->
     toColor(colorName)
   }
 
@@ -90,7 +90,7 @@ fun regAllSubs(defaultColors: Colors) {
     queryId = secondaryColor,
     initial = Color.Gray,
     signalsFn = { subscribe<String>(v(secondaryColorStr)) }
-  ) { colorName, _ ->
+  ) { colorName, _, _ ->
     toColor(colorName)
   }
 
@@ -103,7 +103,7 @@ fun regAllSubs(defaultColors: Colors) {
         subscribe(v(secondaryColor))
       )
     }
-  ) { (primary, secondary), (_, colors) ->
+  ) { (primary, secondary), _, (_, colors) ->
     withContext(Dispatchers.Main.immediate) {
       (colors as Colors).copy(
         primary = primary as Color,

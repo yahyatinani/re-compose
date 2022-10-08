@@ -26,10 +26,17 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-typealias ComputationFn1<T, V> = suspend (input: T, queryVec: Query) -> V
+typealias ComputationFn1<T, V> = suspend (
+  input: T,
+  oldVal: V?,
+  queryVec: Query
+) -> V
 
-typealias ComputationFn2<T> =
-  suspend (subscriptions: IPersistentVector<Any?>, queryVec: Query) -> T
+typealias ComputationFn2<T> = suspend (
+  subscriptions: IPersistentVector<Any?>,
+  oldVal: T?,
+  queryVec: Query
+) -> T
 
 internal const val TAG = "re-compose"
 
@@ -112,12 +119,12 @@ inline fun <T, R> regSub(
   initial: R? = null,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
   crossinline computationFn: ComputationFn1<T, R>
-) = regCompSubscription(
+) = regCompSubscription<T, R>(
   queryId = queryId,
   signalsFn = { queryVec -> v(signalsFn(queryVec)) },
   initial = initial
-) { persistentVector, qVec ->
-  computationFn(persistentVector[0], qVec)
+) { persistentVector, oldComp, qVec ->
+  computationFn(persistentVector[0], oldComp, qVec)
 }
 
 /**

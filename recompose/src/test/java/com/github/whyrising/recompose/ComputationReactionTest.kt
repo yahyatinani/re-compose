@@ -47,7 +47,7 @@ class ComputationReactionTest : FreeSpec({
         inputSignals = v(),
         context = testDispatcher,
         initial = defaultVal
-      ) { _: IPersistentVector<Int> -> defaultVal }
+      ) { _: IPersistentVector<Int>, _ -> defaultVal }
 
       reaction.isFresh.deref().shouldBeTrue()
       reaction.id shouldBe "rx${reaction.hashCode()}"
@@ -55,11 +55,11 @@ class ComputationReactionTest : FreeSpec({
     }
 
     "when initial's null, calculate the first value" {
-      val reaction = ComputationReaction(
+      val reaction = ComputationReaction<Int, Int>(
         inputSignals = v(ExtractorReaction(RAtom(93)) { it }),
         context = testDispatcher,
         initial = null
-      ) { (i) ->
+      ) { (i), _ ->
         i + 1
       }
 
@@ -74,7 +74,7 @@ class ComputationReactionTest : FreeSpec({
 
   "deref() should return the computation value of the reaction" {
     val defaultVal = 0
-    val f = { _: IPersistentVector<Int> -> defaultVal }
+    val f = { _: IPersistentVector<Int>, _: Int? -> defaultVal }
     val reaction = ComputationReaction(
       inputSignals = v(),
       initial = defaultVal,
@@ -87,7 +87,7 @@ class ComputationReactionTest : FreeSpec({
 
   "deref(state) should return the computation value of the reaction" {
     val defaultVal = 0
-    val f = { _: IPersistentVector<Int> -> defaultVal }
+    val f = { _: IPersistentVector<Int>, _: Int? -> defaultVal }
     val state = mutableStateOf(m(signals_value to 2, computation_value to "2"))
     val reaction = ComputationReaction(
       inputSignals = v(),
@@ -108,15 +108,15 @@ class ComputationReactionTest : FreeSpec({
           inputSignals = v(input1),
           initial = -1,
           context = testDispatcher
-        ) { args ->
+        ) { args, _ ->
           inc(args[0])
         }
         advanceUntilIdle()
         val r2 = ComputationReaction(
           inputSignals = v(input2),
           context = testDispatcher,
-          initial = -1
-        ) { args ->
+          initial = "-1"
+        ) { args, _ ->
           "${inc(args[0])}"
         }
         advanceUntilIdle()
@@ -135,7 +135,7 @@ class ComputationReactionTest : FreeSpec({
       inputSignals = v(),
       initial = -1,
       context = testDispatcher
-    ) { 1 }
+    ) { _, _ -> 1 }
     val f: (ReactionBase<*, *>) -> Unit = { }
 
     reaction.addOnDispose(f)
@@ -150,7 +150,7 @@ class ComputationReactionTest : FreeSpec({
         inputSignals = v(),
         initial = -1,
         context = testDispatcher
-      ) { 0 }
+      ) { _, _ -> 0 }
       val f: (ReactionBase<*, *>) -> Unit = { isDisposed = true }
       reaction.addOnDispose(f)
       reaction.state.value
@@ -167,7 +167,7 @@ class ComputationReactionTest : FreeSpec({
         inputSignals = v(),
         initial = -1,
         context = testDispatcher
-      ) { 0 }
+      ) { _, _ -> 0 }
 
       reaction.dispose()
 
@@ -185,7 +185,7 @@ class ComputationReactionTest : FreeSpec({
           inputSignals = v(input1, input2),
           context = testDispatcher,
           initial = initial
-        ) { (a, b) ->
+        ) { (a, b), _ ->
           a.inc() + b.inc()
         }
 
@@ -210,17 +210,17 @@ class ComputationReactionTest : FreeSpec({
           inputSignals = v(),
           context = testDispatcher,
           initial = initial
-        ) { 1 }
+        ) { _, _ -> 1 }
         val r2 = ComputationReaction<Int, Int>(
           inputSignals = v(),
           context = testDispatcher,
           initial = initial
-        ) { 2 }
+        ) { _, _ -> 2 }
         val reaction = ComputationReaction(
           inputSignals = v(r1, r2),
           context = testDispatcher,
           initial = initial
-        ) { (a, b) ->
+        ) { (a, b), _ ->
           a.inc() + b.inc()
         }
         advanceUntilIdle()
@@ -241,17 +241,17 @@ class ComputationReactionTest : FreeSpec({
         inputSignals = v(),
         initial = initial,
         context = testDispatcher
-      ) { 1 }
+      ) { _, _ -> 1 }
       val reaction2 = ComputationReaction<Int, Int>(
         inputSignals = v(),
         initial = initial,
         context = testDispatcher
-      ) { 2 }
+      ) { _, _ -> 2 }
       val reaction3 = ComputationReaction<Int, Int>(
         inputSignals = v(),
         initial = initial,
         context = testDispatcher
-      ) { 3 }
+      ) { _, _ -> 3 }
 
       advanceUntilIdle()
 
@@ -267,7 +267,7 @@ class ComputationReactionTest : FreeSpec({
           inputSignals = v(input),
           initial = -1,
           context = testDispatcher
-        ) { args ->
+        ) { args, _ ->
           inc(args[0])
         }
         advanceUntilIdle()
@@ -288,7 +288,7 @@ class ComputationReactionTest : FreeSpec({
           inputSignals = v(input1, input2),
           initial = -1,
           context = testDispatcher
-        ) { (a, b) ->
+        ) { (a, b), _ ->
           inc(a + b)
         }
         advanceUntilIdle()
@@ -311,7 +311,7 @@ class ComputationReactionTest : FreeSpec({
             inputSignals = v(input1, input2),
             initial = -1,
             context = standardTestDispatcher
-          ) { (a, b) ->
+          ) { (a, b), _ ->
             inc(a + b)
           }
 
@@ -327,6 +327,56 @@ class ComputationReactionTest : FreeSpec({
           input2.deref() shouldBeExactly 10000
           r.deref() shouldBeExactly 20001
         }
+      }
+    }
+  }
+
+  "f()" - {
+    "computation value should be the initial value" {
+      val reaction = ComputationReaction(
+        inputSignals = v(),
+        initial = -34,
+        context = testDispatcher
+      ) { _: IPersistentVector<Int>, oldComp: Int? ->
+        oldComp
+      }
+
+      reaction.deref() shouldBe -34
+    }
+
+    "computation value should be null with no initial value provided" {
+      val reaction = ComputationReaction(
+        inputSignals = v(),
+        initial = null,
+        context = testDispatcher
+      ) { _: IPersistentVector<Int>, oldComp: Int? ->
+        oldComp
+      }
+
+      reaction.deref() shouldBe null
+    }
+
+    "computation value should be the previous one" {
+      runTest {
+        val input = ExtractorReaction(RAtom(0), testDispatcher) { 0 }
+        advanceUntilIdle()
+        val reaction = ComputationReaction(
+          inputSignals = v(input),
+          initial = -1,
+          context = testDispatcher
+        ) { args, oldComp ->
+          val x = args[0]
+          if (x < 1) inc(x)
+          else oldComp!!
+        }
+        advanceUntilIdle()
+        val oldComp = reaction.deref()
+        oldComp shouldBe 1
+
+        input.state.emit(2)
+        advanceUntilIdle()
+
+        reaction.deref() shouldBe oldComp
       }
     }
   }
