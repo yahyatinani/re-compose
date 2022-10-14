@@ -1,10 +1,10 @@
 [versions]
 kotlin = "1.7.10"
-ylib = "0.2.0.16-SNAPSHOT" #FIXME:
+ylib = "0.2.0.17-SNAPSHOT" #FIXME:
 kotest = "5.4.0"
 ktlint = "0.46.1"
 kover = "0.5.1"
-gradleplugin = "7.3.0"
+gradleplugin = "7.3.1"
 compose = "1.2.1"
 activity-compose = "1.5.0"
 splashscreen = "1.0.0-rc01"
