@@ -12,7 +12,7 @@ on:
 
 jobs:
   publish:
-    name: Release Recompose Library
+    name: Release Re-compose Library
     runs-on: ubuntu-latest
 
     steps:

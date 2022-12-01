@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build Recompose Library
+    name: Build Re-compose Library
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
 
       - uses: gradle/gradle-build-action@v2
 
-      - name: Check lint
+      - name: Spotless check
         run: ./gradlew spotlessCheck
 
       - name: Run tests
