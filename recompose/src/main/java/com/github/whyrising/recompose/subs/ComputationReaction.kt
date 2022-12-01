@@ -1,8 +1,8 @@
 package com.github.whyrising.recompose.subs
 
 import androidx.compose.runtime.State
-import com.github.whyrising.recompose.subs.Ids.computation_value
-import com.github.whyrising.recompose.subs.Ids.signals_value
+import com.github.whyrising.recompose.subs.ComputationReaction.Companion.Ids.computation_value
+import com.github.whyrising.recompose.subs.ComputationReaction.Companion.Ids.signals_value
 import com.github.whyrising.y.concurrency.IDeref
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
@@ -18,17 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
-
-@Suppress("EnumEntryName")
-internal enum class Ids {
-  signals_value,
-  computation_value
-}
-
-fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
-  refs.fold(v()) { acc, r ->
-    acc.conj(r.deref())
-  }
 
 /**
  * @param inputSignals are the nodes (Reactions) that signal the current
@@ -120,5 +109,18 @@ class ComputationReaction<I, O>(
 
   override suspend fun collect(action: suspend (O) -> Unit) = state.collect {
     action(it[computation_value] as O)
+  }
+
+  companion object {
+    fun <T> deref(refs: IPersistentVector<IDeref<T>>): PersistentVector<T> =
+      refs.fold(v()) { acc, r ->
+        acc.conj(r.deref())
+      }
+
+    @Suppress("EnumEntryName")
+    internal enum class Ids {
+      signals_value,
+      computation_value
+    }
   }
 }

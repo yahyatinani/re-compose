@@ -3,11 +3,11 @@ package com.github.whyrising.recompose
 import androidx.compose.runtime.mutableStateOf
 import com.github.whyrising.recompose.db.RAtom
 import com.github.whyrising.recompose.subs.ComputationReaction
+import com.github.whyrising.recompose.subs.ComputationReaction.Companion.Ids.computation_value
+import com.github.whyrising.recompose.subs.ComputationReaction.Companion.Ids.signals_value
+import com.github.whyrising.recompose.subs.ComputationReaction.Companion.deref
 import com.github.whyrising.recompose.subs.ExtractorReaction
-import com.github.whyrising.recompose.subs.Ids.computation_value
-import com.github.whyrising.recompose.subs.Ids.signals_value
 import com.github.whyrising.recompose.subs.ReactionBase
-import com.github.whyrising.recompose.subs.deref
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.inc
 import com.github.whyrising.y.core.l
