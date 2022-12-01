@@ -67,11 +67,13 @@ val debug = toInterceptor(
         Log.i(TAG, "db for: $event")
         Log.i(TAG, "appDb before: $oldDb")
         Log.i(TAG, "appDb after: $newDb")
-      } else Log.i(
-        TAG,
-        "No appDb changes in: $event, since the new appDb value is " +
-          "equal to the previous."
-      )
+      } else {
+        Log.i(
+          TAG,
+          "No appDb changes in: $event, since the new appDb value is " +
+            "equal to the previous."
+        )
+      }
     }
     context
   }

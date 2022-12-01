@@ -10,24 +10,26 @@ spotless {
     endWithNewline()
     greclipse().configFile('./greclipse.properties')
   }
+
+  def ktlintConfig = [
+    "indent_size"             : "2",
+    "max_line_length"         : "80",
+    "indent_style"            : "space",
+    "charset"                 : "utf-8",
+    "end_of_line"             : "lf",
+    "disabled_rules"          : "filename,enum-entry-name-case",
+    "trim_trailing_whitespace": "true",
+    "insert_final_newline"    : "true",
+  ]
+  def ktlintVersion = deps.versions.ktlint.get()
   kotlin {
     target "**/*.kt"
     targetExclude "buildSrc/build/"
-    ktlint()
-      .editorConfigOverride([
-        "indent_size"             : "2",
-        "max_line_length"         : "80",
-        "indent_style"            : "space",
-        "charset"                 : "utf-8",
-        "end_of_line"             : "lf",
-        "disabled_rules"          : "filename,enum-entry-name-case",
-        "trim_trailing_whitespace": "true",
-        "insert_final_newline"    : "true",
-      ])
-    trimTrailingWhitespace()
-    endWithNewline()
+    ktlint(ktlintVersion).editorConfigOverride(ktlintConfig)
   }
   kotlinGradle {
-    ktlint()
+    target("**/*.kts")
+    targetExclude "buildSrc/build/"
+    ktlint(ktlintVersion).editorConfigOverride(ktlintConfig)
   }
 }
