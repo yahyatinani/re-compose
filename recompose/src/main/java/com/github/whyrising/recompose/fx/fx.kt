@@ -93,10 +93,12 @@ fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
 
       if (fxFn != null) {
         fxFn(effectValue)
-      } else Log.w(
-        TAG,
-        "in :fx, effect: $effectKey has no associated handler. Skip."
-      )
+      } else {
+        Log.w(
+          TAG,
+          "in :fx, effect: $effectKey has no associated handler. Skip."
+        )
+      }
     }
   } else {
     val type: Class<out Any>? = when (vecOfFx) {

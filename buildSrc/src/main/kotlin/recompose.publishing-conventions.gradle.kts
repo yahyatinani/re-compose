@@ -79,9 +79,11 @@ val publications: PublicationContainer =
 
 signing {
   useGpgCmd()
-  if (signingKey != null && signingPassword != null)
+  if (signingKey != null && signingPassword != null) {
     useInMemoryPgpKeys(signingKey, signingPassword)
+  }
 
-  if (Ci.isRelease)
+  if (Ci.isRelease) {
     sign(publications)
+  }
 }

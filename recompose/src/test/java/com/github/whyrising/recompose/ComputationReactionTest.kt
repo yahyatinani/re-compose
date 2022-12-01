@@ -366,8 +366,11 @@ class ComputationReactionTest : FreeSpec({
           context = testDispatcher
         ) { args, oldComp ->
           val x = args[0]
-          if (x < 1) inc(x)
-          else oldComp!!
+          if (x < 1) {
+            inc(x)
+          } else {
+            oldComp!!
+          }
         }
         advanceUntilIdle()
         val oldComp = reaction.deref()
