@@ -3,6 +3,7 @@ package com.github.whyrising.recompose.example.subs
 import android.graphics.Color.parseColor
 import androidx.compose.material.Colors
 import androidx.compose.ui.graphics.Color
+import com.github.whyrising.recompose.example.Ids
 import com.github.whyrising.recompose.example.Ids.formattedTime
 import com.github.whyrising.recompose.example.Ids.primaryColor
 import com.github.whyrising.recompose.example.Ids.primaryColorStr
@@ -38,9 +39,13 @@ fun toColor(color: String, default: Color = Color.Gray): Color = color
       it == "yellow" -> Color.Yellow
       it == "magenta" -> Color.Magenta
       it == "darkGray" -> Color.DarkGray
-      it == "orange" -> Color(parseColor("#ffbf00"))
+      it == "black" -> Color.Black
+      it == "orange" -> Color(parseColor("#ff8c00"))
+      it == "teal" -> Color(parseColor("#008080"))
+      it == "golden" -> Color(parseColor("#ffd700"))
       it == "purple" -> Color(parseColor("#6A0DAD"))
       it == "pink" -> Color(parseColor("#FBA0E3"))
+      it == "brown" -> Color(parseColor("#8b4513"))
       hexColorRegex.matches(color) -> Color(parseColor(color))
       else -> default
     }
@@ -52,7 +57,7 @@ fun fib(nth: Long): Long = when {
 }
 
 internal fun heavyComp() {
-  fib(37)
+//  fib(40)
 }
 
 fun regAllSubs(defaultColors: Colors) {
@@ -62,9 +67,9 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSub(
     queryId = formattedTime,
-    initial = "...",
+    initialValue = "...",
     signalsFn = { subscribe(v(time)) }
-  ) { date: Date, _, _: Query ->
+  ) { date: Date, _: Query ->
     val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
 //    heavyComp()
     formattedTime.format(date)
@@ -80,35 +85,44 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSub(
     queryId = primaryColor,
-    initial = Color.Gray,
+    initialValue = Color.Red,
     signalsFn = { subscribe<String>(v(primaryColorStr)) }
-  ) { colorName, _, _ ->
+  ) { colorName, _ ->
     toColor(colorName)
   }
 
   regSub(
     queryId = secondaryColor,
-    initial = Color.Gray,
+    initialValue = Color.Yellow,
     signalsFn = { subscribe<String>(v(secondaryColorStr)) }
-  ) { colorName, _, _ ->
+  ) { colorName, _ ->
     toColor(colorName)
   }
 
   regSubM(
     queryId = themeColors,
-    initial = defaultColors,
     signalsFn = {
       v(
         subscribe(v(primaryColor)),
         subscribe(v(secondaryColor))
       )
-    }
-  ) { (primary, secondary), _, (_, colors) ->
-    withContext(Dispatchers.Main.immediate) {
+    },
+    initialValue = defaultColors
+  ) { (primary, secondary), (_, colors) ->
+    if (primary == null || secondary == null) colors
+    else withContext(Dispatchers.Main.immediate) {
       (colors as Colors).copy(
         primary = primary as Color,
         secondary = secondary as Color
       )
     }
+  }
+
+  regSub<AppDb, Boolean>(queryId = Ids.about_dialog) { db, _ ->
+    db.showAboutDialog
+  }
+
+  regSub<AppDb, String>(queryId = Ids.info) { db, _ ->
+    db.info
   }
 }

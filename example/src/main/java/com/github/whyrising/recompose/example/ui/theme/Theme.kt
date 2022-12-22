@@ -7,8 +7,7 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import com.github.whyrising.recompose.example.Ids.themeColors
-import com.github.whyrising.recompose.subscribe
-import com.github.whyrising.recompose.w
+import com.github.whyrising.recompose.watch
 import com.github.whyrising.y.core.v
 
 private val DarkColorPalette = darkColors(
@@ -22,22 +21,22 @@ private val LightColorPalette = lightColors(
   primaryVariant = Purple700,
   secondary = Teal200
 
-    /* Other default colors to override
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black,
-    */
+  /* Other default colors to override
+  background = Color.White,
+  surface = Color.White,
+  onPrimary = Color.White,
+  onSecondary = Color.Black,
+  onBackground = Color.Black,
+  onSurface = Color.Black,
+  */
 )
 
 @Composable
 fun RecomposeTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
-  colors: Colors = subscribe<Colors>(
+  colors: Colors = watch(
     v(themeColors, if (darkTheme) DarkColorPalette else LightColorPalette)
-  ).w(),
+  ),
   content: @Composable () -> Unit
 ) = MaterialTheme(
   colors = colors,

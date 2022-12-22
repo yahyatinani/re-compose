@@ -8,7 +8,9 @@ import java.util.Date
 data class AppDb(
   val time: Date = Date(),
   val primaryColor: String = "Red",
-  val secondaryColor: String = "Orange"
+  val secondaryColor: String = "Orange",
+  val showAboutDialog: Boolean = false,
+  val info: String = "Awesome app"
 )
 
 fun regAllCofx() {

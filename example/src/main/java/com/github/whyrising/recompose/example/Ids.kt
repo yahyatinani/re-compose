@@ -16,5 +16,7 @@ enum class Ids {
   setPrimaryColor,
   setSecondaryColor,
   themeColors,
-  exitApp
+  exitApp,
+  about_dialog,
+  info
 }

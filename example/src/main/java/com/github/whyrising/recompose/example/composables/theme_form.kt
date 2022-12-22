@@ -23,8 +23,7 @@ import com.github.whyrising.recompose.example.events.regAllEvents
 import com.github.whyrising.recompose.example.initAppDb
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
-import com.github.whyrising.recompose.subscribe
-import com.github.whyrising.recompose.w
+import com.github.whyrising.recompose.watch
 import com.github.whyrising.y.core.v
 
 @Composable
@@ -35,7 +34,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     OutlinedTextField(
-      value = subscribe<String>(v(primaryColorStr)).w(),
+      value = watch<String>(v(primaryColorStr)),
       onValueChange = { input ->
         dispatch(v(setPrimaryColor, input))
       },
@@ -49,7 +48,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
     )
     Spacer(modifier = Modifier.height(8.dp))
     OutlinedTextField(
-      value = subscribe<String>(v(secondaryColorStr)).w(),
+      value = watch<String>(v(secondaryColorStr)),
       onValueChange = { input ->
         dispatch(v(setSecondaryColor, input))
       },
