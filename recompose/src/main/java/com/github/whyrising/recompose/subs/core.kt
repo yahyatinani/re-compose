@@ -8,49 +8,51 @@ import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.v
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.set
+import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.util.m
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 val kind: Kinds = Sub
 
 typealias Query = IPersistentVector<Any>
 
-typealias SubHandler<I, O> = (ReactiveAtom<I>, Query) -> ReactionBase<I, O>
+typealias SubHandler<I, O> = (Reaction<I>, Query) -> ReactionBase<I, O>
 
 // -- cache --------------------------------------------------------------------
-internal val reactionsCache = ConcurrentHashMap<Any, Any>()
+internal val queryToReactionCache = MutableStateFlow(m<Query, Any>())
 
-// -- subscribe ----------------------------------------------------------------
 internal fun <T> cacheReaction(
-  key: IPersistentVector<Any>,
+  queryV: Query,
   reaction: ReactionBase<Any, T>
-): ReactionBase<Any, T> {
+): Reaction<T> {
   reaction.addOnDispose { r ->
-    if (r === reactionsCache[key]) reactionsCache.remove(key)
+    queryToReactionCache.update { qToR ->
+      qToR.dissoc(queryV)
+    }
+    Log.i(TAG, "$r is removed from cache.")
   }
-  reactionsCache[key] = reaction
+  queryToReactionCache.update { qToR -> qToR.assoc(queryV, reaction) }
   return reaction
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> subscribe(query: Query): ReactionBase<Any, T> {
-  val cacheKey = v(query, v())
-  val cachedReaction = reactionsCache[cacheKey] as ReactionBase<Any, T>?
+internal fun <T> subscribe(query: Query): Reaction<T> {
+  println("subscribe $query")
+  val cachedReaction = queryToReactionCache.value[query]
 
   if (cachedReaction != null) {
-    return cachedReaction
+    return cachedReaction as Reaction<T>
   }
+  Log.i(TAG, "Cache not found for subscription: $query")
 
   val (queryId) = query
   val subHandler = getHandler(kind, queryId) as (SubHandler<Any, T>)?
-    ?: throw IllegalArgumentException(
+    ?: throw IllegalStateException(
       "no subscription handler registered for id: `$queryId`"
     )
 
-  Log.i(TAG, "No cached reaction was found for subscription `$cacheKey`")
-
-  return cacheReaction(cacheKey, subHandler(appDb, query))
+  return cacheReaction(queryV = query, reaction = subHandler(appDb, query))
 }
 
 // -- regSub -----------------------------------------------------------------
@@ -61,9 +63,9 @@ inline fun <I, O> regDbSubscription(
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = { appDb: ReactiveAtom<I>, queryVec: Query ->
-      ExtractorReaction(inputSignal = appDb) {
-        extractorFn(it, queryVec)
+    handlerFn = { appDb: Reaction<I>, queryVec: Query ->
+      Extraction(inputSignal = appDb as Reaction<Any?>) {
+        extractorFn(it as I, queryVec)
       }
     }
   )
@@ -72,10 +74,9 @@ inline fun <I, O> regDbSubscription(
 inline fun <I, O> regCompSubscription(
   queryId: Any,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<I>>,
-  initial: O?,
+  initialValue: O,
   crossinline computationFn: suspend (
     subscriptions: IPersistentVector<I>,
-    oldComp: O?,
     queryVec: Query
   ) -> O
 ) {
@@ -83,11 +84,11 @@ inline fun <I, O> regCompSubscription(
     id = queryId,
     kind = kind,
     handlerFn = { _: Reaction<I>, queryVec: Query ->
-      ComputationReaction(
-        inputSignals = signalsFn(queryVec),
-        initial = initial
-      ) { signalsValues, oldComp ->
-        computationFn(signalsValues, oldComp, queryVec)
+      Computation(
+        inputSignals = signalsFn(queryVec) as Signals,
+        initial = initialValue
+      ) { signalsValues ->
+        computationFn(signalsValues as IPersistentVector<I>, queryVec)
       }
     }
   )

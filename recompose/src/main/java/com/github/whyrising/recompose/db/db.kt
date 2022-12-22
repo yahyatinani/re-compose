@@ -1,23 +1,26 @@
 package com.github.whyrising.recompose.db
 
-import com.github.whyrising.recompose.subs.ReactiveAtom
+import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.y.core.m
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()
 
-class RAtom<T>(v: T) : ReactiveAtom<T> {
-  private val state: MutableStateFlow<T> = MutableStateFlow(v)
+class RAtom<T>(v: T) : Reaction<T> {
+  private val _state = MutableStateFlow(v)
 
-  override fun deref(): T = state.value
+  override val state: StateFlow<Any?> = _state
 
-  override suspend fun collect(action: suspend (T) -> Unit) = state.collect {
-    action(it)
-  }
+  override fun deref(): T = _state.value
+
+  override suspend fun collect(collector: FlowCollector<T>) =
+    state.collect(collector as FlowCollector<Any?>)
 
   /** It doesn't emit the value if the newVal == the currentVal */
-  override fun emit(value: T) {
-    state.tryEmit(value)
+  fun emit(value: T) {
+    _state.tryEmit(value)
   }
 }
 
