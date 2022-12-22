@@ -28,7 +28,11 @@ internal fun <T> cacheReaction(
 ): Reaction<T> {
   reaction.addOnDispose { r ->
     queryToReactionCache.update { qToR ->
-      qToR.dissoc(queryV)
+      val cachedR = qToR[queryV]
+      when {
+        cachedR == null || cachedR !== r -> qToR
+        else -> qToR.dissoc(queryV)
+      }
     }
     Log.i(TAG, "$r is removed from cache.")
   }
