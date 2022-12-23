@@ -4,7 +4,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
@@ -22,15 +21,14 @@ class Extraction(
 
   override val computationJob: Job by lazy {
     inputSignal
-      .distinctUntilChanged()
       .map { f(it) }
-      .distinctUntilChanged()
       .transform<Any?, Any?> { _state.emit(it) }
       .launchIn(reactionScope)
   }
 
   override fun deref(): Any? = state.value
 
-  override suspend fun collect(collector: FlowCollector<Any?>) =
+  override suspend fun collect(collector: FlowCollector<Any?>) {
     state.collect(collector)
+  }
 }

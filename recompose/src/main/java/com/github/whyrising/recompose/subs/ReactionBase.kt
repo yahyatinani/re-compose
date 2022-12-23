@@ -35,7 +35,7 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
 
   internal abstract val computationJob: Job
 
-  protected val _state: MutableStateFlow<Any?> by lazy {
+  internal val _state: MutableStateFlow<Any?> by lazy {
     computationJob
     MutableStateFlow(initialValue).apply {
       subscriptionCount
