@@ -42,7 +42,6 @@ internal fun <T> cacheReaction(
 
 @Suppress("UNCHECKED_CAST")
 internal fun <T> subscribe(query: Query): Reaction<T> {
-  println("subscribe $query")
   val cachedReaction = queryToReactionCache.value[query]
 
   if (cachedReaction != null) {
