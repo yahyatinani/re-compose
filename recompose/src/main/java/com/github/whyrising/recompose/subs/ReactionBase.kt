@@ -62,7 +62,8 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
   }
 
   override fun dispose(): Boolean = when {
-    _state.subscriptionCount.value == 0 && !isFresh() -> {
+    _state.subscriptionCount.value != 0 || isFresh() -> false
+    else -> {
       var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns()
       while (fs != null && fs.count > 0) {
         val f = fs.first()
@@ -72,8 +73,6 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
       reactionScope.cancel("$this is canceled due to inactivity.")
       true
     }
-
-    else -> false
   }
 
   override fun toString(): String = "Reaction($id: ${deref()})"

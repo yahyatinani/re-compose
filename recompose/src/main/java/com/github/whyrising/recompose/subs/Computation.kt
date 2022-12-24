@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
+import kotlin.coroutines.CoroutineContext
 
 typealias State = IPersistentMap<Ids, Any?>
 typealias Signals = IPersistentVector<Reaction<Any?>>
@@ -32,11 +33,12 @@ typealias Signals = IPersistentVector<Reaction<Any?>>
 class Computation(
   inputSignals: Signals,
   initial: Any?,
+  val context: CoroutineContext = Default,
   override val f: suspend (signalsValues: Any?) -> Any?
 ) : ReactionBase<State, Any?>() {
 
   override val reactionScope: CoroutineScope =
-    CoroutineScope(SupervisorJob() + Default)
+    CoroutineScope(SupervisorJob() + context)
 
   override val initialValue: State = m(computation_value to initial)
 
