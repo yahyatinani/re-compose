@@ -44,4 +44,8 @@ fun regAllEvents() {
   regEventFx(exitApp) { _: Coeffects, _: Event ->
     m(fx to v(v(exitApp, null)))
   }
+
+  regEventDb<AppDb>(id = Ids.about_dialog) { db, (_, flag) ->
+    db.copy(showAboutDialog = flag as Boolean)
+  }
 }

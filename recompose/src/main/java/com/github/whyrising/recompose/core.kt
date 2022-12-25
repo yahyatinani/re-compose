@@ -1,7 +1,10 @@
 package com.github.whyrising.recompose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.DbEventHandler
@@ -15,26 +18,24 @@ import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
-import com.github.whyrising.recompose.subs.ReactionBase
-import com.github.whyrising.recompose.subs.ReactiveAtom
+import com.github.whyrising.recompose.subs.queryToReactionCache
 import com.github.whyrising.recompose.subs.regCompSubscription
 import com.github.whyrising.recompose.subs.regDbSubscription
 import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 typealias ComputationFn1<T, V> = suspend (
   input: T,
-  oldVal: V?,
+//  oldVal: V?,
   queryVec: Query
 ) -> V
 
 typealias ComputationFn2<T> = suspend (
   subscriptions: IPersistentVector<Any?>,
-  oldVal: T?,
+//  oldVal: T?,
   queryVec: Query
 ) -> T
 
@@ -86,7 +87,7 @@ inline fun regEventFx(
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: IPersistentVector<Any>): ReactionBase<Any, T> =
+fun <T> subscribe(qvec: Query): Reaction<T> =
   com.github.whyrising.recompose.subs.subscribe(qvec)
 
 /**
@@ -116,15 +117,15 @@ inline fun <T, R> regSub(
  */
 inline fun <T, R> regSub(
   queryId: Any,
-  initial: R? = null,
   crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
+  initialValue: R,
   crossinline computationFn: ComputationFn1<T, R>
-) = regCompSubscription<T, R>(
+) = regCompSubscription(
   queryId = queryId,
-  signalsFn = { queryVec -> v(signalsFn(queryVec)) },
-  initial = initial
-) { persistentVector, oldComp, qVec ->
-  computationFn(persistentVector[0], oldComp, qVec)
+  initialValue = initialValue,
+  signalsFn = { queryVec -> v(signalsFn(queryVec)) }
+) { persistentVector, qVec ->
+  computationFn(persistentVector[0], qVec)
 }
 
 /**
@@ -147,23 +148,19 @@ inline fun <T, R> regSub(
  */
 inline fun <R> regSubM(
   queryId: Any,
-  initial: R? = null,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any?>>,
+  initialValue: R,
   crossinline computationFn: ComputationFn2<R>
-) = regCompSubscription(queryId, signalsFn, initial, computationFn)
+) = regCompSubscription(queryId, signalsFn, initialValue, computationFn)
 
-/**
- * Collects values from this Reaction and represents its latest value.
- *
- * @param context CoroutineContext to use for collecting.
- *
- * @return the current value of this reaction. Every time there would be
- * new value posted into the Reaction it's going to cause a recomposition.
- */
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun <T> ReactionBase<Any, T>.w(
-  context: CoroutineContext = EmptyCoroutineContext
-): T = deref(state.collectAsState(context = context))
+fun <T> watch(query: Query): T {
+  val cache by queryToReactionCache.collectAsStateWithLifecycle()
+  return remember(key1 = cache[query]) {
+    subscribe<T>(query)
+  }.state.collectAsStateWithLifecycle().value as T
+}
 
 // -- Effects ------------------------------------------------------------------
 

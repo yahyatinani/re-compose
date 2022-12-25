@@ -16,13 +16,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.whyrising.recompose.example.Ids.formattedTime
+import com.github.whyrising.recompose.example.Ids
 import com.github.whyrising.recompose.example.events.regAllEvents
 import com.github.whyrising.recompose.example.initAppDb
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
-import com.github.whyrising.recompose.subscribe
-import com.github.whyrising.recompose.w
+import com.github.whyrising.recompose.watch
 import com.github.whyrising.y.core.v
 
 @Composable
@@ -41,8 +40,9 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
       color = colors.primary
     )
     Spacer(modifier = Modifier.height(8.dp))
+
     Text(
-      text = subscribe<String>(v(formattedTime)).w(),
+      text = watch<String>(v(Ids.formattedTime)),
       modifier = Modifier.align(CenterHorizontally),
       color = colors.secondary,
       style = typography.h1.copy(

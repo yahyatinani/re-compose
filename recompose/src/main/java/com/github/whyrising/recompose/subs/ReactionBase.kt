@@ -1,67 +1,88 @@
 package com.github.whyrising.recompose.subs
 
-import androidx.compose.runtime.State
+import android.util.Log
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.ISeq
 import com.github.whyrising.y.core.l
 import com.github.whyrising.y.core.str
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
-  val id: String by lazy { str(TAG, hashCode()) }
+interface Disposable {
+  fun addOnDispose(f: (Reaction<*>) -> Unit)
 
-  internal val disposeFns = atom<ISeq<(ReactionBase<T, O>) -> Unit>>(l())
+  fun dispose(): Boolean
+}
+
+abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
+  abstract val f: Any?
 
   abstract val reactionScope: CoroutineScope
 
-  internal abstract val state: MutableStateFlow<T>
+  abstract val initialValue: Any?
 
-  internal abstract fun deref(state: State<T>): O
+  val id: String by lazy { str(TAG, hashCode()) }
 
-  override fun addOnDispose(f: (ReactionBase<*, *>) -> Unit) {
+  // this flag is used to track the last subscriber of this reaction
+  internal val isFresh = atom(true)
+
+  internal val disposeFns = atom<ISeq<(Reaction<O>) -> Unit>>(l())
+
+  internal abstract val computationJob: Job
+
+  internal val _state: MutableStateFlow<Any?> by lazy {
+    computationJob
+    MutableStateFlow(initialValue).apply {
+      subscriptionCount
+        .onEach {
+          if (!isFresh()) {
+            // last subscriber just disappeared => composable left
+            // the Composition tree => Reaction is not active.
+            if (it == 0) {
+              dispose()
+            }
+          } else {
+            isFresh.reset(false)
+          }
+        }
+        .launchIn(reactionScope)
+    }
+  }
+
+  override val state: StateFlow<Any?>
+    get() = _state
+
+  override fun addOnDispose(f: (Reaction<*>) -> Unit) {
     disposeFns.swap { it.cons(f) }
   }
 
-  override fun dispose(): Boolean = when (state.subscriptionCount.value) {
-    0 -> {
+  override fun dispose(): Boolean = when {
+    _state.subscriptionCount.value != 0 || isFresh() -> false
+    else -> {
       var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns()
       while (fs != null && fs.count > 0) {
         val f = fs.first()
         f(this)
         fs = fs.next()
       }
-      reactionScope.cancel(
-        "The reaction `$id` got canceled because it had no subscribers."
-      )
+      reactionScope.cancel("$this is canceled due to inactivity.")
       true
     }
-    else -> false
   }
 
-  // this flag is used to track the last subscriber of this reaction
-  internal val isFresh = atom(true)
+  override fun toString(): String = "Reaction($id: ${deref()})"
 
-  internal fun initState(stateValue: T) = MutableStateFlow(stateValue).apply {
-    subscriptionCount
-      .onEach { subCount ->
-        // last subscriber just disappeared => composable left
-        // the Composition tree.
-        // Reaction is not used by any.
-        if (subCount == 0 && !isFresh()) {
-          dispose()
-        }
-        if (isFresh()) {
-          isFresh.reset(false)
-        }
-      }
-      .launchIn(reactionScope)
+  protected fun finalize() {
+    // FIXME: remove
+    Log.i("GCed", "$id, ${state.value}")
   }
 
   companion object {
-    const val TAG = "rx"
+    private const val TAG = "rx"
   }
 }

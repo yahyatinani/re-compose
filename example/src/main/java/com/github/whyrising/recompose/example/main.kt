@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -22,15 +23,18 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
 import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.dispatchSync
+import com.github.whyrising.recompose.example.Ids.about_dialog
 import com.github.whyrising.recompose.example.Ids.initDb
 import com.github.whyrising.recompose.example.Ids.startTicking
 import com.github.whyrising.recompose.example.composables.DigitalWatch
@@ -42,6 +46,7 @@ import com.github.whyrising.recompose.example.fx.regAllFx
 import com.github.whyrising.recompose.example.subs.regAllSubs
 import com.github.whyrising.recompose.example.ui.theme.RecomposeTheme
 import com.github.whyrising.recompose.regEventDb
+import com.github.whyrising.recompose.watch
 import com.github.whyrising.y.core.v
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -65,6 +70,12 @@ fun MyApp() {
             )
           },
           actions = {
+            IconButton(onClick = { dispatch(v(about_dialog, true)) }) {
+              Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = "Info"
+              )
+            }
             IconButton(onClick = { dispatch(v(Ids.exitApp)) }) {
               Icon(
                 imageVector = Icons.Default.Close,
@@ -81,6 +92,18 @@ fun MyApp() {
           .padding(padding),
         color = colors.background
       ) {
+        if (watch(query = v(about_dialog))) {
+          AlertDialog(
+            onDismissRequest = { dispatch(v(about_dialog, false)) },
+            properties = DialogProperties(),
+            title = { Text(text = "Info") },
+            text = {
+              Text(text = watch<String>(query = v(Ids.info)))
+            },
+            buttons = {}
+          )
+        }
+
         Column(
           modifier = Modifier
             .fillMaxSize()
@@ -116,7 +139,7 @@ fun DefaultDarkPreview() {
 
 fun initAppDb() {
   regEventDb<Any>(id = initDb) { _, _ ->
-    AppDb()
+    AppDb(info = "Best app!")
   }
   dispatchSync(v(initDb))
 }
