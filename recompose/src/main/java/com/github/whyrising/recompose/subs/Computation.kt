@@ -34,7 +34,7 @@ class Computation(
   inputSignals: Signals,
   initial: Any?,
   val context: CoroutineContext = Default,
-  override val f: suspend (signalsValues: Any?) -> Any?
+  override val f: suspend (signalsValues: Any?, currentValue: Any?) -> Any?
 ) : ReactionBase<State, Any?>() {
 
   override val reactionScope: CoroutineScope =
@@ -58,7 +58,10 @@ class Computation(
 
           if (_state.compareAndSet(
               currentState,
-              m(signals_value to v, computation_value to f(v))
+              m(
+                  signals_value to v,
+                  computation_value to f(v, currentState[computation_value])
+                )
             )
           ) {
             return@transform

@@ -29,13 +29,13 @@ import kotlinx.coroutines.withContext
 
 typealias ComputationFn1<T, V> = suspend (
   input: T,
-//  oldVal: V?,
+  currentValue: V,
   queryVec: Query
 ) -> V
 
 typealias ComputationFn2<T> = suspend (
   subscriptions: IPersistentVector<Any?>,
-//  oldVal: T?,
+  currentValue: T,
   queryVec: Query
 ) -> T
 
@@ -124,8 +124,8 @@ inline fun <T, R> regSub(
   queryId = queryId,
   initialValue = initialValue,
   signalsFn = { queryVec -> v(signalsFn(queryVec)) }
-) { persistentVector, qVec ->
-  computationFn(persistentVector[0], qVec)
+) { persistentVector, currentValue, qVec ->
+  computationFn(persistentVector[0], currentValue, qVec)
 }
 
 /**
