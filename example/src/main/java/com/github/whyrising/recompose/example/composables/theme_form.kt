@@ -36,6 +36,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
     OutlinedTextField(
       value = watch<String>(v(primaryColorStr)),
       onValueChange = { input ->
+        println("input$: $input")
         dispatch(v(setPrimaryColor, input))
       },
       placeholder = { Text(text = "Primary Color") },

@@ -3,7 +3,6 @@ package com.github.whyrising.recompose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
@@ -153,7 +152,6 @@ inline fun <R> regSubM(
   crossinline computationFn: ComputationFn2<R>
 ) = regCompSubscription(queryId, signalsFn, initialValue, computationFn)
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun <T> watch(query: Query): T {
   val cache by queryToReactionCache.collectAsStateWithLifecycle()
