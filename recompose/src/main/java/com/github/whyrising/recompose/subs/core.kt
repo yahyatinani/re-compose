@@ -22,10 +22,10 @@ typealias SubHandler<I, O> = (Reaction<I>, Query) -> ReactionBase<I, O>
 // -- cache --------------------------------------------------------------------
 internal val queryToReactionCache = MutableStateFlow(m<Query, Any>())
 
-internal fun <T> cacheReaction(
+internal fun <V> cacheReaction(
   queryV: Query,
-  reaction: ReactionBase<Any, T>
-): Reaction<T> {
+  reaction: ReactionBase<Any, V>
+): Reaction<V> {
   reaction.addOnDispose { r ->
     queryToReactionCache.update { qToR ->
       val cachedR = qToR[queryV]
@@ -41,16 +41,16 @@ internal fun <T> cacheReaction(
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> subscribe(query: Query): Reaction<T> {
+internal fun <V> subscribe(query: Query): Reaction<V> {
   val cachedReaction = queryToReactionCache.value[query]
 
   if (cachedReaction != null) {
-    return cachedReaction as Reaction<T>
+    return cachedReaction as Reaction<V>
   }
   Log.i(TAG, "Cache not found for subscription: $query")
 
   val (queryId) = query
-  val subHandler = getHandler(kind, queryId) as (SubHandler<Any, T>)?
+  val subHandler = getHandler(kind, queryId) as (SubHandler<Any, V>)?
     ?: throw IllegalStateException(
       "no subscription handler registered for id: `$queryId`"
     )
@@ -59,42 +59,42 @@ internal fun <T> subscribe(query: Query): Reaction<T> {
 }
 
 // -- regSub -----------------------------------------------------------------
-inline fun <I, O> regDbSubscription(
+inline fun <Db, V> regDbSubscription(
   queryId: Any,
-  crossinline extractorFn: (db: I, queryVec: Query) -> O
+  crossinline extractorFn: (db: Db, queryVec: Query) -> V
 ) {
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = { appDb: Reaction<I>, queryVec: Query ->
-      Extraction(inputSignal = appDb as Reaction<Any?>) {
-        extractorFn(it as I, queryVec)
+    handlerFn = { dbReaction: Reaction<Db>, queryVec: Query ->
+      Extraction(inputSignal = dbReaction) { signalValue: Any? ->
+        extractorFn(signalValue as Db, queryVec)
       }
     }
   )
 }
 
-inline fun <I, O> regCompSubscription(
+inline fun <S, V> regCompSubscription(
   queryId: Any,
-  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<I>>,
-  initialValue: O,
+  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<S>>,
+  initialValue: V,
   crossinline computationFn: suspend (
-    subscriptions: IPersistentVector<I>,
-    currentValue: O,
+    subscriptions: IPersistentVector<S>,
+    currentValue: V,
     queryVec: Query
-  ) -> O
+  ) -> V
 ) {
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = { _: Reaction<I>, queryVec: Query ->
+    handlerFn = { _: Reaction<S>, queryVec: Query ->
       Computation(
         inputSignals = signalsFn(queryVec) as Signals,
         initial = initialValue
       ) { signalsValues, currentValue ->
         computationFn(
-          signalsValues as IPersistentVector<I>,
-          currentValue as O,
+          signalsValues as IPersistentVector<S>,
+          currentValue as V,
           queryVec
         )
       }

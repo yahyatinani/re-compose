@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.transform
  * @param f - It takes the value of [appDb] as an input.
  */
 class Extraction(
-  val inputSignal: Reaction<Any?>,
+  val inputSignal: Reaction<*>,
   override val f: (signalValue: Any?) -> Any?
 ) : ReactionBase<Any?, Any?>() {
   override val reactionScope: CoroutineScope =

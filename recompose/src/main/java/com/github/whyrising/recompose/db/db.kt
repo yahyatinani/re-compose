@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()
 
 class RAtom<T>(v: T) : Reaction<T> {
-  val _state = MutableStateFlow(v)
+  private val _state = MutableStateFlow(v)
 
   override val state: StateFlow<Any?> = _state
 
@@ -35,4 +35,4 @@ class RAtom<T>(v: T) : Reaction<T> {
  *
  * It is set to a default token until it gets initialized via an event handler.
  * */
-val appDb: RAtom<Any> = RAtom(DEFAULT_APP_DB_VALUE)
+internal val appDb: RAtom<Any> = RAtom(DEFAULT_APP_DB_VALUE)

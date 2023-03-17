@@ -23,8 +23,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlin.coroutines.CoroutineContext
 
-typealias State = IPersistentMap<Ids, Any?>
-typealias Signals = IPersistentVector<Reaction<Any?>>
+typealias State = IPersistentMap<Ids, *>
+typealias Signals = IPersistentVector<Reaction<*>>
 
 class Computation(
   inputSignals: Signals,
@@ -51,13 +51,11 @@ class Computation(
         // TODO: write new combine function to work with vectors.
         val v = newSignals.fold(v<Any?>()) { acc, signal -> acc.conj(signal) }
 
-        if (_state.compareAndSet(
-            currentState,
-            m(
-                signals_value to v,
-                computation_value to f(v, currentState[computation_value])
-              )
-          )
+        val newState = m(
+          signals_value to v,
+          computation_value to f(v, currentState[computation_value])
+        )
+        if (_state.compareAndSet(currentState, newState)
         ) {
           return@transform
         }
