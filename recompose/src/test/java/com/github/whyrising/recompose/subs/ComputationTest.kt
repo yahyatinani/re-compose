@@ -73,7 +73,7 @@ class ComputationTest : FreeSpec({
           args as IPersistentVector<Int>
           "${inc(args[0])}"
         }
-        reaction.computationJob
+        reaction.signalObserver
         advanceUntilIdle()
 
         input1._state.emit(5)
@@ -105,7 +105,7 @@ class ComputationTest : FreeSpec({
           context = testDispatcher
         ) { _, _ -> 0 }
         subscriber.addOnDispose { isDisposed = true }
-        subscriber.computationJob
+        subscriber.signalObserver
         advanceUntilIdle()
 
         val result = reaction.dispose()
@@ -139,8 +139,8 @@ class ComputationTest : FreeSpec({
           0
         }
         subscriber.addOnDispose { isDisposed = true }
-        reaction.computationJob
-        subscriber.computationJob
+        reaction.signalObserver
+        subscriber.signalObserver
         advanceUntilIdle()
 
         val subscriberDisposed = subscriber.dispose()
@@ -169,7 +169,7 @@ class ComputationTest : FreeSpec({
           args as IPersistentVector<Int>
           inc(args[0])
         }
-        r.computationJob
+        r.signalObserver
         advanceUntilIdle()
 
         input._state.emit(5)
@@ -189,7 +189,7 @@ class ComputationTest : FreeSpec({
             val (a, b) = args as IPersistentVector<Int>
             inc(a + b)
           }
-        node.computationJob
+        node.signalObserver
         advanceUntilIdle()
 
         input1._state.emit(3)
@@ -214,7 +214,7 @@ class ComputationTest : FreeSpec({
             val (a, b) = args as IPersistentVector<Int>
             inc(a + b)
           }
-          reaction.computationJob
+          reaction.signalObserver
           advanceUntilIdle()
 
           multiThreadedRun(100, 100, standardTestDispatcher) {
@@ -264,7 +264,7 @@ class ComputationTest : FreeSpec({
             currentValue!!
           }
         }
-        reaction.computationJob // reaction value becomes 31 here.
+        reaction.signalObserver // reaction value becomes 31 here.
         advanceUntilIdle()
 
         input._state.emit(60)

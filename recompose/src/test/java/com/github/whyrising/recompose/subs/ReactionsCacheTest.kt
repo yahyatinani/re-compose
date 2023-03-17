@@ -100,7 +100,7 @@ class ReactionsCacheTest : FreeSpec({
       get() = TODO("Not yet implemented")
     override val initialValue: Any?
       get() = TODO("Not yet implemented")
-    override val computationJob: Job
+    override val signalObserver: Job
       get() = TODO("Not yet implemented")
 
     override fun addOnDispose(f: (Reaction<*>) -> Unit) {

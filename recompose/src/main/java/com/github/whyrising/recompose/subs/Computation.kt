@@ -5,7 +5,6 @@ import com.github.whyrising.recompose.subs.Computation.Companion.Ids.computation
 import com.github.whyrising.recompose.subs.Computation.Companion.Ids.signals_value
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
@@ -27,9 +26,6 @@ import kotlin.coroutines.CoroutineContext
 typealias State = IPersistentMap<Ids, Any?>
 typealias Signals = IPersistentVector<Reaction<Any?>>
 
-/**
- * @param f - It takes a [PersistentVector] of dereferenced input values.
- */
 class Computation(
   inputSignals: Signals,
   initial: Any?,
@@ -42,34 +38,32 @@ class Computation(
 
   override val initialValue: State = m(computation_value to initial)
 
-  override val computationJob: Job by lazy {
-    // TODO: implement your own combine function
-    combine(inputSignals) { it }
-      .distinctUntilChanged()
-      .transform<Array<Any?>, State> { newSignals ->
-        while (true) {
-          val currentState = _state.value as State
+  override val signalObserver: Job = combine(inputSignals) { it }
+    .distinctUntilChanged()
+    .transform<Array<Any?>, State> { newSignals ->
+      while (true) {
+        val currentState = _state.value as State
 
-          if (newSignals == currentState[signals_value]) { // skip
-            return@transform
-          }
+        if (newSignals == currentState[signals_value]) { // skip
+          return@transform
+        }
 
-          val v = newSignals.fold(v<Any?>()) { acc, signal -> acc.conj(signal) }
+        // TODO: write new combine function to work with vectors.
+        val v = newSignals.fold(v<Any?>()) { acc, signal -> acc.conj(signal) }
 
-          if (_state.compareAndSet(
-              currentState,
-              m(
-                  signals_value to v,
-                  computation_value to f(v, currentState[computation_value])
-                )
-            )
-          ) {
-            return@transform
-          }
+        if (_state.compareAndSet(
+            currentState,
+            m(
+                signals_value to v,
+                computation_value to f(v, currentState[computation_value])
+              )
+          )
+        ) {
+          return@transform
         }
       }
-      .launchIn(reactionScope)
-  }
+    }
+    .launchIn(reactionScope)
 
   override fun deref(): Any? = get(_state.value, computation_value)
 

@@ -103,7 +103,8 @@ internal class EventQueueFSM(
     }
 
   fun handle(fsmEvent: FsmEvent, arg: Any? = null) {
-    scope.launch(handler) {
+    // TODO: review
+    scope.launch(Dispatchers.Main.immediate) {
       while (true) {
         val givenFsmState = state
         val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
