@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -32,7 +33,7 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
 
   internal abstract val signalObserver: Job
 
-  protected val _state: MutableStateFlow<Any?> by lazy {
+  internal val _state: MutableStateFlow<Any?> by lazy {
     MutableStateFlow(initialValue).apply {
       subscriptionCount
         .onEach {
@@ -42,7 +43,7 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
             if (it == 0) {
               dispose()
             }
-          } else {
+          } else if(it > 0) {
             isFresh.reset(false)
           }
         }
