@@ -11,7 +11,6 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -108,7 +107,6 @@ class EventQueueFsmTest : FreeSpec({
   "Given we're in RUNNING state" - {
     "when EXCEPTION event happens, then go to IDLE and call exception()" {
       runTest {
-        var e: Throwable? = null
         val eventQueue = EventQueueImp().apply {
           enqueue(v(":event1", "arg"))
           enqueue(v(":event2", "arg"))
@@ -116,13 +114,12 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          dispatcher = testDispatcher,
-          handler = CoroutineExceptionHandler { _, exception -> e = exception }
+          dispatcher = testDispatcher
         )
-        eventQueueFSM.handle(FsmEvent.EXCEPTION, RuntimeException())
-        advanceUntilIdle()
 
-        shouldThrowExactly<RuntimeException> { throw e!! }
+        shouldThrowExactly<RuntimeException> {
+          eventQueueFSM.handle(FsmEvent.EXCEPTION, RuntimeException())
+        }
         eventQueueFSM.state shouldBe IDLE
         eventQueue.queue.isEmpty() shouldBe true
       }
@@ -215,19 +212,15 @@ class EventQueueFsmTest : FreeSpec({
       continually(5.seconds) {
         runTest {
           val eventQueue = EventQueueImp().apply { enqueue(v("ex-event")) }
-          var e: Throwable? = null
           val eventQueueFSM = EventQueueFSM(
             eventQueue = eventQueue,
             start = RUNNING,
-            dispatcher = testDispatcher,
-            handler = CoroutineExceptionHandler { _, exception ->
-              e = exception
-            }
+            dispatcher = testDispatcher
           )
-          eventQueueFSM.processAllCurrentEvents(null)
-          advanceUntilIdle()
 
-          shouldThrowExactly<IllegalStateException> { throw e!! }
+          shouldThrowExactly<IllegalStateException> {
+            eventQueueFSM.processAllCurrentEvents(null)
+          }
           eventQueueFSM.state shouldBe IDLE
         }
       }
