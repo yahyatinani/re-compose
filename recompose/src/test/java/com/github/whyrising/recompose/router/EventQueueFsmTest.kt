@@ -39,7 +39,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueue = EventQueueImp()
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
-          defaultDispatcher = testDispatcher
+          dispatcher = testDispatcher
         )
         var state1: State? = null
         var isEventQueued = false
@@ -68,7 +68,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = SCHEDULING,
-          defaultDispatcher = testDispatcher
+          dispatcher = testDispatcher
         )
 
         eventQueueFSM.handle(ADD_EVENT, v("new-event"))
@@ -89,7 +89,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = SCHEDULING,
-          defaultDispatcher = testDispatcher
+          dispatcher = testDispatcher
         )
         var state1: State? = null
         eventQueueFSM._state.addWatch("running") { _, _, _, new ->
@@ -116,7 +116,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          defaultDispatcher = testDispatcher,
+          dispatcher = testDispatcher,
           handler = CoroutineExceptionHandler { _, exception -> e = exception }
         )
         eventQueueFSM.handle(FsmEvent.EXCEPTION, RuntimeException())
@@ -137,7 +137,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          defaultDispatcher = testDispatcher
+          dispatcher = testDispatcher
         )
 
         eventQueueFSM.handle(ADD_EVENT, v("new-event"))
@@ -154,7 +154,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          defaultDispatcher = testDispatcher
+          dispatcher = testDispatcher
         )
 
         eventQueueFSM.handle(FsmEvent.FINISH_RUN)
@@ -174,7 +174,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          defaultDispatcher = testDispatcher
+          dispatcher = testDispatcher
         )
         var state1: State? = null
         eventQueueFSM._state.addWatch("scheduling") { _, _, _, new ->
@@ -219,7 +219,7 @@ class EventQueueFsmTest : FreeSpec({
           val eventQueueFSM = EventQueueFSM(
             eventQueue = eventQueue,
             start = RUNNING,
-            defaultDispatcher = testDispatcher,
+            dispatcher = testDispatcher,
             handler = CoroutineExceptionHandler { _, exception ->
               e = exception
             }

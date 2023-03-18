@@ -4,7 +4,6 @@ import android.util.Log
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.ISeq
 import com.github.whyrising.y.core.l
-import com.github.whyrising.y.core.str
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -26,17 +25,14 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
 
   abstract val initialValue: Any?
 
-  val id: String by lazy { str(TAG, hashCode()) }
-
   // this flag is used to track the last subscriber of this reaction
   internal val isFresh = atom(true)
 
   internal val disposeFns = atom<ISeq<(Reaction<O>) -> Unit>>(l())
 
-  internal abstract val computationJob: Job
+  internal abstract val signalObserver: Job
 
   internal val _state: MutableStateFlow<Any?> by lazy {
-    computationJob
     MutableStateFlow(initialValue).apply {
       subscriptionCount
         .onEach {
@@ -46,7 +42,7 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
             if (it == 0) {
               dispose()
             }
-          } else {
+          } else if (it > 0) {
             isFresh.reset(false)
           }
         }
@@ -56,6 +52,8 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
 
   override val state: StateFlow<Any?>
     get() = _state
+
+  private val str: String by lazy { "$TAG(${hashCode()}, ${deref()})" }
 
   override fun addOnDispose(f: (Reaction<*>) -> Unit) {
     disposeFns.swap { it.cons(f) }
@@ -75,11 +73,11 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
     }
   }
 
-  override fun toString(): String = "Reaction($id: ${deref()})"
+  override fun toString(): String = str
 
   protected fun finalize() {
     // FIXME: remove
-    Log.i("GCed", "$id, ${state.value}")
+    Log.i("GCed", toString())
   }
 
   companion object {

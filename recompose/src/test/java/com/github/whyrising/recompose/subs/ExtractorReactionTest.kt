@@ -41,7 +41,7 @@ class ExtractorReactionTest : FreeSpec({
         (it as Int).inc()
       }
 
-      reaction.computationJob // launch the flow.
+      reaction.signalObserver // launch the flow.
       launch { inputSignal.emit(4) }
       advanceUntilIdle()
 
@@ -58,7 +58,7 @@ class ExtractorReactionTest : FreeSpec({
       val reaction = Extraction(inputSignal as Reaction<Any?>) {
         (it as Int).inc().toString()
       }
-      reaction.computationJob // launch the flow.
+      reaction.signalObserver // launch the flow.
 
       launch { db.emit(4) }
       advanceUntilIdle()

@@ -15,7 +15,7 @@ import com.github.whyrising.y.core.lazySeq
 
 val kind: Kinds = Kinds.Event
 
-typealias DbEventHandler<T> = (db: T, event: Event) -> Any
+typealias DbEventHandler<Db> = (db: Db, event: Event) -> Any
 typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
 
 // TODO: Move flatten to y library?

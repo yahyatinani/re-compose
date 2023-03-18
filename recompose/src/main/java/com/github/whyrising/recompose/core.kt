@@ -3,7 +3,6 @@ package com.github.whyrising.recompose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.whyrising.recompose.cofx.injectDb
 import com.github.whyrising.recompose.db.appDb
@@ -57,10 +56,10 @@ fun dispatchSync(event: Event) =
 /**
  * Register the given event `handler` (function) for the given `id`.
  */
-inline fun <T : Any> regEventDb(
+inline fun <Db : Any> regEventDb(
   id: Any,
   interceptors: IPersistentVector<Interceptor> = v(),
-  crossinline handler: DbEventHandler<T>
+  crossinline handler: DbEventHandler<Db>
 ) = register(
   id = id,
   interceptors = v(
@@ -87,7 +86,7 @@ inline fun regEventFx(
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <T> subscribe(qvec: Query): Reaction<T> =
+fun <V> subscribe(qvec: Query): Reaction<V> =
   com.github.whyrising.recompose.subs.subscribe(qvec)
 
 /**
@@ -95,9 +94,9 @@ fun <T> subscribe(qvec: Query): Reaction<T> =
  * @param extractor a function which extract data directly from [appDb], with no
  * further computation.
  */
-inline fun <T, R> regSub(
+inline fun <Db> regSub(
   queryId: Any,
-  crossinline extractor: (db: T, queryVec: Query) -> R
+  crossinline extractor: (db: Db, queryVec: Query) -> Any?
 ) = regDbSubscription(queryId, extractor)
 
 /**
@@ -115,11 +114,11 @@ inline fun <T, R> regSub(
  * with [Dispatchers.Main] when you have computations that should run on the UI
  * thread to avoid snapshots exceptions.
  */
-inline fun <T, R> regSub(
+inline fun <S, V> regSub(
   queryId: Any,
-  crossinline signalsFn: (queryVec: Query) -> Reaction<T>,
-  initialValue: R,
-  crossinline computationFn: ComputationFn1<T, R>
+  crossinline signalsFn: (queryVec: Query) -> Reaction<S>,
+  initialValue: V,
+  crossinline computationFn: ComputationFn1<S, V>
 ) = regCompSubscription(
   queryId = queryId,
   initialValue = initialValue,
@@ -146,14 +145,13 @@ inline fun <T, R> regSub(
  * [Dispatchers.Main] when you have computations that should run on the UI
  * thread to avoid snapshots exceptions.
  */
-inline fun <R> regSubM(
+inline fun <V> regSubM(
   queryId: Any,
   crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<Any?>>,
-  initialValue: R,
-  crossinline computationFn: ComputationFn2<R>
+  initialValue: V,
+  crossinline computationFn: ComputationFn2<V>
 ) = regCompSubscription(queryId, signalsFn, initialValue, computationFn)
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun <T> watch(query: Query): T {
   val cache by queryToReactionCache.collectAsStateWithLifecycle()

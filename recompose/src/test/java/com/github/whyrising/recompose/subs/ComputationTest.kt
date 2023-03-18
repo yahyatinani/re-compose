@@ -20,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -41,7 +42,7 @@ class ComputationTest : FreeSpec({
     val reaction = Computation(v(), defaultVal) { _, _ -> defaultVal }
 
     reaction.isFresh.deref().shouldBeTrue()
-    reaction.id shouldBe "rx${reaction.hashCode()}"
+    reaction.toString() shouldBe "rx(${reaction.hashCode()}, 0)"
     reaction.state.value shouldBe defaultVal
     reaction.initialValue shouldBe m(computation_value to defaultVal)
   }
@@ -73,7 +74,7 @@ class ComputationTest : FreeSpec({
           args as IPersistentVector<Int>
           "${inc(args[0])}"
         }
-        reaction.computationJob
+        reaction.signalObserver
         advanceUntilIdle()
 
         input1._state.emit(5)
@@ -105,7 +106,7 @@ class ComputationTest : FreeSpec({
           context = testDispatcher
         ) { _, _ -> 0 }
         subscriber.addOnDispose { isDisposed = true }
-        subscriber.computationJob
+        subscriber.signalObserver
         advanceUntilIdle()
 
         val result = reaction.dispose()
@@ -123,6 +124,7 @@ class ComputationTest : FreeSpec({
         advanceUntilIdle()
 
         val result = reaction.dispose()
+        advanceUntilIdle()
 
         reaction.isFresh.deref().shouldBeTrue()
         reaction._state.subscriptionCount.value shouldBeExactly 0
@@ -133,30 +135,35 @@ class ComputationTest : FreeSpec({
 
     "should call all functions in disposeFns and cancel reactionScope" {
       runTest {
-        var isDisposed = false
+        var isSubscriberDisposed = false
         val reaction = Extraction(RAtom(0)) { 0 }
         val subscriber = Computation(v(reaction), -1, testDispatcher) { _, _ ->
           0
         }
-        subscriber.addOnDispose { isDisposed = true }
-        reaction.computationJob
-        subscriber.computationJob
+        val j = launch { subscriber.collect {} }
+        advanceUntilIdle()
+        reaction.addOnDispose { isSubscriberDisposed = true }
+        reaction.signalObserver
+        subscriber.signalObserver
         advanceUntilIdle()
 
+        j.cancel()
+        advanceUntilIdle()
         val subscriberDisposed = subscriber.dispose()
         advanceUntilIdle()
         val reactionDisposed = reaction.dispose()
         advanceUntilIdle()
 
-        isDisposed.shouldBeTrue()
-        subscriber.isFresh().shouldBeFalse()
-        reaction.isFresh().shouldBeFalse()
-        subscriber._state.subscriptionCount.value shouldBeExactly 0
-        reaction._state.subscriptionCount.value shouldBeExactly 0
         subscriberDisposed.shouldBeTrue()
-        reactionDisposed.shouldBeTrue()
-        reaction.reactionScope.isActive.shouldBeFalse()
+        subscriber.isFresh().shouldBeFalse()
+        subscriber._state.subscriptionCount.value shouldBeExactly 0
         subscriber.reactionScope.isActive.shouldBeFalse()
+
+        isSubscriberDisposed.shouldBeTrue()
+        reactionDisposed.shouldBeTrue()
+        reaction.isFresh().shouldBeFalse()
+        reaction._state.subscriptionCount.value shouldBeExactly 0
+        reaction.reactionScope.isActive.shouldBeFalse()
       }
     }
   }
@@ -169,7 +176,7 @@ class ComputationTest : FreeSpec({
           args as IPersistentVector<Int>
           inc(args[0])
         }
-        r.computationJob
+        r.signalObserver
         advanceUntilIdle()
 
         input._state.emit(5)
@@ -189,7 +196,7 @@ class ComputationTest : FreeSpec({
             val (a, b) = args as IPersistentVector<Int>
             inc(a + b)
           }
-        node.computationJob
+        node.signalObserver
         advanceUntilIdle()
 
         input1._state.emit(3)
@@ -214,7 +221,7 @@ class ComputationTest : FreeSpec({
             val (a, b) = args as IPersistentVector<Int>
             inc(a + b)
           }
-          reaction.computationJob
+          reaction.signalObserver
           advanceUntilIdle()
 
           multiThreadedRun(100, 100, standardTestDispatcher) {
@@ -264,7 +271,7 @@ class ComputationTest : FreeSpec({
             currentValue!!
           }
         }
-        reaction.computationJob // reaction value becomes 31 here.
+        reaction.signalObserver // reaction value becomes 31 here.
         advanceUntilIdle()
 
         input._state.emit(60)

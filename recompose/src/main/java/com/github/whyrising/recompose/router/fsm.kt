@@ -42,11 +42,11 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
   val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
 ) {
   internal val _state: Atom<State> = atom(start)
-  private val scope = CoroutineScope(defaultDispatcher)
+  private val scope = CoroutineScope(dispatcher + handler)
 
   init {
     registerBuiltInStuff()
@@ -99,11 +99,13 @@ internal class EventQueueFSM(
         0 -> IDLE_identity
         else -> SCHEDULING_runQueue
       }
+
       else -> TODO("${givenFsmState.name}, ${whenFsmEvent.name}")
     }
 
   fun handle(fsmEvent: FsmEvent, arg: Any? = null) {
-    scope.launch(handler) {
+    // TODO: review
+    scope.launch {
       while (true) {
         val givenFsmState = state
         val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)

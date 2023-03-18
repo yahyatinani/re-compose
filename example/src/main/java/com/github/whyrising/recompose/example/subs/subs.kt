@@ -61,7 +61,7 @@ internal fun heavyComp() {
 }
 
 fun regAllSubs(defaultColors: Colors) {
-  regSub<AppDb, Date>(queryId = time) { db, _ ->
+  regSub<AppDb>(queryId = time) { db, _ ->
     db.time
   }
 
@@ -75,11 +75,11 @@ fun regAllSubs(defaultColors: Colors) {
     formattedTime.format(date)
   }
 
-  regSub<AppDb, String>(queryId = primaryColorStr) { db, _ ->
+  regSub<AppDb>(queryId = primaryColorStr) { db, _ ->
     db.primaryColor
   }
 
-  regSub<AppDb, String>(queryId = secondaryColorStr) { db, _ ->
+  regSub<AppDb>(queryId = secondaryColorStr) { db, _ ->
     db.secondaryColor
   }
 
@@ -118,11 +118,11 @@ fun regAllSubs(defaultColors: Colors) {
     }
   }
 
-  regSub<AppDb, Boolean>(queryId = Ids.about_dialog) { db, _ ->
+  regSub<AppDb>(queryId = Ids.about_dialog) { db, _ ->
     db.showAboutDialog
   }
 
-  regSub<AppDb, String>(queryId = Ids.info) { db, _ ->
+  regSub<AppDb>(queryId = Ids.info) { db, _ ->
     db.info
   }
 }
