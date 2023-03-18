@@ -63,17 +63,16 @@ class EventQueueActionsTest : FreeSpec({
       continually(30.seconds) {
         runTest {
           appDb.emit(0)
+          regEventDb<Int>(":test-event") { db, _ -> db.inc() }
           val eventQueueImp = EventQueueImp()
-          regEventDb<Int>(":test-event") { db, (_, i) -> db + i as Int }
-          for (i in 1..10_000)
-            eventQueueImp.enqueue(v(":test-event", i))
+          val eventQueueFSM = EventQueueFSM(eventQueueImp)
 
-          multiThreadedRun(100, 100) {
-            eventQueueImp.processFirstEventInQueue()
+          multiThreadedRun(coroutinesN = 100, runN = 1001) {
+            eventQueueFSM.push(v(":test-event"))
           }
 
           eventQueueImp.count shouldBe 0
-          appDb.deref() shouldBe 50005000
+          appDb.deref() shouldBe 100100
         }
       }
     }
