@@ -15,6 +15,8 @@ import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +44,7 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
+  dispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
   val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
 ) {
   internal val _state: Atom<State> = atom(start)
@@ -56,7 +58,9 @@ internal class EventQueueFSM(
     get() = _state()
 
   private fun runQueue(arg: Any?) {
-    handle(RUN_QUEUE)
+    scope.launch {
+      handle(RUN_QUEUE)
+    }
   }
 
   internal fun processAllCurrentEvents(arg: Any?) {
@@ -103,16 +107,18 @@ internal class EventQueueFSM(
       else -> TODO("${givenFsmState.name}, ${whenFsmEvent.name}")
     }
 
+  fun push(event: Event) {
+    handle(ADD_EVENT, event)
+  }
+
+  private val lock = reentrantLock()
+
   fun handle(fsmEvent: FsmEvent, arg: Any? = null) {
-    // TODO: review
-    scope.launch {
-      while (true) {
-        val givenFsmState = state
-        val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
-        if (_state.compareAndSet(givenFsmState, newFsmState as State)) {
-          (actionFn as FsmAction)(arg)
-          break
-        }
+    lock.withLock {
+      val givenFsmState = state
+      val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
+      if (_state.compareAndSet(givenFsmState, newFsmState as State)) {
+        (actionFn as FsmAction)(arg)
       }
     }
   }

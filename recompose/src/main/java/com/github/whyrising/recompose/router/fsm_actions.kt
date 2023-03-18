@@ -38,20 +38,19 @@ internal class EventQueueImp(queue: EventQueue = q()) :
   }
 
   /** This function is thread safe. */
-  override fun processFirstEventInQueue() = synchronized(_eventQueueRef) {
-    when (val event = queue.peek()) {
-      null -> queue
-      else -> {
-        handle(event)
-        _eventQueueRef.swap { it.pop() }
-      }
+  override fun processFirstEventInQueue() = when (val event = queue.peek()) {
+    null -> queue
+    else -> {
+      handle(event)
+      _eventQueueRef.swap { it.pop() }
     }
   }
 
   /** This function is thread safe since it calls [processFirstEventInQueue],
    * which is already thread safe. */
   override fun processCurrentEvents() {
-    for (i: Int in 0 until count)
+    val n = count
+    for (i: Int in 0 until n)
       processFirstEventInQueue()
   }
 
