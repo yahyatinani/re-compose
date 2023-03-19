@@ -67,55 +67,45 @@ val doFx: Interceptor = toInterceptor(
 
 // -- Builtin Effect Handlers --------------------------------------------------
 
-/**
- * Registers an [EffectHandler] called [FxIds.fx] which is responsible for
- * executing, in the given order, every effect in the seq of effects.
- */
-fun regExecuteOrderedEffectsFx() = regFx(id = FxIds.fx) { vecOfFx: Any? ->
-  if (vecOfFx is IPersistentVector<*>) {
-    val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
-    for (effect: IPersistentVector<Any?>? in effects) {
-      if (effect == null) return@regFx
+internal fun registerBuiltinFxHandlers() {
+  regFx(id = FxIds.fx) { vecOfFx: Any? ->
+    if (vecOfFx is IPersistentVector<*>) {
+      val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
+      for (effect: IPersistentVector<Any?>? in effects) {
+        if (effect == null) return@regFx
 
-      val effectKey = effect.nth(0, null)
-      val effectValue = effect.nth(1, null)
+        val effectKey = effect.nth(0, null)
+        val effectValue = effect.nth(1, null)
 
-      if (effectKey == db) {
-        Log.w(TAG, "\":fx\" effect should not contain a :db effect")
+        if (effectKey == db) {
+          Log.w(TAG, "\":fx\" effect should not contain a :db effect")
+        }
+
+        if (effectKey == null) {
+          Log.w(TAG, "in :fx effect, null is not a valid effectKey. Skip.")
+          return@regFx
+        }
+
+        val fxFn = getHandler(kind, effectKey) as EffectHandler?
+
+        if (fxFn != null) {
+          fxFn(effectValue)
+        } else {
+          Log.w(
+            TAG,
+            "in :fx, effect: $effectKey has no associated handler. Skip."
+          )
+        }
       }
-
-      if (effectKey == null) {
-        Log.w(TAG, "in :fx effect, null is not a valid effectKey. Skip.")
-        return@regFx
+    } else {
+      val type: Class<out Any>? = when (vecOfFx) {
+        null -> null
+        else -> vecOfFx::class.java
       }
-
-      val fxFn = getHandler(kind, effectKey) as EffectHandler?
-
-      if (fxFn != null) {
-        fxFn(effectValue)
-      } else {
-        Log.w(
-          TAG,
-          "in :fx, effect: $effectKey has no associated handler. Skip."
-        )
-      }
-    }
-  } else {
-    val type: Class<out Any>? = when (vecOfFx) {
-      null -> null
-      else -> vecOfFx::class.java
-    }
-    Log.e(TAG, "\":fx\" effect expects a vector, but was given $type")
-  }
-}
-
-internal fun registerBuiltinEffectHandlers() {
-  regExecuteOrderedEffectsFx()
-  regFx(id = db) { newAppDb ->
-    if (newAppDb != null) {
-      appDb.emit(newAppDb)
+      Log.e(TAG, "\":fx\" effect expects a vector, but was given $type")
     }
   }
+
   regFx(id = FxIds.dispatch) { event ->
     if (event !is IPersistentVector<*>) {
       Log.e(
@@ -126,5 +116,19 @@ internal fun registerBuiltinEffectHandlers() {
     }
 
     dispatch(event as Event)
+  }
+
+  /*
+   * :db
+   *
+   * reset appDb with a new value.
+   *
+   * usage:
+   * {:db  {:key1 value1 key2 value2}}
+   */
+  regFx(id = db) { newAppDb ->
+    if (newAppDb != null) {
+      appDb.reset(newAppDb)
+    }
   }
 }
