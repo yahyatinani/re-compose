@@ -3,10 +3,10 @@ package com.github.whyrising.recompose
 import android.util.Log
 import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.fx.BuiltInFx.dispatch
+import com.github.whyrising.recompose.fx.BuiltInFx.fx
 import com.github.whyrising.recompose.fx.EffectHandler
 import com.github.whyrising.recompose.fx.Effects
-import com.github.whyrising.recompose.fx.FxIds.dispatch
-import com.github.whyrising.recompose.fx.FxIds.fx
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.fx.kind
 import com.github.whyrising.recompose.fx.regFx
@@ -31,7 +31,7 @@ import com.github.whyrising.recompose.registrar.register as myRegister
 
 class FxTest : FreeSpec({
   beforeAny {
-    appDb.emit(DEFAULT_APP_DB_VALUE)
+    appDb.reset(DEFAULT_APP_DB_VALUE)
     myRegister.swap { m() }
   }
 
@@ -46,7 +46,7 @@ class FxTest : FreeSpec({
   "doFx interceptor should update the appDb and apply other effects" {
     regFx(id = db) { newAppDb ->
       if (newAppDb != null) {
-        appDb.emit(newAppDb)
+        appDb.reset(newAppDb)
       }
     }
     var i = 0
@@ -108,7 +108,7 @@ class FxTest : FreeSpec({
       }
       regFx(id = db) { newAppDb ->
         if (newAppDb != null) {
-          appDb.emit(newAppDb)
+          appDb.reset(newAppDb)
         }
       }
       var i = 0
@@ -172,7 +172,7 @@ class FxTest : FreeSpec({
       }
       regFx(id = db) { newAppDb ->
         if (newAppDb != null) {
-          appDb.emit(newAppDb)
+          appDb.reset(newAppDb)
         }
       }
       var i = 0
@@ -233,7 +233,7 @@ class FxTest : FreeSpec({
       }
       regFx(id = db) { newAppDb ->
         if (newAppDb != null) {
-          appDb.emit(newAppDb)
+          appDb.reset(newAppDb)
         }
       }
       var i = 0

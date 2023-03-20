@@ -42,7 +42,7 @@ class ExtractorReactionTest : FreeSpec({
       }
 
       reaction.signalObserver // launch the flow.
-      launch { inputSignal.emit(4) }
+      launch { inputSignal.reset(4) }
       advanceUntilIdle()
 
       reaction._state.value shouldBe 5
@@ -60,7 +60,7 @@ class ExtractorReactionTest : FreeSpec({
       }
       reaction.signalObserver // launch the flow.
 
-      launch { db.emit(4) }
+      launch { db.reset(4) }
       advanceUntilIdle()
 
       reaction._state.value shouldBe "6"

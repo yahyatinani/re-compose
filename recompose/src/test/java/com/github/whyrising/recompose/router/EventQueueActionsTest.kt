@@ -25,7 +25,7 @@ class EventQueueActionsTest : FreeSpec({
 
   beforeEach {
     com.github.whyrising.recompose.registrar.register.reset(m())
-    appDb.emit(DEFAULT_APP_DB_VALUE)
+    appDb.reset(DEFAULT_APP_DB_VALUE)
     registerDbInjectorCofx()
     injectCofx(recompose.db)
     registerBuiltinFxHandlers()
@@ -62,7 +62,7 @@ class EventQueueActionsTest : FreeSpec({
     "multithreading" {
       continually(30.seconds) {
         runTest {
-          appDb.emit(0)
+          appDb.reset(0)
           regEventDb<Int>(":test-event") { db, _ -> db.inc() }
           val eventQueueImp = EventQueueImp()
           val eventQueueFSM = EventQueueFSM(eventQueueImp)
