@@ -75,6 +75,19 @@ val doFx: Interceptor = toInterceptor(
 // -- Builtin Effect Handlers --------------------------------------------------
 
 internal fun registerBuiltinFxHandlers() {
+  /**
+   * `[BuiltInFx.dispatch]` one or more events after given delays.
+   *
+   * Expects a map or a vector of maps with two keys: :ms and :dispatch.
+   *
+   * usage:
+   *   {:fx [[:dispatch_later [{:dispatch :event1 :ms 3000}
+   *                           {:dispatch :event2 :ms 1000}]]]}
+   *
+   * `null` entries in the collection are ignored so events can be added
+   * conditionally.
+   */
+
   fun dispatchLater(effect: Map<*, *>) {
     val ms = effect[BuiltInFx.ms] as? Number
     val event = effect[BuiltInFx.dispatch] as? Event
@@ -88,18 +101,6 @@ internal fun registerBuiltinFxHandlers() {
     }
   }
 
-  /**
-   * `[BuiltInFx.dispatch]` one or more events after given delays.
-   *
-   * Expects a map or a vector of maps with two keys: :ms and :dispatch.
-   *
-   * usage:
-   *   {:fx [[:dispatch_later [{:dispatch :event1 :ms 3000}
-   *                           {:dispatch :event2 :ms 1000}]]]}
-   *
-   * `null` entries in the collection are ignored so events can be added
-   * conditionally.
-   */
   regFx(id = BuiltInFx.dispatch_later) { value ->
     when (value) {
       is Map<*, *> -> dispatchLater(value)
@@ -115,6 +116,10 @@ internal fun registerBuiltinFxHandlers() {
       )
     }
   }
+
+  /**
+   * :fx
+   */
 
   fun type(vecOfEffects: Any?) = when (vecOfEffects) {
     null -> null
