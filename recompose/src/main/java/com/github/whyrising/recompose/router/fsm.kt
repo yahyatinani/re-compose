@@ -45,9 +45,11 @@ internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
   dispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
-  val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
+  val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
+    throw e
+  }
 ) {
-  private val scope = CoroutineScope(dispatcher + handler)
+  internal val scope = CoroutineScope(dispatcher + handler)
 
   // -- FSM transitions' actions -----------------------------------------------
 

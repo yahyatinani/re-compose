@@ -3,7 +3,6 @@ package com.github.whyrising.recompose.fx
 import android.util.Log
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.db.appDb
-import com.github.whyrising.recompose.dispatch
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.ids.context.effects
 import com.github.whyrising.recompose.ids.recompose
@@ -14,17 +13,24 @@ import com.github.whyrising.recompose.interceptor.toInterceptor
 import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.recompose.router.dispatch
+import com.github.whyrising.recompose.router.eventQueueFSM
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = (value: Any?) -> Unit
 
 @Suppress("EnumEntryName")
-enum class FxIds {
+enum class BuiltInFx {
   fx,
-  dispatch;
+  dispatch,
+  dispatch_later,
+  ms;
 
   override fun toString(): String = ":${super.toString()}"
 }
@@ -68,10 +74,54 @@ val doFx: Interceptor = toInterceptor(
 // -- Builtin Effect Handlers --------------------------------------------------
 
 internal fun registerBuiltinFxHandlers() {
-  regFx(id = FxIds.fx) { vecOfFx: Any? ->
+  fun dispatchLater(effect: Map<*, *>) {
+    val ms = effect[BuiltInFx.ms] as? Number
+    val event = effect[BuiltInFx.dispatch] as Event
+    if (event.isEmpty() || ms == null) {
+      throw IllegalArgumentException(
+        "$TAG: bad :dispatch_later value: $effect"
+      )
+    }
+
+    eventQueueFSM.scope.launch {
+      delay(ms.toLong())
+      dispatch(event)
+    }
+  }
+
+  /**
+   * `[BuiltInFx.dispatch]` one or more events after given delays.
+   *
+   * Expects a map or a vector of maps with two keys: :ms and :dispatch.
+   *
+   * usage:
+   *   {:fx [[:dispatch_later [{:dispatch :event1 :ms 3000}
+   *                           {:dispatch :event2 :ms 1000}]]]}
+   *
+   * `null` entries in the collection are ignored so events can be added
+   * conditionally.
+   */
+  regFx(id = BuiltInFx.dispatch_later) { value ->
+    when (value) {
+      is Map<*, *> -> dispatchLater(value)
+
+      is PersistentVector<*> -> value.forEach { effect ->
+        if (effect != null) {
+          dispatchLater(effect as Map<*, *>)
+        }
+      }
+
+      else -> throw IllegalArgumentException(
+        "$TAG: bad :dispatch_later value: $value"
+      )
+    }
+  }
+
+  regFx(id = BuiltInFx.fx) { vecOfFx: Any? ->
     if (vecOfFx is IPersistentVector<*>) {
       val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
       for (effect: IPersistentVector<Any?>? in effects) {
+        // FIXME: just skip nulls, don't abort!
         if (effect == null) return@regFx
 
         val effectKey = effect.nth(0, null)
@@ -106,7 +156,7 @@ internal fun registerBuiltinFxHandlers() {
     }
   }
 
-  regFx(id = FxIds.dispatch) { event ->
+  regFx(id = BuiltInFx.dispatch) { event ->
     if (event !is IPersistentVector<*>) {
       Log.e(
         "regFx",
