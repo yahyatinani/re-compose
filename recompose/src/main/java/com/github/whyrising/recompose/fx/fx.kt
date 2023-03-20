@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 
 typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = (value: Any?) -> Unit
+typealias VecOfEffects = IPersistentVector<IPersistentVector<Any?>?>
 
 @Suppress("EnumEntryName")
 enum class BuiltInFx {
@@ -117,58 +118,48 @@ internal fun registerBuiltinFxHandlers() {
     }
   }
 
-  regFx(id = BuiltInFx.fx) { vecOfFx: Any? ->
-    if (vecOfFx is IPersistentVector<*>) {
-      val effects = vecOfFx as IPersistentVector<IPersistentVector<Any?>?>
-      for (effect: IPersistentVector<Any?>? in effects) {
-        // FIXME: just skip nulls, don't abort!
-        if (effect == null) return@regFx
+  fun type(vecOfEffects: Any?) = when (vecOfEffects) {
+    null -> null
+    else -> vecOfEffects::class.java
+  }
 
-        val effectKey = effect.nth(0, null)
-        val effectValue = effect.nth(1, null)
+  regFx(id = BuiltInFx.fx) { effects: Any? ->
+    require(effects is IPersistentVector<*>) {
+      "$TAG: \":fx\" effect expects a vector, but was given: ${type(effects)}"
+    }
 
-        if (effectKey == db) {
-          Log.w(TAG, "\":fx\" effect should not contain a :db effect")
-        }
+    (effects as VecOfEffects).forEach { effect: IPersistentVector<Any?>? ->
+      effect ?: return@forEach // skip null effect
 
-        if (effectKey == null) {
-          Log.w(TAG, "in :fx effect, null is not a valid effectKey. Skip.")
-          return@regFx
-        }
-
-        val fxFn = getHandler(kind, effectKey) as EffectHandler?
-
-        if (fxFn != null) {
-          fxFn(effectValue)
-        } else {
-          Log.w(
-            TAG,
-            "in :fx, effect: $effectKey has no associated handler. Skip."
-          )
-        }
+      val (effectKey, effectValue) = effect
+      if (effectKey == db) {
+        Log.w(TAG, "\":fx\" effect should not contain a :db effect")
       }
-    } else {
-      val type: Class<out Any>? = when (vecOfFx) {
-        null -> null
-        else -> vecOfFx::class.java
+
+      when (val effectFn = getHandler(kind, effectKey) as? EffectHandler) {
+        null -> Log.w(
+          TAG,
+          "in :fx effect: `$effectKey` has no associated handler. Skip."
+        )
+
+        else -> effectFn(effectValue)
       }
-      Log.e(TAG, "\":fx\" effect expects a vector, but was given $type")
     }
   }
 
+  /**
+   * :dispatch
+   */
   regFx(id = BuiltInFx.dispatch) { event ->
     if (event !is IPersistentVector<*>) {
-      Log.e(
-        "regFx",
-        "ignoring bad :dispatch value. Expected Vector, but got: $event"
+      throw IllegalArgumentException(
+        "$TAG: ignoring bad :dispatch value. Expected Vector, but got: $event"
       )
-      return@regFx
     }
-
     dispatch(event as Event)
   }
 
-  /*
+  /**
    * :db
    *
    * reset appDb with a new value.

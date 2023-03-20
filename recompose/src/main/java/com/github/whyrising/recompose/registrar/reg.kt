@@ -4,6 +4,7 @@ import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.assocIn
 import com.github.whyrising.y.core.collections.IPersistentMap
+import com.github.whyrising.y.core.getIn
 import com.github.whyrising.y.core.l
 import com.github.whyrising.y.core.m
 
@@ -23,9 +24,7 @@ internal var register: Atom<Register> = atom(m())
 
 enum class Kinds { Event, Fx, Cofx, Sub }
 
-fun getHandler(kind: Kinds, id: Any): Any? = register().valAt(kind).let {
-  it?.valAt(id)
-}
+fun getHandler(kind: Kinds, id: Any?): Any? = getIn(register(), l(kind, id))
 
 @Suppress("UNCHECKED_CAST")
 fun registerHandler(
