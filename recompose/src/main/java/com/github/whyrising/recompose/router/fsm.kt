@@ -3,7 +3,7 @@ package com.github.whyrising.recompose.router
 import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.events.Event
-import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
+import com.github.whyrising.recompose.fx.registerBuiltinFxHandlers
 import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.router.FsmEvent.ADD_EVENT
 import com.github.whyrising.recompose.router.FsmEvent.EXCEPTION
@@ -45,23 +45,13 @@ internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
   dispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
-  val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
+  val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
+    throw e
+  }
 ) {
-  internal val _state: Atom<State> = atom(start)
-  private val scope = CoroutineScope(dispatcher + handler)
+  internal val scope = CoroutineScope(dispatcher + handler)
 
-  init {
-    registerBuiltInStuff()
-  }
-
-  val state: State
-    get() = _state()
-
-  private fun runQueue(arg: Any?) {
-    scope.launch {
-      handle(RUN_QUEUE)
-    }
-  }
+  // -- FSM transitions' actions -----------------------------------------------
 
   internal fun processAllCurrentEvents(arg: Any?) {
     try {
@@ -74,24 +64,46 @@ internal class EventQueueFSM(
     handle(FINISH_RUN)
   }
 
-  private val IDLE_identity = v(IDLE, identity)
-  private val SCHEDULING_runQueue = v(SCHEDULING, ::runQueue)
-  private val SCHEDULING_enqueueEvent = v(SCHEDULING, { e: Event ->
+  private fun runQueue(arg: Any?) {
+    scope.launch {
+      handle(RUN_QUEUE)
+    }
+  }
+
+  internal fun enqueueEvent(e: Event) {
     eventQueue.enqueue(e)
-  })
-  private val SCHEDULING_enqueueEventAndRunQueue = v(SCHEDULING, { e: Event ->
+  }
+
+  internal fun enqueueEventAndRunQueue(e: Event) {
     eventQueue.enqueue(e)
     runQueue(e)
-  })
-  private val RUNNING_enqueuEvent = v(RUNNING, { e: Event ->
-    eventQueue.enqueue(e)
-  })
+  }
+
+  internal fun identity(arg: Any?) {}
+
+  internal fun exception(ex: Exception) {
+    eventQueue.exception(ex)
+  }
+
+  private val IDLE_identity = v(IDLE, ::identity)
+  private val SCHEDULING_runQueue = v(SCHEDULING, ::runQueue)
+  private val SCHEDULING_enqueueEvent = v(SCHEDULING, ::enqueueEvent)
+  private val RUNNING_enqueuEvent = v(RUNNING, ::enqueueEvent)
+  private val SCHEDULING_enqueueEventAndRunQueue =
+    v(SCHEDULING, ::enqueueEventAndRunQueue)
   private val RUNNING_processAllCurrentEvents =
     v(RUNNING, ::processAllCurrentEvents)
-  private val IDLE_exception = v(IDLE, { ex: Exception ->
-    eventQueue.exception(ex)
-  })
+  private val IDLE_exception = v(IDLE, ::exception)
 
+  // -- FSM implementation -----------------------------------------------------
+  internal val _state: Atom<State> = atom(start)
+
+  val state: State
+    get() = _state()
+
+  /**
+   * @return a tuple of the new FSM state and the transition action (function).
+   */
   private fun givenWhenThen(givenFsmState: State, whenFsmEvent: FsmEvent) =
     when (v(givenFsmState, whenFsmEvent)) {
       IDLE__ADD_EVENT -> SCHEDULING_enqueueEventAndRunQueue
@@ -107,10 +119,6 @@ internal class EventQueueFSM(
       else -> TODO("${givenFsmState.name}, ${whenFsmEvent.name}")
     }
 
-  fun push(event: Event) {
-    handle(ADD_EVENT, event)
-  }
-
   private val lock = reentrantLock()
 
   fun handle(fsmEvent: FsmEvent, arg: Any? = null) {
@@ -123,23 +131,24 @@ internal class EventQueueFSM(
     }
   }
 
-  companion object {
-    internal val identity: FsmAction = { _ -> }
+  fun push(event: Event) {
+    handle(ADD_EVENT, event)
+  }
 
-    /* FSM transitions:*/
+  companion object {
+    init {
+      registerBuiltinFxHandlers()
+      regCofx(id = recompose.db) { coeffects ->
+        coeffects.assoc(recompose.db, appDb.deref())
+      }
+    }
+
+    /* FSM transitions: */
     internal val IDLE__ADD_EVENT = v(IDLE, ADD_EVENT)
     internal val SCHEDULING__RUN_QUEUE = v(SCHEDULING, RUN_QUEUE)
     internal val RUNNING__FINISH_RUN = v(RUNNING, FINISH_RUN)
     internal val RUNNING__ADD_EVENT = v(RUNNING, ADD_EVENT)
     internal val SCHEDULING__ADD_EVENT = v(SCHEDULING, ADD_EVENT)
     internal val RUNNING__EXCEPTION = v(RUNNING, EXCEPTION)
-
-    internal fun registerBuiltInStuff() {
-      regCofx(id = recompose.db) { coeffects ->
-        coeffects.assoc(recompose.db, appDb.deref())
-      }
-
-      registerBuiltinEffectHandlers()
-    }
   }
 }

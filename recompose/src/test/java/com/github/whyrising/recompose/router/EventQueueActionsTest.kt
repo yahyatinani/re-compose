@@ -4,7 +4,7 @@ import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
-import com.github.whyrising.recompose.fx.registerBuiltinEffectHandlers
+import com.github.whyrising.recompose.fx.registerBuiltinFxHandlers
 import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.multiThreadedRun
 import com.github.whyrising.recompose.regEventDb
@@ -25,10 +25,10 @@ class EventQueueActionsTest : FreeSpec({
 
   beforeEach {
     com.github.whyrising.recompose.registrar.register.reset(m())
-    appDb.emit(DEFAULT_APP_DB_VALUE)
+    appDb.reset(DEFAULT_APP_DB_VALUE)
     registerDbInjectorCofx()
     injectCofx(recompose.db)
-    registerBuiltinEffectHandlers()
+    registerBuiltinFxHandlers()
   }
 
   "enqueue()" {
@@ -62,7 +62,7 @@ class EventQueueActionsTest : FreeSpec({
     "multithreading" {
       continually(30.seconds) {
         runTest {
-          appDb.emit(0)
+          appDb.reset(0)
           regEventDb<Int>(":test-event") { db, _ -> db.inc() }
           val eventQueueImp = EventQueueImp()
           val eventQueueFSM = EventQueueFSM(eventQueueImp)

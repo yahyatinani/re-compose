@@ -5,6 +5,7 @@ import com.github.whyrising.y.core.m
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 internal val DEFAULT_APP_DB_VALUE = m<Any, Any>()
 
@@ -19,8 +20,8 @@ class RAtom<T>(v: T) : Reaction<T> {
     state.collect(collector as FlowCollector<Any?>)
 
   /** It doesn't emit the value if the newVal == the currentVal */
-  fun emit(value: T) {
-    _state.tryEmit(value)
+  fun reset(value: T) {
+    _state.update { value }
   }
 }
 
