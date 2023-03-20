@@ -77,11 +77,9 @@ val doFx: Interceptor = toInterceptor(
 internal fun registerBuiltinFxHandlers() {
   fun dispatchLater(effect: Map<*, *>) {
     val ms = effect[BuiltInFx.ms] as? Number
-    val event = effect[BuiltInFx.dispatch] as Event
-    if (event.isEmpty() || ms == null) {
-      throw IllegalArgumentException(
-        "$TAG: bad :dispatch_later value: $effect"
-      )
+    val event = effect[BuiltInFx.dispatch] as? Event
+    require(!event.isNullOrEmpty() && ms != null) {
+      "$TAG: bad :dispatch_later value: $effect"
     }
 
     eventQueueFSM.scope.launch {
