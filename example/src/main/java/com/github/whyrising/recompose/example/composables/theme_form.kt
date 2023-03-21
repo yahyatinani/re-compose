@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.whyrising.recompose.dispatch
+import com.github.whyrising.recompose.dispatchSync
 import com.github.whyrising.recompose.example.Ids
 import com.github.whyrising.recompose.example.Ids.secondaryColorStr
 import com.github.whyrising.recompose.example.Ids.setSecondaryColor
@@ -34,7 +34,9 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
   ) {
     OutlinedTextField(
       value = watch<String>(v(Ids.primaryColorStr)),
-      onValueChange = { input -> dispatch(v(Ids.setPrimaryColor, input)) },
+      onValueChange = { input ->
+        dispatchSync(v(Ids.setPrimaryColor, input))
+      },
       placeholder = { Text(text = "Primary Color") },
       singleLine = true,
       maxLines = 1,
@@ -47,7 +49,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
     OutlinedTextField(
       value = watch<String>(v(secondaryColorStr)),
       onValueChange = { input ->
-        dispatch(v(setSecondaryColor, input))
+        dispatchSync(v(setSecondaryColor, input))
       },
       placeholder = { Text(text = "Secondary Color") },
       singleLine = true,
