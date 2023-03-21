@@ -11,17 +11,22 @@ import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalKotest::class)
 class EventQueueActionsTest : FreeSpec({
-  Dispatchers.setMain(StandardTestDispatcher())
+  val testDispatcher = StandardTestDispatcher()
+  Dispatchers.setMain(testDispatcher)
 
   beforeEach {
     com.github.whyrising.recompose.registrar.register.reset(m())
@@ -65,11 +70,15 @@ class EventQueueActionsTest : FreeSpec({
           appDb.reset(0)
           regEventDb<Int>(":test-event") { db, _ -> db.inc() }
           val eventQueueImp = EventQueueImp()
-          val eventQueueFSM = EventQueueFSM(eventQueueImp)
+          val eventQueueFSM = EventQueueFSM(
+            eventQueue = eventQueueImp,
+            dispatcher = testDispatcher
+          )
 
           multiThreadedRun(coroutinesN = 100, runN = 1001) {
             eventQueueFSM.push(v(":test-event"))
           }
+          advanceUntilIdle()
 
           eventQueueImp.count shouldBe 0
           appDb.deref() shouldBe 100100

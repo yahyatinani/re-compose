@@ -49,7 +49,7 @@ class EventQueueFsmTest : FreeSpec({
           if (new.count > 0) isEventQueued = true
         }
 
-        eventQueueFSM.handle(ADD_EVENT, v("new-event"))
+        eventQueueFSM.fsmTrigger(ADD_EVENT, v("new-event"))
         advanceUntilIdle()
 
         state1 shouldBe SCHEDULING
@@ -70,8 +70,8 @@ class EventQueueFsmTest : FreeSpec({
           dispatcher = testDispatcher
         )
 
-        eventQueueFSM.handle(ADD_EVENT, v("new-event"))
-        eventQueueFSM.handle(ADD_EVENT, v("new-event"))
+        eventQueueFSM.fsmTrigger(ADD_EVENT, v("new-event"))
+        eventQueueFSM.fsmTrigger(ADD_EVENT, v("new-event"))
         advanceUntilIdle()
 
         eventQueueFSM.eventQueue.count shouldBe 2
@@ -94,7 +94,7 @@ class EventQueueFsmTest : FreeSpec({
         eventQueueFSM._state.addWatch("running") { _, _, _, new ->
           if (new == RUNNING) state1 = new
         }
-        eventQueueFSM.handle(RUN_QUEUE)
+        eventQueueFSM.fsmTrigger(RUN_QUEUE)
         advanceUntilIdle()
 
         state1 shouldBe RUNNING
@@ -118,7 +118,7 @@ class EventQueueFsmTest : FreeSpec({
         )
 
         shouldThrowExactly<RuntimeException> {
-          eventQueueFSM.handle(FsmEvent.EXCEPTION, RuntimeException())
+          eventQueueFSM.fsmTrigger(FsmEvent.EXCEPTION, RuntimeException())
         }
         eventQueueFSM.state shouldBe IDLE
         eventQueue.queue.isEmpty() shouldBe true
@@ -137,7 +137,7 @@ class EventQueueFsmTest : FreeSpec({
           dispatcher = testDispatcher
         )
 
-        eventQueueFSM.handle(ADD_EVENT, v("new-event"))
+        eventQueueFSM.fsmTrigger(ADD_EVENT, v("new-event"))
         advanceUntilIdle()
 
         eventQueueFSM.state shouldBe RUNNING
@@ -154,7 +154,7 @@ class EventQueueFsmTest : FreeSpec({
           dispatcher = testDispatcher
         )
 
-        eventQueueFSM.handle(FsmEvent.FINISH_RUN)
+        eventQueueFSM.fsmTrigger(FsmEvent.FINISH_RUN)
         advanceUntilIdle()
 
         eventQueueFSM.state shouldBe IDLE
@@ -178,7 +178,7 @@ class EventQueueFsmTest : FreeSpec({
           if (new == SCHEDULING) state1 = new
         }
 
-        eventQueueFSM.handle(FsmEvent.FINISH_RUN)
+        eventQueueFSM.fsmTrigger(FsmEvent.FINISH_RUN)
         advanceUntilIdle()
 
         state1 shouldBe SCHEDULING

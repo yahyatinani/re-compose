@@ -15,8 +15,6 @@ import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
-import kotlinx.atomicfu.locks.reentrantLock
-import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -44,7 +42,7 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  dispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
+  dispatcher: CoroutineDispatcher = Dispatchers.Default,
   val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
     throw e
   }
@@ -57,16 +55,16 @@ internal class EventQueueFSM(
     try {
       eventQueue.processCurrentEvents()
     } catch (ex: Exception) {
-      handle(EXCEPTION, ex)
+      fsmTrigger(EXCEPTION, ex)
     }
     // this doesn't execute when an exception occurs because handle() throws
     // again in catch block.
-    handle(FINISH_RUN)
+    fsmTrigger(FINISH_RUN)
   }
 
   private fun runQueue(arg: Any?) {
     scope.launch {
-      handle(RUN_QUEUE)
+      fsmTrigger(RUN_QUEUE)
     }
   }
 
@@ -96,6 +94,7 @@ internal class EventQueueFSM(
   private val IDLE_exception = v(IDLE, ::exception)
 
   // -- FSM implementation -----------------------------------------------------
+
   internal val _state: Atom<State> = atom(start)
 
   val state: State
@@ -119,20 +118,19 @@ internal class EventQueueFSM(
       else -> TODO("${givenFsmState.name}, ${whenFsmEvent.name}")
     }
 
-  private val lock = reentrantLock()
-
-  fun handle(fsmEvent: FsmEvent, arg: Any? = null) {
-    lock.withLock {
+  fun fsmTrigger(fsmEvent: FsmEvent, arg: Any? = null) {
+    while (true) {
       val givenFsmState = state
       val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
       if (_state.compareAndSet(givenFsmState, newFsmState as State)) {
         (actionFn as FsmAction)(arg)
+        break
       }
     }
   }
 
   fun push(event: Event) {
-    handle(ADD_EVENT, event)
+    fsmTrigger(ADD_EVENT, event)
   }
 
   companion object {

@@ -3,7 +3,6 @@ package com.github.whyrising.recompose.router
 import com.github.whyrising.recompose.TAG
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.events.handle
-import kotlinx.coroutines.runBlocking
 
 internal val eventQueueFSM = EventQueueFSM(EventQueueImp())
 
@@ -19,7 +18,5 @@ internal fun dispatch(event: Event) {
 }
 
 internal fun dispatchSync(event: Event) {
-  runBlocking {
-    handle(event)
-  }
+  handle(event)
 }

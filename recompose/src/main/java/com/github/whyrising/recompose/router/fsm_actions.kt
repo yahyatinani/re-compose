@@ -13,7 +13,7 @@ typealias EventQueue = PersistentQueue<Event>
 internal interface EventQueueActions {
   val count: Int
   fun enqueue(event: Event): EventQueue
-  fun processFirstEventInQueue(): EventQueue
+  fun processFirstEventInQueue(): Unit
   fun processCurrentEvents()
   fun pause()
   fun resume()
@@ -38,9 +38,9 @@ internal class EventQueueImp(queue: EventQueue = q()) :
   }
 
   /** This function is NOT thread safe. */
-  override fun processFirstEventInQueue() = when (val event = queue.peek()) {
-    null -> queue
-    else -> {
+  override fun processFirstEventInQueue() {
+    val event = queue.peek()
+    if (event != null) {
       handle(event)
       _eventQueueRef.swap { it.pop() }
     }
