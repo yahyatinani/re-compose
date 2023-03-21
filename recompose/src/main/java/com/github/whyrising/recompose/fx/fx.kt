@@ -127,14 +127,19 @@ internal fun registerBuiltinFxHandlers() {
   }
 
   regFx(id = BuiltInFx.fx) { effects: Any? ->
-    require(effects is IPersistentVector<*>) {
-      "$TAG: \":fx\" effect expects a vector, but was given: ${type(effects)}"
+    if (effects !is IPersistentVector<*>) {
+      Log.w(
+        TAG,
+        "\":fx\" effect expects a vector, but was given: ${type(effects)}"
+      )
+      return@regFx
     }
 
     (effects as VecOfEffects).forEach { effect: IPersistentVector<Any?>? ->
       effect ?: return@forEach // skip null effect
 
-      val (effectKey, effectValue) = effect
+      val effectKey = effect.nth(0, null)
+      val effectValue = effect.nth(1, null)
       if (effectKey == db) {
         Log.w(TAG, "\":fx\" effect should not contain a :db effect")
       }
