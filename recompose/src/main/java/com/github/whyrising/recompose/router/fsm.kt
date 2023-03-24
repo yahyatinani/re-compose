@@ -42,7 +42,7 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  dispatcher: CoroutineDispatcher = Dispatchers.Main,
   val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
     throw e
   }
