@@ -8,6 +8,8 @@ plugins {
 android {
   compileSdk 33
 
+  namespace 'com.github.whyrising.recompose'
+
   defaultConfig {
     applicationId 'com.github.whyrising.recompose.example'
     minSdkVersion 22

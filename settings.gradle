@@ -23,5 +23,4 @@ rootProject.name = "Recompose"
 include ':recompose'
 include ':example'
 
-enableFeaturePreview("VERSION_CATALOGS")
 include ':benchmark'
