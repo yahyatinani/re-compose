@@ -1,7 +1,6 @@
 package com.github.whyrising.recompose
 
 import android.util.Log
-import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.fx.BuiltInFx.dispatch
 import com.github.whyrising.recompose.fx.BuiltInFx.fx
@@ -31,7 +30,7 @@ import com.github.whyrising.recompose.registrar.register as myRegister
 
 class FxTest : FreeSpec({
   beforeAny {
-    appDb.reset(DEFAULT_APP_DB_VALUE)
+    appDb.reset(m<Any, Any>())
     myRegister.swap { m() }
   }
 
@@ -303,7 +302,7 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe DEFAULT_APP_DB_VALUE
+      appDb.deref() shouldBe m<Any, Any>()
       i shouldBeExactly 0
     }
 
@@ -356,7 +355,7 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe DEFAULT_APP_DB_VALUE
+      appDb.deref() shouldBe m<Any, Any>()
       i shouldBeExactly 0
     }
   }

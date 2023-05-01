@@ -2,7 +2,6 @@ package com.github.whyrising.recompose.router
 
 import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
-import com.github.whyrising.recompose.db.DEFAULT_APP_DB_VALUE
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.fx.registerBuiltinFxHandlers
 import com.github.whyrising.recompose.ids.recompose
@@ -30,7 +29,7 @@ class EventQueueActionsTest : FreeSpec({
 
   beforeEach {
     com.github.whyrising.recompose.registrar.register.reset(m())
-    appDb.reset(DEFAULT_APP_DB_VALUE)
+    appDb.reset(m<Any, Any>())
     registerDbInjectorCofx()
     injectCofx(recompose.db)
     registerBuiltinFxHandlers()
