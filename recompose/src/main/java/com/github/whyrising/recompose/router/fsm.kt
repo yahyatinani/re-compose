@@ -1,10 +1,8 @@
 package com.github.whyrising.recompose.router
 
-import com.github.whyrising.recompose.cofx.regCofx
-import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.events.Event
 import com.github.whyrising.recompose.fx.registerBuiltinFxHandlers
-import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.router.FsmEvent.ADD_EVENT
 import com.github.whyrising.recompose.router.FsmEvent.EXCEPTION
 import com.github.whyrising.recompose.router.FsmEvent.FINISH_RUN
@@ -42,7 +40,7 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  dispatcher: CoroutineDispatcher = Dispatchers.Main,
+  dispatcher: CoroutineDispatcher = Dispatchers.Default,
   val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
     throw e
   }
@@ -136,9 +134,7 @@ internal class EventQueueFSM(
   companion object {
     init {
       registerBuiltinFxHandlers()
-      regCofx(id = recompose.db) { coeffects ->
-        coeffects.assoc(recompose.db, appDb.deref())
-      }
+      registerDbInjectorCofx()
     }
 
     /* FSM transitions: */
