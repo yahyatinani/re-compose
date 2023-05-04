@@ -7,6 +7,7 @@ import com.github.whyrising.recompose.registrar.Kinds
 import com.github.whyrising.recompose.registrar.Kinds.Sub
 import com.github.whyrising.recompose.registrar.getHandler
 import com.github.whyrising.recompose.registrar.registerHandler
+import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.util.m
@@ -17,7 +18,7 @@ val kind: Kinds = Sub
 
 typealias Query = IPersistentVector<Any>
 
-typealias SubHandler<I, O> = (Reaction<I>, Query) -> ReactionBase<I, O>
+typealias SubHandler<I, O> = (Atom<Any>, Query) -> ReactionBase<I, O>
 
 // -- cache --------------------------------------------------------------------
 internal val queryToReactionCache = MutableStateFlow(m<Query, Any>())
@@ -66,8 +67,8 @@ inline fun <Db, V> regDbSubscription(
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = { dbReaction: Reaction<Db>, queryVec: Query ->
-      Extraction(inputSignal = dbReaction) { signalValue: Any? ->
+    handlerFn = { appDb: Atom<*>, queryVec: Query ->
+      Extraction(inputSignal = appDb) { signalValue: Any? ->
         extractorFn(signalValue as Db, queryVec)
       }
     }
@@ -87,7 +88,7 @@ inline fun <S, V> regCompSubscription(
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = { _: Reaction<S>, queryVec: Query ->
+    handlerFn = { _: Atom<*>, queryVec: Query ->
       Computation(
         inputSignals = signalsFn(queryVec) as Signals,
         initial = initialValue

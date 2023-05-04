@@ -2,8 +2,12 @@ package com.github.whyrising.recompose.fx
 
 import android.util.Log
 import com.github.whyrising.recompose.TAG
+import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.dispatchSync
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.ids.coeffects.originalEvent
+import com.github.whyrising.recompose.ids.context.coeffects
 import com.github.whyrising.recompose.ids.context.effects
 import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.ids.recompose.db
@@ -19,6 +23,7 @@ import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.v
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -49,12 +54,19 @@ val doFx: Interceptor = toInterceptor(
   id = recompose.dofx,
   after = { context: Context ->
     val effects: Effects = context[effects] as Effects
+    val cofx: Coeffects = context[coeffects] as Coeffects
     val effectsWithoutDb: Effects = effects.dissoc(db)
+    val eventVec = cofx[originalEvent] as Event
+    val oldDb = cofx[db]
     val newDb = effects[db]
 
-    if (newDb != null) {
-      val updateDbFxHandler = getHandler(kind, db) as EffectHandler
-      updateDbFxHandler(newDb)
+    if (newDb != null) { // new appDb value.
+      try {
+        (getHandler(kind, db) as EffectHandler)(v(eventVec, oldDb, newDb))
+      } catch (e: IllegalStateException) {
+        Log.w(TAG, "$e")
+        return@toInterceptor context
+      }
     }
 
     for ((effectKey, effectValue) in effectsWithoutDb) {
@@ -73,6 +85,8 @@ val doFx: Interceptor = toInterceptor(
 )
 
 // -- Builtin Effect Handlers --------------------------------------------------
+
+object RaceCondition : IllegalStateException("AppDb was changed synchronously.")
 
 internal fun registerBuiltinFxHandlers() {
   /**
@@ -175,9 +189,11 @@ internal fun registerBuiltinFxHandlers() {
    * usage:
    * {:db  {:key1 value1 key2 value2}}
    */
-  regFx(id = db) { newAppDb ->
-    if (newAppDb != null) {
-      appDb.reset(newAppDb)
+  regFx(id = db) { v ->
+    val (event, o, n) = v as PersistentVector<Any>
+    if (!appDb.compareAndSet(o, n)) {
+      dispatchSync(event as Event)
+      throw RaceCondition
     }
   }
 }

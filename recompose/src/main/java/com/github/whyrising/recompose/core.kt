@@ -15,6 +15,7 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.Extraction
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
 import com.github.whyrising.recompose.subs.queryToReactionCache
@@ -155,9 +156,15 @@ inline fun <V> regSubM(
 @Composable
 fun <T> watch(query: Query): T {
   val cache by queryToReactionCache.collectAsStateWithLifecycle()
-  return remember(key1 = cache[query]) {
+  val reaction = remember(key1 = cache[query]) {
+    println("sdlfjsdj")
     subscribe<T>(query)
-  }.state.collectAsStateWithLifecycle().value as T
+  }
+  return if (reaction is Extraction) {
+    reaction.value as T
+  } else {
+    reaction.state.collectAsStateWithLifecycle().value as T
+  }
 }
 
 // -- Effects ------------------------------------------------------------------

@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -49,9 +48,6 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
         .launchIn(reactionScope)
     }
   }
-
-  override val state: StateFlow<Any?>
-    get() = _state
 
   private val str: String by lazy { "$TAG(${hashCode()}, ${deref()})" }
 
