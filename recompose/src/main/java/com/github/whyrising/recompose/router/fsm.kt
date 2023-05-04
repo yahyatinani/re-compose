@@ -119,8 +119,8 @@ internal class EventQueueFSM(
   fun fsmTrigger(fsmEvent: FsmEvent, arg: Any? = null) {
     while (true) {
       val givenFsmState = state
-      val (newFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
-      if (_state.compareAndSet(givenFsmState, newFsmState as State)) {
+      val (nextFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
+      if (_state.compareAndSet(givenFsmState, nextFsmState as State)) {
         (actionFn as FsmAction)(arg)
         break
       }
