@@ -25,18 +25,19 @@ internal val queryToReactionCache = MutableStateFlow(m<Query, Any>())
 
 internal fun <V> cacheReaction(
   queryV: Query,
-  reaction: ReactionBase<Any, V>
+  reaction: Reaction<V>
 ): Reaction<V> {
-  reaction.addOnDispose { r ->
-    queryToReactionCache.update { qToR ->
-      val cachedR = qToR[queryV]
-      when {
-        cachedR == null || cachedR !== r -> qToR
-        else -> qToR.dissoc(queryV)
+  if (reaction is ReactionBase<*, V>)
+    reaction.addOnDispose { r ->
+      queryToReactionCache.update { qToR ->
+        val cachedR = qToR[queryV]
+        when {
+          cachedR == null || cachedR !== r -> qToR
+          else -> qToR.dissoc(queryV)
+        }
       }
+      Log.i(TAG, "$r is removed from cache.")
     }
-    Log.i(TAG, "$r is removed from cache.")
-  }
   queryToReactionCache.update { qToR -> qToR.assoc(queryV, reaction) }
   return reaction
 }
