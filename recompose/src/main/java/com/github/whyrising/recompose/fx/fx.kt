@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.whyrising.recompose.fx
 
 import android.util.Log
@@ -54,17 +56,18 @@ val doFx: Interceptor = toInterceptor(
   id = recompose.dofx,
   after = { context: Context ->
     val effects: Effects = context[effects] as Effects
-    val cofx: Coeffects = context[coeffects] as Coeffects
     val effectsWithoutDb: Effects = effects.dissoc(db)
+    val newDb = effects[db]
+
+    val cofx: Coeffects = context[coeffects] as Coeffects
     val eventVec = cofx[originalEvent] as Event
     val oldDb = cofx[db]
-    val newDb = effects[db]
 
     if (newDb != null) { // new appDb value.
       try {
         (getHandler(kind, db) as EffectHandler)(v(eventVec, oldDb, newDb))
-      } catch (e: IllegalStateException) {
-        Log.w(TAG, "$e")
+      } catch (e: RaceCondition) {
+        Log.w(TAG, e.toString())
         return@toInterceptor context
       }
     }
@@ -191,7 +194,8 @@ internal fun registerBuiltinFxHandlers() {
    */
   regFx(id = db) { v ->
     val (event, o, n) = v as PersistentVector<Any>
-    if (!appDb.compareAndSet(o, n)) {
+    val current = appDb.deref()
+    if (current != o || !appDb.compareAndSet(current, n)) {
       dispatchSync(event as Event)
       throw RaceCondition
     }

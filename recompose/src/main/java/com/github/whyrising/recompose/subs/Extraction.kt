@@ -3,31 +3,22 @@ package com.github.whyrising.recompose.subs
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.github.whyrising.y.concurrency.Atom
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * @param f - It takes the value of [appDb] as an input.
+ * @param f - It takes app db [Atom] as an input.
  */
 class Extraction(
   val inputSignal: Atom<*>,
+  val context: CoroutineDispatcher = Dispatchers.Main,
   override val f: (signalValue: Any?) -> Any?
-) : ReactionBase<Any?, Any?>() {
-  override val reactionScope: CoroutineScope =
-    CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
-  override val initialValue: Any? = f(inputSignal.deref())
-
-  private var ms: MutableState<Any?> = mutableStateOf(initialValue)
-
+) : Reaction<Any?> {
   init {
     inputSignal.addWatch(key = hashCode()) { key, _, _, new ->
       ms.value = f(new)
@@ -35,18 +26,17 @@ class Extraction(
     }
   }
 
-  val value: Any? by ms
+  override val initialValue: Any? = f(inputSignal.deref())
 
-  override val signalObserver: Job = reactionScope.launch {} // fixme
+  private var ms: MutableState<Any?> = mutableStateOf(initialValue)
 
-  override val state: StateFlow<Any?>
-    get() = _state
+  var value: Any? by ms
+    internal set
 
   override fun deref(): Any? = value
 
   override suspend fun collect(collector: FlowCollector<Any?>) {
-    withContext(Dispatchers.Main) {
-      snapshotFlow { ms.value }.collect(collector)
-    }
+    // Must run on Main dispatcher or throws an exception.
+    withContext(context) { snapshotFlow { ms.value }.collect(collector) }
   }
 }

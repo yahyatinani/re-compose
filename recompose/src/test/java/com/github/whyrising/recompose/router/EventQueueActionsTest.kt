@@ -62,28 +62,6 @@ class EventQueueActionsTest : FreeSpec({
       eventQueueImp.count shouldBe 1
       eventQueueImp.queue.peek() shouldBe event2
     }
-
-    "multithreading" {
-      continually(30.seconds) {
-        runTest {
-          appDb.reset(0)
-          regEventDb<Int>(":test-event") { db, _ -> db.inc() }
-          val eventQueueImp = EventQueueImp()
-          val eventQueueFSM = EventQueueFSM(
-            eventQueue = eventQueueImp,
-            dispatcher = testDispatcher
-          )
-
-          multiThreadedRun(coroutinesN = 100, runN = 1001) {
-            eventQueueFSM.push(v(":test-event"))
-          }
-          advanceUntilIdle()
-
-          eventQueueImp.count shouldBe 0
-          appDb.deref() shouldBe 100100
-        }
-      }
-    }
   }
 
   "processCurrentEvents() should process all current events in the queue" {
@@ -120,5 +98,38 @@ class EventQueueActionsTest : FreeSpec({
 
     shouldThrowExactly<RuntimeException> { eventQueueImp.exception(ex) }
     eventQueueImp.count shouldBe 0
+  }
+
+  "multithreading" {
+    continually(30.seconds) {
+      runTest {
+        appDb.reset(0)
+        regEventDb<Int>(":test-event-inc") { db, _ -> db.inc() }
+        regEventDb<Int>(":test-event-dec") { db, _ -> db.dec() }
+        val eventQueueImp = EventQueueImp()
+        val eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueueImp,
+          dispatcher = testDispatcher
+        )
+
+        Dispatchers.setMain(testDispatcher)
+        multiThreadedRun(coroutinesN = 100, runN = 1001) {
+          eventQueueFSM.push(v(":test-event-inc"))
+        }
+
+        multiThreadedRun(coroutinesN = 11, runN = 9) {
+          eventQueueFSM.push(v(":test-event-inc"))
+        }
+
+        multiThreadedRun(coroutinesN = 10, runN = 10) {
+//          appDb._state.update { (it as Int).inc() }
+          dispatchSync(v(":test-event-dec"))
+        }
+        advanceUntilIdle()
+
+        eventQueueImp.count shouldBe 0
+        appDb.deref() shouldBe 100099
+      }
+    }
   }
 })

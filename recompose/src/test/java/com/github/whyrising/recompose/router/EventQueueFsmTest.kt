@@ -8,6 +8,7 @@ import com.github.whyrising.recompose.router.State.RUNNING
 import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
@@ -19,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalKotest::class)
 @ExperimentalCoroutinesApi
 class EventQueueFsmTest : FreeSpec({
   val testDispatcher = StandardTestDispatcher()

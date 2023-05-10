@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -17,15 +18,13 @@ interface Disposable {
   fun dispose(): Boolean
 }
 
-abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
-  abstract val f: Any?
+abstract class ReactionBase<T, O>(val id: Any) : Reaction<O>, Disposable {
+  abstract val state: StateFlow<Any?>
+
+  /** This flag is used to track the last subscriber of this reaction. */
+  internal val isFresh = atom(true)
 
   abstract val reactionScope: CoroutineScope
-
-  abstract val initialValue: Any?
-
-  // this flag is used to track the last subscriber of this reaction
-  internal val isFresh = atom(true)
 
   internal val disposeFns = atom<ISeq<(Reaction<O>) -> Unit>>(l())
 
@@ -49,7 +48,7 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
     }
   }
 
-  private val str: String by lazy { "$TAG(${hashCode()}, ${deref()})" }
+  private val str: String by lazy { "$TAG($id, ${_state.value})" }
 
   override fun addOnDispose(f: (Reaction<*>) -> Unit) {
     disposeFns.swap { it.cons(f) }
@@ -77,6 +76,6 @@ abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
   }
 
   companion object {
-    private const val TAG = "rx"
+    internal const val TAG = "rx"
   }
 }

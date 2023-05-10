@@ -15,6 +15,7 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.Computation
 import com.github.whyrising.recompose.subs.Extraction
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
@@ -102,13 +103,12 @@ inline fun <Db> regSub(
 
 /**
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that returns a [ReactiveAtom], by subscribing to
+ * @param signalsFn a function that returns a [Reaction], by subscribing to
  * other nodes, and provides [computationFn] function with new input whenever
  * it changes.
- * @param initial is the first value for this [Reaction] so the UI can
+ * @param initialValue is the first value for this [Reaction] so the UI can
  * render until the right value is done calculating asynchronously. If null
  * then the first computation happens synchronously on the main thread.
- * @param context on which the first value calculation/initialization will be
  * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains input data from
  * [signalsFn], and computes derived data from it. Consider using [withContext]
@@ -133,14 +133,12 @@ inline fun <S, V> regSub(
  * signal inputs in vector.
  *
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that returns a vector of [ReactiveAtom]s,
+ * @param signalsFn a function that returns a vector of [Reaction]s,
  * by subscribing to other nodes, and provides [computationFn] function with new
  * set of input whenever it one of them changes.
- * @param initial is the first value for this [Reaction] so the UI can
+ * @param initialValue is the first value for this [Reaction] so the UI can
  * render until the right value is done calculating asynchronously. If null
  * then the first computation happens synchronously on the main thread.
- * @param context on which the first value calculation/initialization will be
- * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains data from [signalsFn],
  * and compute derived data from it. Consider using [withContext] with
  * [Dispatchers.Main] when you have computations that should run on the UI
@@ -153,8 +151,10 @@ inline fun <V> regSubM(
   crossinline computationFn: ComputationFn2<V>
 ) = regCompSubscription(queryId, signalsFn, initialValue, computationFn)
 
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> watch(query: Query): T {
+  // TODO: Rewrite
   val cache by queryToReactionCache.collectAsStateWithLifecycle()
   val reaction = remember(key1 = cache[query]) {
     println("sdlfjsdj")
@@ -163,7 +163,7 @@ fun <T> watch(query: Query): T {
   return if (reaction is Extraction) {
     reaction.value as T
   } else {
-    reaction.state.collectAsStateWithLifecycle().value as T
+    (reaction as Computation).state.collectAsStateWithLifecycle().value as T
   }
 }
 

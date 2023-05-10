@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.whyrising.recompose.subs
 
 import android.util.Log
@@ -27,7 +29,7 @@ internal fun <V> cacheReaction(
   queryV: Query,
   reaction: Reaction<V>
 ): Reaction<V> {
-  if (reaction is ReactionBase<*, V>)
+  if (reaction is ReactionBase<*, V>) {
     reaction.addOnDispose { r ->
       queryToReactionCache.update { qToR ->
         val cachedR = qToR[queryV]
@@ -38,6 +40,7 @@ internal fun <V> cacheReaction(
       }
       Log.i(TAG, "$r is removed from cache.")
     }
+  }
   queryToReactionCache.update { qToR -> qToR.assoc(queryV, reaction) }
   return reaction
 }
@@ -92,7 +95,8 @@ inline fun <S, V> regCompSubscription(
     handlerFn = { _: Atom<*>, queryVec: Query ->
       Computation(
         inputSignals = signalsFn(queryVec) as Signals,
-        initial = initialValue
+        initial = initialValue,
+        id = queryId
       ) { signalsValues, currentValue ->
         computationFn(
           signalsValues as IPersistentVector<S>,
