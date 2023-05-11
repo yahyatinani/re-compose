@@ -72,7 +72,7 @@ inline fun <Db, V> regDbSubscription(
     id = queryId,
     kind = kind,
     handlerFn = { appDb: Atom<*>, queryVec: Query ->
-      Extraction(inputSignal = appDb) { signalValue: Any? ->
+      Extraction(appDb) { signalValue: Any? ->
         extractorFn(signalValue as Db, queryVec)
       }
     }

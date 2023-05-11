@@ -8,25 +8,30 @@ import androidx.compose.runtime.snapshotFlow
 import com.github.whyrising.y.concurrency.Atom
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 
 /**
- * @param f - It takes app db [Atom] as an input.
+ * @param appDb - The [Atom] containing [appDb] value.
+ * @param context - The context of this [MutableState] flow by [snapshotFlow].
+ * @param f - It takes the app db value as an input.
  */
 class Extraction(
-  val inputSignal: Atom<*>,
+  val appDb: Atom<*>,
   val context: CoroutineDispatcher = Dispatchers.Main,
   override val f: (signalValue: Any?) -> Any?
 ) : Reaction<Any?> {
   init {
-    inputSignal.addWatch(key = hashCode()) { key, _, _, new ->
+    appDb.addWatch(key = hashCode()) { key, _, _, new ->
       ms.value = f(new)
       key
     }
   }
 
-  override val initialValue: Any? = f(inputSignal.deref())
+  override val initialValue: Any? = f(appDb.deref())
 
   private var ms: MutableState<Any?> = mutableStateOf(initialValue)
 
@@ -35,8 +40,24 @@ class Extraction(
 
   override fun deref(): Any? = value
 
-  override suspend fun collect(collector: FlowCollector<Any?>) {
-    // Must run on Main dispatcher or throws an exception.
-    withContext(context) { snapshotFlow { ms.value }.collect(collector) }
+  /**
+   * This property is lazy because it is only realized if this [Extraction] was
+   * collected/subscribed to by at least one [Computation].
+   */
+  internal val stateIn by lazy {
+    /*
+     * The use of [stateIn] is to avoid creating multiple flows via snapshotFlow
+     * when collected by multiple Computations.
+     */
+    snapshotFlow { ms.value }
+      .flowOn(context) // important to run on Main, else IllegalStateException.
+      .stateIn(
+        initialValue = initialValue,
+        scope = MainScope(),
+        started = SharingStarted.WhileSubscribed(5000)
+      )
   }
+
+  override suspend fun collect(collector: FlowCollector<Any?>) =
+    stateIn.collect(collector)
 }
