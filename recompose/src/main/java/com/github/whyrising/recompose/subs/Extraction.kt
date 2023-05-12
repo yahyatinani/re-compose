@@ -24,16 +24,16 @@ class Extraction(
   val context: CoroutineDispatcher = Dispatchers.Main,
   override val f: (signalValue: Any?) -> Any?
 ) : Reaction<Any?> {
+  override val initialValue: Any? = f(appDb.deref())
+
+  private var ms: MutableState<Any?> = mutableStateOf(initialValue)
+
   init {
     appDb.addWatch(key = hashCode()) { key, _, _, new ->
       ms.value = f(new)
       key
     }
   }
-
-  override val initialValue: Any? = f(appDb.deref())
-
-  private var ms: MutableState<Any?> = mutableStateOf(initialValue)
 
   var value: Any? by ms
     internal set
