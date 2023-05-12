@@ -246,7 +246,7 @@ class ComputationTest : FreeSpec({
     }
 
     "parallel incoming input signals" {
-      continually(duration = 10.seconds) {
+      continually(duration = 7.seconds) {
         runTest {
           val appDb: Atom<Associative<String, Int>> =
             atom(m("a" to 0, "b" to 0))

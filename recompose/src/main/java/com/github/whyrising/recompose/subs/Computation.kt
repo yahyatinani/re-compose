@@ -9,13 +9,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlin.coroutines.CoroutineContext
@@ -44,15 +42,9 @@ class Computation(
     .launchIn(reactionScope)
 
   override suspend fun collect(collector: FlowCollector<Any?>) =
-    _state.collect { collector.emit(it) }
+    _state.collect(collector)
 
-  override val state: StateFlow<Any?> by lazy {
-    _state.stateIn(
-      reactionScope,
-      started = SharingStarted.WhileSubscribed(5000),
-      initialValue = initialValue
-    )
-  }
+  override val state: StateFlow<Any?> = _state
 
   override fun deref(): Any? = _state.value
 
@@ -61,7 +53,7 @@ class Computation(
      * Same as [combine] but with [IPersistentVector] instead of [Array].
      */
     inline fun <reified T> combineV(flows: Iterable<Flow<T>>) =
-      combine<T, PersistentVector<T>>(flows) { ts: Array<T> ->
+      combine(flows) { ts: Array<T> ->
         var ret: PersistentVector.TransientVector<T> = v<T>().asTransient()
         ts.forEach { ret = ret.conj(it) }
         ret.persistent()
