@@ -35,7 +35,7 @@ class Computation(
 
   override val initialValue: Any? = initial
 
-  override val signalObserver: Job = combineV(inputSignals) { it }
+  override val signalObserver: Job = combineV(inputSignals)
     .distinctUntilChanged()
     .transform<IPersistentVector<Any?>, Unit> { newSignals ->
       _state.update { f(newSignals, it) }
@@ -60,13 +60,11 @@ class Computation(
     /**
      * Same as [combine] but with [IPersistentVector] instead of [Array].
      */
-    inline fun <reified T, R> combineV(
-      flows: Iterable<Flow<T>>,
-      crossinline transform: suspend (IPersistentVector<T>) -> R
-    ): Flow<R> = combine(flows) { ts: Array<T> ->
-      var ret: PersistentVector.TransientVector<T> = v<T>().asTransient()
-      ts.forEach { ret = ret.conj(it) }
-      transform(ret.persistent())
-    }
+    inline fun <reified T> combineV(flows: Iterable<Flow<T>>) =
+      combine<T, PersistentVector<T>>(flows) { ts: Array<T> ->
+        var ret: PersistentVector.TransientVector<T> = v<T>().asTransient()
+        ts.forEach { ret = ret.conj(it) }
+        ret.persistent()
+      }
   }
 }
