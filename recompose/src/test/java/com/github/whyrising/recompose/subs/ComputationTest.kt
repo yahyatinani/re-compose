@@ -1,6 +1,5 @@
 package com.github.whyrising.recompose.subs
 
-import com.github.whyrising.recompose.subs.Computation.Companion.Ids.computation_value
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.Associative
@@ -18,9 +17,13 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -46,9 +49,9 @@ class ComputationTest : FreeSpec({
     val r = Computation(v(), defaultVal, id) { _, _ -> defaultVal }
 
     r.isFresh.deref().shouldBeTrue()
-    r.toString() shouldBe "rx($id, ${m(computation_value to 0)})"
+    r.toString() shouldBe "rx($id, ${0})"
     r.state.value shouldBe defaultVal
-    r.initialValue shouldBe m(computation_value to defaultVal)
+    r.initialValue shouldBe defaultVal
   }
 
   "deref() should return the computation value of the reaction" {
@@ -334,16 +337,49 @@ class ComputationTest : FreeSpec({
           if (x < 40) inc(x) else currentValue
         }
         advanceUntilIdle()
-        input._state.emit(m(computation_value to 30))
+        input._state.emit(30)
         advanceUntilIdle()
         val previousValue = r.deref()
 
-        input._state.emit(m(computation_value to 60))
+        input._state.emit(60)
         advanceUntilIdle()
 
         val current = r.deref()
 
         current shouldBeSameInstanceAs previousValue
+      }
+    }
+  }
+
+  "signalObserver" - {
+    "should filter out duplicate values via distinctUntilChanged" {
+      runTest {
+        val callCount = atomic(0)
+        val input1 = Channel<Int>()
+        val input2 = Channel<Int>()
+        val flow1 = input1.receiveAsFlow()
+        val flow2 = input2.receiveAsFlow()
+        Computation(
+          inputSignals = v(flow1, flow2),
+          initial = -1,
+          id = "computation",
+          context = testDispatcher
+        ) { _, _ -> callCount.update { it.inc() } }
+        advanceUntilIdle()
+        input1.send(2)
+        input2.send(4)
+
+        input1.send(2)
+        input2.send(4)
+
+        input1.send(2)
+        input2.send(4)
+
+        input2.send(2)
+        input1.send(4)
+        advanceUntilIdle()
+
+        callCount.value shouldBeExactly 3
       }
     }
   }
