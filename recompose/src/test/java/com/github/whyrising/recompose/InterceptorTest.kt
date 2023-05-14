@@ -39,6 +39,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
+@Suppress("UNCHECKED_CAST")
 class InterceptorTest : FreeSpec({
   "toInterceptor() should return a map interceptor" - {
     "return a map with default functions" {

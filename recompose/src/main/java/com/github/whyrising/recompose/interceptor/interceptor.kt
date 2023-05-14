@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.whyrising.recompose.interceptor
 
 import com.github.whyrising.recompose.events.Event
@@ -56,7 +58,6 @@ internal fun context(
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 
-@Suppress("UNCHECKED_CAST")
 internal fun invokeInterceptorFn(
   context: Context,
   interceptor: Interceptor,
@@ -70,7 +71,6 @@ internal fun invokeInterceptorFn(
  * :queue and :stack in context should be lists/interceptors of type
  * IPersistentVector<*>.
  */
-@Suppress("UNCHECKED_CAST")
 internal fun invokeInterceptors(
   context: Context,
   direction: interceptor
@@ -95,7 +95,6 @@ internal fun invokeInterceptors(
   return invokeInterceptors(context)
 }
 
-@Suppress("UNCHECKED_CAST")
 internal fun changeDirection(context: Context): Context =
   enqueue(context, context[stack] as ISeq<Interceptor>?)
 

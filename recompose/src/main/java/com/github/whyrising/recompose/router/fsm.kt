@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.whyrising.recompose.router
 
 import com.github.whyrising.recompose.cofx.registerDbInjectorCofx

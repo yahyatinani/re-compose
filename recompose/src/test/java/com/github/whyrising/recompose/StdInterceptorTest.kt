@@ -28,6 +28,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import com.github.whyrising.recompose.ids.context as ctx
 
+@Suppress("UNCHECKED_CAST")
 class StdInterceptorTest : FreeSpec({
   mockkStatic(Log::class)
   every { Log.d(any(), any()) } returns 0
