@@ -1,12 +1,10 @@
 package com.github.whyrising.recompose.subs
 
-import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.Associative
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.inc
-import com.github.whyrising.y.core.l
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
 import io.kotest.assertions.timing.continually
@@ -49,7 +47,7 @@ class ComputationTest : FreeSpec({
     val r = Computation(v(), defaultVal, id) { _, _ -> defaultVal }
 
     r.isFresh.deref().shouldBeTrue()
-    r.toString() shouldBe "rx($id, ${0})"
+    r.toString() shouldBe "rxc($id, ${0})"
     r.state.value shouldBe defaultVal
     r.initialValue shouldBe defaultVal
   }
@@ -105,15 +103,15 @@ class ComputationTest : FreeSpec({
 
     reaction.addOnDispose(f)
 
-    reaction.disposeFns.deref() shouldBe l(f)
+    reaction.disposeFns.deref().first() shouldBeSameInstanceAs f
   }
 
   "dispose()" - {
-    "when computation still has subscribers, skip" {
+    "when reaction still has subscribers, skip" {
       runTest {
         var isDisposed = false
         val computation = Computation(
-          inputSignals = v(Extraction(atom(0)) { 0 }),
+          inputSignals = v(Extraction(atom(0), "Extraction") { 0 }),
           initial = -1,
           id = "computation",
           context = testDispatcher
@@ -130,29 +128,31 @@ class ComputationTest : FreeSpec({
 
         val result = computation.dispose()
 
-        computation._state.subscriptionCount.value shouldBeGreaterThan 0
+        computation._state.value.subscriptionCount.value shouldBeGreaterThan 0
         result.shouldBeFalse()
         isDisposed.shouldBeFalse()
         computation.reactionScope.isActive.shouldBeTrue()
       }
     }
 
-    "when computation is still fresh a.k.a no subscribers yet, skip" {
+    "when reaction is active, skip" {
       runTest {
         val reaction = Computation(
-          inputSignals = v(Extraction(atom(0)) { 0 }),
+          inputSignals = v(Extraction(atom(0), "Extraction") { 0 }),
           initial = -1,
           id = "reaction",
           context = testDispatcher
         ) { _, _ -> 0 }
+        reaction.incUiSubCount()
         advanceUntilIdle()
 
-        val result = reaction.dispose()
+        val isDisposed = reaction.dispose()
         advanceUntilIdle()
 
+        isDisposed.shouldBeFalse()
+        reaction.isDisposed().shouldBeFalse()
         reaction.isFresh.deref().shouldBeTrue()
-        reaction._state.subscriptionCount.value shouldBeExactly 0
-        result.shouldBeFalse()
+        reaction._state.value.subscriptionCount.value shouldBeExactly 0
         reaction.reactionScope.isActive.shouldBeTrue()
       }
     }
@@ -161,7 +161,7 @@ class ComputationTest : FreeSpec({
       runTest {
         var isSubscriberDisposed = false
         val reaction = Computation(
-          inputSignals = v(Extraction(atom(0)) { 0 }),
+          inputSignals = v(Extraction(atom(0), "Extraction") { 0 }),
           initial = -1,
           id = "reaction",
           context = testDispatcher
@@ -179,20 +179,15 @@ class ComputationTest : FreeSpec({
         j.cancel()
         advanceUntilIdle()
 
-        val subscriberDisposed = subscriber.dispose()
-        advanceUntilIdle()
-        val reactionDisposed = reaction.dispose()
-        advanceUntilIdle()
-
-        subscriberDisposed.shouldBeTrue()
+        subscriber.isDisposed().shouldBeTrue()
         subscriber.isFresh().shouldBeFalse()
-        subscriber._state.subscriptionCount.value shouldBeExactly 0
+        subscriber._state.value.subscriptionCount.value shouldBeExactly 0
         subscriber.reactionScope.isActive.shouldBeFalse()
 
+        reaction.isDisposed().shouldBeTrue()
         isSubscriberDisposed.shouldBeTrue()
-        reactionDisposed.shouldBeTrue()
         reaction.isFresh().shouldBeFalse()
-        reaction._state.subscriptionCount.value shouldBeExactly 0
+        reaction._state.value.subscriptionCount.value shouldBeExactly 0
         reaction.reactionScope.isActive.shouldBeFalse()
       }
     }
@@ -203,7 +198,7 @@ class ComputationTest : FreeSpec({
       runTest {
         val appDb = atom(0)
         val input = Computation(
-          inputSignals = v(Extraction(appDb) { it }),
+          inputSignals = v(Extraction(appDb, "Extraction") { it }),
           initial = -1,
           id = "input",
           context = testDispatcher
@@ -224,8 +219,8 @@ class ComputationTest : FreeSpec({
 
     "multiple input signals" {
       runTest {
-        val in1 = Extraction(atom(0)) { it }
-        val in2 = Extraction(atom(0)) { it }
+        val in1 = Extraction(atom(0), "Extraction") { it }
+        val in2 = Extraction(atom(0), "Extraction") { it }
 
         val node = Computation(
           inputSignals = v(in1, in2),
@@ -245,13 +240,12 @@ class ComputationTest : FreeSpec({
       }
     }
 
-    "parallel incoming input signals" {
+    "parallel input signals" {
       continually(duration = 7.seconds) {
         runTest {
-          val appDb: Atom<Associative<String, Int>> =
-            atom(m("a" to 0, "b" to 0))
-          val e1 = Extraction(appDb) { get(it, "a") }
-          val e2 = Extraction(appDb) { get(it, "b") }
+          val appDb = atom<Associative<String, Int>>(m("a" to 0, "b" to 0))
+          val e1 = Extraction(appDb, "e1", testDispatcher) { get(it, "a") }
+          val e2 = Extraction(appDb, "e2", testDispatcher) { get(it, "b") }
           val input1 = Computation(
             inputSignals = v(e1),
             initial = -1,
@@ -268,6 +262,7 @@ class ComputationTest : FreeSpec({
           ) { args, _ ->
             (args as IPersistentVector<Int>)[0]
           }
+
           val reaction = Computation(
             inputSignals = v(input1, input2),
             initial = -1,
@@ -337,11 +332,11 @@ class ComputationTest : FreeSpec({
           if (x < 40) inc(x) else currentValue
         }
         advanceUntilIdle()
-        input._state.emit(30)
+        input._state.value.emit(30)
         advanceUntilIdle()
         val previousValue = r.deref()
 
-        input._state.emit(60)
+        input._state.value.emit(60)
         advanceUntilIdle()
 
         val current = r.deref()

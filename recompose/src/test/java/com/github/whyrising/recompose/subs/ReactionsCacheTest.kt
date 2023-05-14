@@ -14,7 +14,6 @@ import io.mockk.mockkStatic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -27,7 +26,7 @@ class ReactionsCacheTest : FreeSpec({
   every { Log.i(any(), any()) } returns 0
   Dispatchers.setMain(StandardTestDispatcher())
 
-  beforeEach { queryToReactionCache.value = m() }
+  beforeEach { reactionsCache.reset(m()) }
 
   "cacheReaction()" - {
     "should call addOnDispose(f) on the cached reaction" {
@@ -40,11 +39,11 @@ class ReactionsCacheTest : FreeSpec({
 
     "should add the reaction to the cache map" {
       val key = v("test")
-      val reaction = Extraction(atom(1)) { (it as Int).inc() }
+      val reaction = Extraction(atom(1), id = "id") { (it as Int).inc() }
 
       val cached = cacheReaction(key, reaction)
 
-      queryToReactionCache.value[key].shouldNotBeNull()
+      reactionsCache()[key].shouldNotBeNull()
       cached shouldBeSameInstanceAs reaction
     }
   }
@@ -65,19 +64,21 @@ class ReactionsCacheTest : FreeSpec({
 
     override val f: Any
       get() = TODO("Not yet implemented")
+
     override val reactionScope: CoroutineScope
       get() = TODO("Not yet implemented")
+
     override val initialValue: Any
       get() = TODO("Not yet implemented")
 
     override val state: StateFlow<Any?>
       get() = TODO("Not yet implemented")
 
-    override val signalObserver: Job
-      get() = TODO("Not yet implemented")
-
     override fun addOnDispose(f: (Reaction<*>) -> Unit) {
       _addOnDisposeCalled.reset(true)
     }
+
+    override val category: Char
+      get() = TODO("Not yet implemented")
   }
 }

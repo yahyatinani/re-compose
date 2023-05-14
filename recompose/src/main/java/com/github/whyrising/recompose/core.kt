@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.whyrising.recompose.cofx.injectDb
@@ -19,11 +19,10 @@ import com.github.whyrising.recompose.subs.Computation
 import com.github.whyrising.recompose.subs.Extraction
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
-import com.github.whyrising.recompose.subs.queryToReactionCache
+import com.github.whyrising.recompose.subs.ReactionBase
 import com.github.whyrising.recompose.subs.regCompSubscription
 import com.github.whyrising.recompose.subs.regDbSubscription
 import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -154,16 +153,18 @@ inline fun <V> regSubM(
 @Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> watch(query: Query): T {
-  // TODO: Rewrite
-  val cache by queryToReactionCache.collectAsStateWithLifecycle()
-  val reaction = remember(key1 = cache[query]) {
-    println("sdlfjsdj")
-    subscribe<T>(query)
+  val reaction = remember(Unit) { subscribe<T>(query) as ReactionBase<*, T> }
+
+  DisposableEffect(Unit) {
+    reaction.incUiSubCount()
+    onDispose { reaction.decUiSubCount() }
   }
-  return if (reaction is Extraction) {
-    reaction.value as T
-  } else {
-    (reaction as Computation).state.collectAsStateWithLifecycle().value as T
+
+  return when (reaction) {
+    is Extraction -> reaction.value as T
+    else -> remember {
+      (reaction as Computation).state
+    }.collectAsStateWithLifecycle().value as T
   }
 }
 

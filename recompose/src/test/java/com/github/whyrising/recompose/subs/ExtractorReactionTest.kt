@@ -18,14 +18,14 @@ class ExtractorReactionTest : FreeSpec({
   Dispatchers.setMain(testDispatcher)
 
   "ctor" {
-    val reaction = Extraction(atom(1)) { (it as Int).inc() }
+    val reaction = Extraction(atom(1), "Extraction") { (it as Int).inc() }
 
     reaction.deref() shouldBe 2
   }
 
   "deref()" {
     runTest {
-      val reaction = Extraction(atom(1)) { (it as Int).inc() }
+      val reaction = Extraction(atom(1), "Extraction") { (it as Int).inc() }
 
       reaction.deref() shouldBe 2
       reaction.deref() shouldBe reaction.deref()
