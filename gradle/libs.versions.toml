@@ -23,6 +23,11 @@ coroutines = "1.7.0"
 
 ylib = "0.2.0.17-SNAPSHOT" #FIXME:
 
+androidx-benchmark = "1.1.1"
+runner = "1.5.2"
+junit = "1.1.5"
+benchmark-junit4 = "1.1.1"
+
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -65,6 +70,10 @@ junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockkjvm = { module = "io.mockk:mockk-agent-jvm", version.ref = "mockk" }
 
+runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
+benchmark-junit4 = { group = "androidx.benchmark", name = "benchmark-junit4", version.ref = "benchmark-junit4" }
+
 y-core = { module = "com.github.whyrising.y:y-core", version.ref = "ylib" }
 y-concurrency = { module = "com.github.whyrising.y:y-concurrency", version.ref = "ylib" }
 
@@ -75,3 +84,4 @@ android-application = { id = "com.android.application", version.ref = "gradleplu
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+androidx-benchmark = { id = "androidx.benchmark", version.ref = "androidx-benchmark" }

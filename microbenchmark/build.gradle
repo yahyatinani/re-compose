@@ -1,0 +1,60 @@
+plugins {
+  //
+  //  alias deps.plugins.android.library apply false
+  //  alias deps.plugins.androidx.benchmark apply false
+  //  alias deps.plugins.kotlin.android apply false
+  id 'kotlin-conventions'
+  //  id 'com.android.test'
+  id 'com.android.library'
+  //  alias deps.plugins.android.library
+  //  alias deps.plugins.androidx.benchmark
+  //  alias deps.plugins.kotlin.android
+}
+
+android {
+  namespace 'com.github.yahyatinani.recompose.microbenchmark'
+  compileSdk 33
+
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+  }
+
+  kotlinOptions {
+    jvmTarget = "1.8"
+  }
+
+  defaultConfig {
+    minSdk 24
+    targetSdk 33
+
+    testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
+  }
+
+  testBuildType = "release"
+  buildTypes {
+    debug {
+      // Since debuggable can"t be modified by gradle for library modules,
+      // it must be done in a manifest - see src/androidTest/AndroidManifest.xml
+      minifyEnabled true
+      proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro"
+    }
+    release {
+      isDefault = true
+    }
+  }
+}
+
+dependencies {
+  androidTestImplementation deps.runner
+  androidTestImplementation deps.junit
+  androidTestImplementation deps.junit4
+  androidTestImplementation deps.benchmark.junit4
+
+  // Add your dependencies here. Note that you cannot benchmark code
+  // in an app module this way - you will need to move any code you
+  // want to benchmark to a library module:
+  // https://developer.android.com/studio/projects/android-library#Convert
+
+  androidTestImplementation project(':recompose')
+}
