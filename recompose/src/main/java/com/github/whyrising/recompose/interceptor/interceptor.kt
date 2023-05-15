@@ -40,16 +40,11 @@ fun toInterceptor(
   InterceptSpec.after_async to afterAsync
 )
 
-fun assocCofx(
-  context: Context,
-  key: coeffects,
-  value: Any
-): Context = assocIn(context, l(ctx.coeffects, key), value) as Context
+fun assocCofx(context: Context, key: coeffects, value: Any) =
+  assocIn(context, l(ctx.coeffects, key), value) as Context
 
-internal fun enqueue(
-  context: Context,
-  interceptors: ISeq<Interceptor>?
-): Context = context.assoc(queue, interceptors ?: l<Any>())
+internal fun enqueue(context: Context, interceptors: ISeq<Interceptor>?) =
+  context.assoc(queue, interceptors ?: l<Any>())
 
 /** Create a fresh context. */
 internal fun context(
@@ -66,37 +61,37 @@ internal fun invokeInterceptorFn(
   context: Context,
   interceptor: Interceptor,
   direction: InterceptSpec
-): Context = when (val fn = interceptor[direction] as InterceptorFn?) {
-  null -> context
-  else -> fn(context)
-}
+): Context = (interceptor[direction] as InterceptorFn)(context)
+
+internal fun stackAndQueue(
+  context: Context,
+  que: ISeq<Interceptor>,
+  interceptor: Interceptor
+) = context
+  .assoc(queue, que.rest())
+  .assoc(stack, conj(context[stack] as ISeq<Any>?, interceptor))
 
 /**
  * :queue and :stack in context should be lists/interceptors of type
  * IPersistentVector<*>.
  */
-internal fun invokeInterceptors(
+internal tailrec fun invokeInterceptors(
   context: Context,
   direction: InterceptSpec
 ): Context {
-  tailrec fun invokeInterceptors(context: Context): Context {
-    val que = context[queue] as ISeq<Interceptor>
-    return when (que.count) {
-      0 -> context
-      else -> {
-        val interceptor = que.first()
-        val stk = context[stack] as ISeq<Any>?
-        val newContext = context
-          .assoc(queue, que.rest())
-          .assoc(stack, conj(stk, interceptor))
-          .let { invokeInterceptorFn(it, interceptor, direction) }
+  val que = context[queue] as ISeq<Interceptor>
+  if (que.count == 0) return context
 
-        invokeInterceptors(newContext)
-      }
-    }
-  }
+  val interceptor = que.first()
 
-  return invokeInterceptors(context)
+  return invokeInterceptors(
+    context = invokeInterceptorFn(
+      context = stackAndQueue(context, que, interceptor),
+      interceptor = interceptor,
+      direction = direction
+    ),
+    direction = direction
+  )
 }
 
 internal fun changeDirection(context: Context): Context =
