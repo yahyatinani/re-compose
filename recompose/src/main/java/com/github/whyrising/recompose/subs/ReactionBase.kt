@@ -1,6 +1,5 @@
 package com.github.whyrising.recompose.subs
 
-import android.util.Log
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.ISeq
 import com.github.whyrising.y.core.l
@@ -97,9 +96,9 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
   override fun toString(): String = str
 
   // FIXME: comment this out.
-  protected fun finalize() {
-    Log.d(TAG, "GCed: $id")
-  }
+  /* protected fun finalize() {
+     Log.d(TAG, "GCed: $id")
+   }*/
 
   companion object {
     internal const val TAG = "rx"
