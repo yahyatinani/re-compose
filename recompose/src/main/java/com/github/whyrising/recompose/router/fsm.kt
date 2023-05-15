@@ -52,14 +52,16 @@ internal class EventQueueFSM(
   // -- FSM transitions' actions -----------------------------------------------
 
   internal fun processAllCurrentEvents(arg: Any?) {
-    try {
-      eventQueue.processCurrentEvents()
-    } catch (ex: Exception) {
-      fsmTrigger(EXCEPTION, ex)
+    scope.launch {
+      try {
+        eventQueue.processCurrentEvents()
+      } catch (ex: Exception) {
+        fsmTrigger(EXCEPTION, ex)
+      }
+      // this doesn't execute when an exception occurs because handle() throws
+      // again in catch block.
+      fsmTrigger(FINISH_RUN)
     }
-    // this doesn't execute when an exception occurs because handle() throws
-    // again in catch block.
-    fsmTrigger(FINISH_RUN)
   }
 
   private fun runQueue(arg: Any?) {

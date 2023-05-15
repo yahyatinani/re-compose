@@ -7,9 +7,9 @@ import com.github.whyrising.recompose.cofx.injectCofx
 import com.github.whyrising.recompose.cofx.regCofx
 import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.ids.InterceptSpec.after
+import com.github.whyrising.recompose.ids.InterceptSpec.before
 import com.github.whyrising.recompose.ids.context.coeffects
-import com.github.whyrising.recompose.ids.interceptor.after
-import com.github.whyrising.recompose.ids.interceptor.before
 import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor

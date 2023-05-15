@@ -22,7 +22,7 @@ typealias Register = IPersistentMap<Any, IPersistentMap<Any, Any>?>
  */
 internal var register: Atom<Register> = atom(m())
 
-enum class Kinds { Event, Fx, Cofx, Sub }
+enum class Kinds { Event, Fx, FxAsync, Cofx, Sub }
 
 fun getHandler(kind: Kinds, id: Any?): Any? = getIn(register(), l(kind, id))
 

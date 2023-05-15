@@ -3,10 +3,10 @@
 package com.github.whyrising.recompose.interceptor
 
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.ids.InterceptSpec
 import com.github.whyrising.recompose.ids.coeffects
 import com.github.whyrising.recompose.ids.context.queue
 import com.github.whyrising.recompose.ids.context.stack
-import com.github.whyrising.recompose.ids.interceptor
 import com.github.whyrising.y.core.assocIn
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.ISeq
@@ -18,20 +18,26 @@ import com.github.whyrising.recompose.ids.context as ctx
 
 typealias Context = IPersistentMap<ctx, Any>
 
-typealias Interceptor = IPersistentMap<interceptor, Any>
+typealias Interceptor = IPersistentMap<InterceptSpec, Any>
 
 typealias InterceptorFn = (context: Context) -> Context
 
+typealias InterceptorFnAsync = suspend (context: Context) -> Context
+
 internal val defaultInterceptorFn: InterceptorFn = { it }
+
+val defaultInterceptorAsyncFn: InterceptorFnAsync = { it }
 
 fun toInterceptor(
   id: Any,
   before: InterceptorFn = defaultInterceptorFn,
-  after: InterceptorFn = defaultInterceptorFn
+  after: InterceptorFn = defaultInterceptorFn,
+  afterAsync: InterceptorFnAsync = defaultInterceptorAsyncFn
 ): Interceptor = m(
-  interceptor.id to id,
-  interceptor.before to before,
-  interceptor.after to after
+  InterceptSpec.id to id,
+  InterceptSpec.before to before,
+  InterceptSpec.after to after,
+  InterceptSpec.after_async to afterAsync
 )
 
 fun assocCofx(
@@ -45,9 +51,7 @@ internal fun enqueue(
   interceptors: ISeq<Interceptor>?
 ): Context = context.assoc(queue, interceptors ?: l<Any>())
 
-/**
- * Create a fresh context.
- */
+/** Create a fresh context. */
 internal fun context(
   event: Event,
   interceptors: ISeq<Interceptor>
@@ -61,7 +65,7 @@ internal fun context(
 internal fun invokeInterceptorFn(
   context: Context,
   interceptor: Interceptor,
-  direction: interceptor
+  direction: InterceptSpec
 ): Context = when (val fn = interceptor[direction] as InterceptorFn?) {
   null -> context
   else -> fn(context)
@@ -73,7 +77,7 @@ internal fun invokeInterceptorFn(
  */
 internal fun invokeInterceptors(
   context: Context,
-  direction: interceptor
+  direction: InterceptSpec
 ): Context {
   tailrec fun invokeInterceptors(context: Context): Context {
     val que = context[queue] as ISeq<Interceptor>
@@ -98,10 +102,8 @@ internal fun invokeInterceptors(
 internal fun changeDirection(context: Context): Context =
   enqueue(context, context[stack] as ISeq<Interceptor>?)
 
-fun execute(
-  event: Event,
-  interceptors: ISeq<Interceptor>
-): Context = context(event, interceptors)
-  .let { invokeInterceptors(it, interceptor.before) }
-  .let { changeDirection(it) }
-  .let { invokeInterceptors(it, interceptor.after) }
+fun execute(event: Event, interceptors: ISeq<Interceptor>): Context =
+  context(event, interceptors)
+    .let { invokeInterceptors(it, InterceptSpec.before) }
+    .let { changeDirection(it) }
+    .let { invokeInterceptors(it, InterceptSpec.after) }

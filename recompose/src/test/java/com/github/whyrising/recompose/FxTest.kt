@@ -8,9 +8,9 @@ import com.github.whyrising.recompose.fx.Effects
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.fx.regFx
 import com.github.whyrising.recompose.fx.registerBuiltinFxHandlers
+import com.github.whyrising.recompose.ids.InterceptSpec.after
 import com.github.whyrising.recompose.ids.coeffects
 import com.github.whyrising.recompose.ids.context
-import com.github.whyrising.recompose.ids.interceptor.after
 import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.registrar.Kinds

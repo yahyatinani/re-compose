@@ -1,16 +1,16 @@
 package com.github.whyrising.recompose
 
 import com.github.whyrising.recompose.cofx.Coeffects
+import com.github.whyrising.recompose.ids.InterceptSpec
+import com.github.whyrising.recompose.ids.InterceptSpec.after
+import com.github.whyrising.recompose.ids.InterceptSpec.before
+import com.github.whyrising.recompose.ids.InterceptSpec.id
 import com.github.whyrising.recompose.ids.coeffects.event
 import com.github.whyrising.recompose.ids.coeffects.originalEvent
 import com.github.whyrising.recompose.ids.context
 import com.github.whyrising.recompose.ids.context.coeffects
 import com.github.whyrising.recompose.ids.context.queue
 import com.github.whyrising.recompose.ids.context.stack
-import com.github.whyrising.recompose.ids.interceptor
-import com.github.whyrising.recompose.ids.interceptor.after
-import com.github.whyrising.recompose.ids.interceptor.before
-import com.github.whyrising.recompose.ids.interceptor.id
 import com.github.whyrising.recompose.ids.recompose.db
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
@@ -93,7 +93,7 @@ class InterceptorTest : FreeSpec({
 
   "context(event, interceptors) should return a fresh context" {
     val eventVec = v<Any>(":id", 12)
-    val interceptors = l<IPersistentMap<interceptor, Any>>()
+    val interceptors = l<IPersistentMap<InterceptSpec, Any>>()
 
     val context = context(eventVec, interceptors)
 

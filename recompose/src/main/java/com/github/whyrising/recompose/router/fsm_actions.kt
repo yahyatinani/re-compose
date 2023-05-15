@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose.router
 
+import com.github.whyrising.recompose.async.events.handle
 import com.github.whyrising.recompose.events.Event
-import com.github.whyrising.recompose.events.handle
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.PersistentQueue
@@ -13,8 +13,8 @@ typealias EventQueue = PersistentQueue<Event>
 internal interface EventQueueActions {
   val count: Int
   fun enqueue(event: Event): EventQueue
-  fun processFirstEventInQueue(): Unit
-  fun processCurrentEvents()
+  suspend fun processFirstEventInQueue(): Unit
+  suspend fun processCurrentEvents()
   fun pause()
   fun resume()
   fun exception(ex: Exception)
@@ -38,7 +38,7 @@ internal class EventQueueImp(queue: EventQueue = q()) :
   }
 
   /** This function is NOT thread safe. */
-  override fun processFirstEventInQueue() {
+  override suspend fun processFirstEventInQueue() {
     val event = queue.peek()
     if (event != null) {
       handle(event)
@@ -47,7 +47,7 @@ internal class EventQueueImp(queue: EventQueue = q()) :
   }
 
   /** This function is NOT thread safe. */
-  override fun processCurrentEvents() {
+  override suspend fun processCurrentEvents() {
     val n = count
     for (i: Int in 0 until n)
       processFirstEventInQueue()

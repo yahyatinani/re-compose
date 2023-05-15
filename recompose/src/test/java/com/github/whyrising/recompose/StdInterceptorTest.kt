@@ -4,11 +4,11 @@ import android.util.Log
 import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.events.DbEventHandler
 import com.github.whyrising.recompose.events.FxEventHandler
+import com.github.whyrising.recompose.ids.InterceptSpec.after
+import com.github.whyrising.recompose.ids.InterceptSpec.before
+import com.github.whyrising.recompose.ids.InterceptSpec.id
 import com.github.whyrising.recompose.ids.coeffects
 import com.github.whyrising.recompose.ids.context.effects
-import com.github.whyrising.recompose.ids.interceptor.after
-import com.github.whyrising.recompose.ids.interceptor.before
-import com.github.whyrising.recompose.ids.interceptor.id
 import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.interceptor.Context
 import com.github.whyrising.recompose.interceptor.Interceptor
