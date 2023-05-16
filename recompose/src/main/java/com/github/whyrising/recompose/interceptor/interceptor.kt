@@ -26,7 +26,7 @@ typealias InterceptorFnAsync = suspend (context: Context) -> Context
 
 internal val defaultInterceptorFn: InterceptorFn = { it }
 
-val defaultInterceptorAsyncFn: InterceptorFnAsync = { it }
+internal val defaultInterceptorAsyncFn: InterceptorFnAsync = { it }
 
 fun toInterceptor(
   id: Any,

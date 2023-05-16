@@ -3,6 +3,7 @@ package com.github.whyrising.recompose
 import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.ids.InterceptSpec
 import com.github.whyrising.recompose.ids.InterceptSpec.after
+import com.github.whyrising.recompose.ids.InterceptSpec.after_async
 import com.github.whyrising.recompose.ids.InterceptSpec.before
 import com.github.whyrising.recompose.ids.InterceptSpec.id
 import com.github.whyrising.recompose.ids.coeffects.event
@@ -18,6 +19,7 @@ import com.github.whyrising.recompose.interceptor.InterceptorFn
 import com.github.whyrising.recompose.interceptor.assocCofx
 import com.github.whyrising.recompose.interceptor.changeDirection
 import com.github.whyrising.recompose.interceptor.context
+import com.github.whyrising.recompose.interceptor.defaultInterceptorAsyncFn
 import com.github.whyrising.recompose.interceptor.defaultInterceptorFn
 import com.github.whyrising.recompose.interceptor.enqueue
 import com.github.whyrising.recompose.interceptor.execute
@@ -46,7 +48,8 @@ class InterceptorTest : FreeSpec({
       val expectedInterceptor = m(
         id to ":test",
         before to defaultInterceptorFn,
-        after to defaultInterceptorFn
+        after to defaultInterceptorFn,
+        after_async to defaultInterceptorAsyncFn
       )
 
       val toInterceptor = toInterceptor(":test")
@@ -67,7 +70,8 @@ class InterceptorTest : FreeSpec({
       interceptor shouldBe m(
         id to ":test",
         before to f1,
-        after to f2
+        after to f2,
+        after_async to defaultInterceptorAsyncFn
       )
     }
   }
