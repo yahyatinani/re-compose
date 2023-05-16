@@ -53,6 +53,7 @@ internal class EventQueueFSM(
   /**
    * @return Returns [Deferred] only because of testing purposes.
    */
+  @Suppress("UNUSED_PARAMETER")
   internal fun processAllCurrentEvents(arg: Any?): Deferred<Unit> {
     return scope.async {
       try {
@@ -66,6 +67,7 @@ internal class EventQueueFSM(
     }
   }
 
+  @Suppress("UNUSED_PARAMETER")
   private fun runQueue(arg: Any?) = fsmTrigger(RUN_QUEUE)
 
   internal fun enqueueEvent(e: Event) {
@@ -77,6 +79,7 @@ internal class EventQueueFSM(
     runQueue(e)
   }
 
+  @Suppress("UNUSED_PARAMETER")
   internal fun identity(arg: Any?) = Unit
 
   internal fun exception(ex: Throwable) = eventQueue.exception(ex)
