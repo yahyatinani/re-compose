@@ -16,10 +16,11 @@ import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 
 internal enum class State {
   IDLE,
@@ -42,33 +43,30 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  dispatcher: CoroutineDispatcher = Dispatchers.Default,
-  val handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
-    throw e
-  }
+  val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  internal val scope: CoroutineScope = CoroutineScope(
+    dispatcher + CoroutineName("Recompose Events Scope")
+  )
 ) {
-  internal val scope = CoroutineScope(dispatcher + handler)
+  // -- FSM actions -----------------------------------------------
 
-  // -- FSM transitions' actions -----------------------------------------------
-
-  internal fun processAllCurrentEvents(arg: Any?) {
-    scope.launch {
+  /**
+   * @return Returns [Deferred] only because of testing purposes.
+   */
+  internal fun processAllCurrentEvents(arg: Any?): Deferred<Unit> {
+    return scope.async {
       try {
         eventQueue.processCurrentEvents()
-      } catch (ex: Exception) {
+      } catch (ex: Throwable) {
         fsmTrigger(EXCEPTION, ex)
       }
-      // this doesn't execute when an exception occurs because handle() throws
-      // again in catch block.
+      // this doesn't execute when an exception occurs because fsmTrigger()
+      // throws again in catch block.
       fsmTrigger(FINISH_RUN)
     }
   }
 
-  private fun runQueue(arg: Any?) {
-    scope.launch {
-      fsmTrigger(RUN_QUEUE)
-    }
-  }
+  private fun runQueue(arg: Any?) = fsmTrigger(RUN_QUEUE)
 
   internal fun enqueueEvent(e: Event) {
     eventQueue.enqueue(e)
@@ -79,11 +77,9 @@ internal class EventQueueFSM(
     runQueue(e)
   }
 
-  internal fun identity(arg: Any?) {}
+  internal fun identity(arg: Any?) = Unit
 
-  internal fun exception(ex: Exception) {
-    eventQueue.exception(ex)
-  }
+  internal fun exception(ex: Throwable) = eventQueue.exception(ex)
 
   private val IDLE_identity = v(IDLE, ::identity)
   private val SCHEDULING_runQueue = v(SCHEDULING, ::runQueue)
@@ -103,10 +99,14 @@ internal class EventQueueFSM(
     get() = _state()
 
   /**
-   * @return a tuple of the new FSM state and the transition action (function).
+   * @param currentState Current FSM state.
+   * @param trigger An FSM event that occurred.
+   *
+   * @return Given we're in [currentState], when [trigger] happens, return a vec
+   * of next FSM state and action to execute.
    */
-  private fun givenWhenThen(givenFsmState: State, whenFsmEvent: FsmEvent) =
-    when (v(givenFsmState, whenFsmEvent)) {
+  private fun givenWhenThen(currentState: State, trigger: FsmEvent) =
+    when (v(currentState, trigger)) {
       IDLE__ADD_EVENT -> SCHEDULING_enqueueEventAndRunQueue
       SCHEDULING__ADD_EVENT -> SCHEDULING_enqueueEvent
       SCHEDULING__RUN_QUEUE -> RUNNING_processAllCurrentEvents
@@ -117,14 +117,15 @@ internal class EventQueueFSM(
         else -> SCHEDULING_runQueue
       }
 
-      else -> TODO("${givenFsmState.name}, ${whenFsmEvent.name}")
+      else -> TODO("${currentState.name}, ${trigger.name}")
     }
 
+  /** Emit an FSM trigger/event. */
   fun fsmTrigger(fsmEvent: FsmEvent, arg: Any? = null) {
     while (true) {
-      val givenFsmState = state
-      val (nextFsmState, actionFn) = givenWhenThen(givenFsmState, fsmEvent)
-      if (_state.compareAndSet(givenFsmState, nextFsmState as State)) {
+      val currentState = state
+      val (nextFsmState, actionFn) = givenWhenThen(currentState, fsmEvent)
+      if (_state.compareAndSet(currentState, nextFsmState as State)) {
         (actionFn as FsmAction)(arg)
         break
       }

@@ -17,7 +17,7 @@ internal interface EventQueueActions {
   suspend fun processCurrentEvents()
   fun pause()
   fun resume()
-  fun exception(ex: Exception)
+  fun exception(ex: Throwable)
 }
 
 /* Implementation */
@@ -61,9 +61,10 @@ internal class EventQueueImp(queue: EventQueue = q()) :
     TODO("Not yet implemented")
   }
 
-  override fun exception(ex: Exception) {
+  override fun exception(ex: Throwable) {
+    val event = queue.peek()
     purge()
-    throw ex
+    throw RuntimeException("event: $event", ex)
   }
 
   override fun purge() {

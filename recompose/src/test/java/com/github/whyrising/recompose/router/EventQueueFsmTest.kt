@@ -197,7 +197,7 @@ class EventQueueFsmTest : FreeSpec({
           enqueue(v(":event1", "arg"))
           enqueue(v(":event2", "arg"))
         }
-        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
+        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING, testDispatcher)
 
         eventQueueFSM.processAllCurrentEvents(null)
 
@@ -207,22 +207,26 @@ class EventQueueFsmTest : FreeSpec({
       }
     }
 
-    "should throw an exception" {
-      regEventDb<Any>("ex-event") { _, _ ->
+    "should throw an exception with the event id that caused that exception" {
+      val eventId = "ex-event"
+      regEventDb<Any>(eventId) { _, _ ->
         throw IllegalStateException("test")
       }
       continually(5.seconds) {
         runTest {
-          val eventQueue = EventQueueImp().apply { enqueue(v("ex-event")) }
+          val eventQueue = EventQueueImp().apply { enqueue(v(eventId)) }
           val eventQueueFSM = EventQueueFSM(
             eventQueue = eventQueue,
             start = RUNNING,
             dispatcher = testDispatcher
           )
 
-          shouldThrowExactly<IllegalStateException> {
-            eventQueueFSM.processAllCurrentEvents(null)
-          }
+          shouldThrowExactly<RuntimeException> {
+            eventQueueFSM.processAllCurrentEvents(null).await()
+
+            advanceUntilIdle()
+          }.message shouldBe "event: [$eventId]"
+
           eventQueueFSM.state shouldBe IDLE
         }
       }
