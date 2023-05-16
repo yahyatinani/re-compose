@@ -76,12 +76,12 @@ inline fun <Db, V> regDbSubscription(
   )
 }
 
-inline fun <S, V> regCompSubscription(
+inline fun <I, V> regCompSubscription(
   queryId: Any,
-  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<S>>,
+  crossinline signalsFn: (queryVec: Query) -> IPersistentVector<Reaction<I>>,
   initialValue: V,
   crossinline computationFn: suspend (
-    subscriptions: IPersistentVector<S>,
+    subscriptions: IPersistentVector<I>,
     currentValue: V,
     queryVec: Query
   ) -> V
@@ -96,7 +96,7 @@ inline fun <S, V> regCompSubscription(
         id = queryId
       ) { signalsValues, currentValue ->
         computationFn(
-          signalsValues as IPersistentVector<S>,
+          signalsValues as IPersistentVector<I>,
           currentValue as V,
           queryVec
         )

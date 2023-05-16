@@ -3,6 +3,8 @@ package com.github.whyrising.recompose.example.subs
 import android.graphics.Color.parseColor
 import androidx.compose.material.Colors
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Red
+import androidx.compose.ui.graphics.Color.Companion.Yellow
 import com.github.whyrising.recompose.example.Ids
 import com.github.whyrising.recompose.example.Ids.formattedTime
 import com.github.whyrising.recompose.example.Ids.primaryColor
@@ -13,7 +15,6 @@ import com.github.whyrising.recompose.example.Ids.themeColors
 import com.github.whyrising.recompose.example.Ids.time
 import com.github.whyrising.recompose.example.db.AppDb
 import com.github.whyrising.recompose.regSub
-import com.github.whyrising.recompose.regSubM
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subscribe
 import com.github.whyrising.y.core.v
@@ -32,11 +33,11 @@ fun toColor(color: String, default: Color = Color.Gray): Color = color
   .trim()
   .let {
     when {
-      it == "red" -> Color.Red
+      it == "red" -> Red
       it == "blue" -> Color.Blue
       it == "cyan" -> Color.Cyan
       it == "green" -> Color.Green
-      it == "yellow" -> Color.Yellow
+      it == "yellow" -> Yellow
       it == "magenta" -> Color.Magenta
       it == "darkGray" -> Color.DarkGray
       it == "black" -> Color.Black
@@ -57,7 +58,7 @@ fun fib(nth: Long): Long = when {
 }
 
 internal fun heavyComp() {
-//  fib(40)
+  fib(40)
 }
 
 fun regAllSubs(defaultColors: Colors) {
@@ -68,11 +69,10 @@ fun regAllSubs(defaultColors: Colors) {
   regSub(
     queryId = formattedTime,
     initialValue = "...",
-    signalsFn = { subscribe(v(time)) }
+    inputSignal = v(time)
   ) { date: Date, _, _: Query ->
-    val formattedTime = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
 //    heavyComp()
-    formattedTime.format(date)
+    SimpleDateFormat(HH_MM_SS, Locale.getDefault()).format(date)
   }
 
   regSub<AppDb>(queryId = primaryColorStr) { db, _ ->
@@ -85,32 +85,45 @@ fun regAllSubs(defaultColors: Colors) {
 
   regSub(
     queryId = primaryColor,
-    initialValue = Color.Red,
-    signalsFn = { subscribe<String>(v(primaryColorStr)) }
-  ) { colorName, _, _ ->
+    initialValue = Red,
+    inputSignal = v(primaryColorStr)
+  ) { colorName: String, _, _ ->
     toColor(colorName)
   }
 
   regSub(
     queryId = secondaryColor,
-    initialValue = Color.Yellow,
-    signalsFn = { subscribe<String>(v(secondaryColorStr)) }
-  ) { colorName, _, _ ->
+    initialValue = Yellow,
+    inputSignal = v(secondaryColorStr)
+  ) { colorName: String, _, _ ->
     toColor(colorName)
   }
 
-  regSubM(
+  regSub(
     queryId = themeColors,
-    signalsFn = {
+    initialValue = defaultColors,
+    v(primaryColor),
+    v(secondaryColor)
+  ) { (primary, secondary), _, (_, colors) ->
+    withContext(Dispatchers.Main) {
+      (colors as Colors).copy(
+        primary = primary as Color,
+        secondary = secondary as Color
+      )
+    }
+  }
+
+  regSub(
+    queryId = themeColors,
+    initialValue = defaultColors,
+    inputSignals = { query ->
       v(
         subscribe(v(primaryColor)),
         subscribe(v(secondaryColor))
       )
-    },
-    initialValue = defaultColors
+    }
   ) { (primary, secondary), _, (_, colors) ->
-    if (primary == null || secondary == null) colors as Colors
-    else withContext(Dispatchers.Main.immediate) {
+    withContext(Dispatchers.Main) {
       (colors as Colors).copy(
         primary = primary as Color,
         secondary = secondary as Color
