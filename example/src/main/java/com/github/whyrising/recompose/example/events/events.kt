@@ -30,7 +30,6 @@ fun regAllEvents() {
   }
 
   regEventFx(id = startTicking) { _, _ ->
-    TODO()
     m(BuiltInFx.fx to v(v(ticker, null), null))
   }
 
