@@ -1,9 +1,16 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.whyrising.recompose.fx
 
 import android.util.Log
 import com.github.whyrising.recompose.TAG
+import com.github.whyrising.recompose.cofx.Coeffects
 import com.github.whyrising.recompose.db.appDb
+import com.github.whyrising.recompose.dispatchSync
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.fx.BuiltInFx.db_async
+import com.github.whyrising.recompose.ids.coeffects.originalEvent
+import com.github.whyrising.recompose.ids.context.coeffects
 import com.github.whyrising.recompose.ids.context.effects
 import com.github.whyrising.recompose.ids.recompose
 import com.github.whyrising.recompose.ids.recompose.db
@@ -19,11 +26,15 @@ import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.get
+import com.github.whyrising.y.core.v
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = (value: Any?) -> Unit
+typealias EffectHandlerAsync = suspend (value: Any?) -> Unit
 typealias VecOfEffects = IPersistentVector<IPersistentVector<Any?>?>
 
 @Suppress("EnumEntryName")
@@ -31,7 +42,8 @@ enum class BuiltInFx {
   fx,
   dispatch,
   dispatch_later,
-  ms;
+  ms,
+  db_async;
 
   override fun toString(): String = ":${super.toString()}"
 }
@@ -45,6 +57,19 @@ fun regFx(id: Any, handler: EffectHandler) {
 
 // -- Interceptor --------------------------------------------------------------
 
+private fun execFx(effectsWithoutDb: Effects) {
+  for ((effectKey, effectValue) in effectsWithoutDb) {
+    val fxHandler = getHandler(kind, effectKey) as EffectHandler?
+    when {
+      fxHandler != null -> fxHandler(effectValue)
+      else -> Log.w(
+        TAG,
+        "no handler registered for effect: $effectKey. Ignoring."
+      )
+    }
+  }
+}
+
 val doFx: Interceptor = toInterceptor(
   id = recompose.dofx,
   after = { context: Context ->
@@ -52,27 +77,51 @@ val doFx: Interceptor = toInterceptor(
     val effectsWithoutDb: Effects = effects.dissoc(db)
     val newDb = effects[db]
 
-    if (newDb != null) {
-      val updateDbFxHandler = getHandler(kind, db) as EffectHandler
-      updateDbFxHandler(newDb)
-    }
+    val cofx: Coeffects = context[coeffects] as Coeffects
+    val eventVec = cofx[originalEvent] as Event
+    val oldDb = cofx[db]
 
-    for ((effectKey, effectValue) in effectsWithoutDb) {
-      val fxHandler = getHandler(kind, effectKey) as EffectHandler?
-      when {
-        fxHandler != null -> fxHandler(effectValue)
-        else -> Log.w(
-          TAG,
-          "no handler registered for effect: $effectKey. Ignoring."
-        )
+    if (newDb != null) { // new appDb value.
+      try {
+        (getHandler(kind, db) as EffectHandler)(v(eventVec, oldDb, newDb))
+      } catch (e: RaceCondition) {
+        Log.w(TAG, e.toString())
+        return@toInterceptor context
       }
     }
+
+    execFx(effectsWithoutDb)
+
+    context
+  },
+  afterAsync = { context ->
+    val effects: Effects = context[effects] as Effects
+    val effectsWithoutDb: Effects = effects.dissoc(db)
+    val newDb = effects[db]
+
+    val cofx: Coeffects = context[coeffects] as Coeffects
+    val eventVec = cofx[originalEvent] as Event
+    val oldDb = cofx[db]
+
+    if (newDb != null) { // new appDb value.
+      try {
+        val fx = getHandler(kind, db_async) as EffectHandlerAsync
+        fx(v(eventVec, oldDb, newDb))
+      } catch (e: RaceCondition) {
+        Log.w(TAG, e.toString())
+        return@toInterceptor context
+      }
+    }
+
+    execFx(effectsWithoutDb)
 
     context
   }
 )
 
 // -- Builtin Effect Handlers --------------------------------------------------
+
+object RaceCondition : IllegalStateException("AppDb was changed synchronously.")
 
 internal fun registerBuiltinFxHandlers() {
   /**
@@ -175,9 +224,33 @@ internal fun registerBuiltinFxHandlers() {
    * usage:
    * {:db  {:key1 value1 key2 value2}}
    */
-  regFx(id = db) { newAppDb ->
-    if (newAppDb != null) {
-      appDb.reset(newAppDb)
+  regFx(id = db) { v ->
+    val (event, o, n) = v as PersistentVector<Any>
+    val current = appDb.deref()
+    if (current != o || !appDb.compareAndSet(current, n)) {
+      dispatchSync(event as Event)
+      throw RaceCondition
     }
   }
+
+  /**
+   * :db_async
+   *
+   * reset appDb with a new value.
+   *
+   * usage:
+   * {:db  {:key1 value1 key2 value2}}
+   */
+  val handler: suspend (value: Any?) -> Unit = { v ->
+    val (event, o, n) = v as PersistentVector<Any>
+    val current = appDb.deref()
+    if (current != o || !withContext(Dispatchers.Main) {
+      appDb.compareAndSet(current, n)
+    }
+    ) {
+      dispatchSync(event as Event)
+      throw RaceCondition
+    }
+  }
+  registerHandler(id = db_async, kind, handler)
 }

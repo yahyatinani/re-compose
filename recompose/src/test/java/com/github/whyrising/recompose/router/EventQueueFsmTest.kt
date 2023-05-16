@@ -8,6 +8,7 @@ import com.github.whyrising.recompose.router.State.RUNNING
 import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
@@ -19,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalKotest::class)
 @ExperimentalCoroutinesApi
 class EventQueueFsmTest : FreeSpec({
   val testDispatcher = StandardTestDispatcher()
@@ -195,7 +197,7 @@ class EventQueueFsmTest : FreeSpec({
           enqueue(v(":event1", "arg"))
           enqueue(v(":event2", "arg"))
         }
-        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING)
+        val eventQueueFSM = EventQueueFSM(eventQueue, RUNNING, testDispatcher)
 
         eventQueueFSM.processAllCurrentEvents(null)
 
@@ -205,22 +207,26 @@ class EventQueueFsmTest : FreeSpec({
       }
     }
 
-    "should throw an exception" {
-      regEventDb<Any>("ex-event") { _, _ ->
+    "should throw an exception with the event id that caused that exception" {
+      val eventId = "ex-event"
+      regEventDb<Any>(eventId) { _, _ ->
         throw IllegalStateException("test")
       }
       continually(5.seconds) {
         runTest {
-          val eventQueue = EventQueueImp().apply { enqueue(v("ex-event")) }
+          val eventQueue = EventQueueImp().apply { enqueue(v(eventId)) }
           val eventQueueFSM = EventQueueFSM(
             eventQueue = eventQueue,
             start = RUNNING,
             dispatcher = testDispatcher
           )
 
-          shouldThrowExactly<IllegalStateException> {
-            eventQueueFSM.processAllCurrentEvents(null)
-          }
+          shouldThrowExactly<RuntimeException> {
+            eventQueueFSM.processAllCurrentEvents(null).await()
+
+            advanceUntilIdle()
+          }.message shouldBe "event: [$eventId]"
+
           eventQueueFSM.state shouldBe IDLE
         }
       }

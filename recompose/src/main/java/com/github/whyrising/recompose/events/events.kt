@@ -50,7 +50,6 @@ typealias Event = IPersistentVector<Any>
 
 @Suppress("UNCHECKED_CAST")
 fun handle(event: Event) {
-  val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>?
-
-  execute(event, interceptors ?: return)
+  val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>? ?: return
+  execute(event, interceptors)
 }

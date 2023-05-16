@@ -1,10 +1,11 @@
 package com.github.whyrising.recompose.ids
 
 @Suppress("EnumEntryName")
-enum class interceptor {
+enum class InterceptSpec {
   id,
   before,
-  after;
+  after,
+  after_async;
 
   override fun toString(): String = ":${super.toString()}"
 }

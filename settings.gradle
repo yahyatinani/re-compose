@@ -24,3 +24,4 @@ include ':recompose'
 include ':example'
 
 include ':benchmark'
+include ':microbenchmark'

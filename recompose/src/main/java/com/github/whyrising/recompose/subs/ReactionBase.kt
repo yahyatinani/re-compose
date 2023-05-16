@@ -1,86 +1,106 @@
 package com.github.whyrising.recompose.subs
 
-import android.util.Log
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.collections.ISeq
 import com.github.whyrising.y.core.l
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
 
-interface Disposable {
-  fun addOnDispose(f: (Reaction<*>) -> Unit)
+abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
+  internal val disposeFns = atom<ISeq<(Reaction<O>) -> Unit>>(
+    l({
+      isDisposed.reset(true)
+      reactionScope.cancel("$this is canceled due to inactivity.")
+      viewSubCount.removeWatch(id)
+    })
+  )
 
-  fun dispose(): Boolean
-}
-
-abstract class ReactionBase<T, O> : Reaction<O>, Disposable {
-  abstract val f: Any?
+  /** This flag is used to track the last subscriber of this reaction. */
+  internal val isFresh = atom(true)
 
   abstract val reactionScope: CoroutineScope
 
-  abstract val initialValue: Any?
+  val isDisposed = atom(false)
 
-  // this flag is used to track the last subscriber of this reaction
-  internal val isFresh = atom(true)
+  private val viewSubCount = atom(0).apply {
+    addWatch(id) { _, _, _, new ->
+      if (isNotActive(viewSubCount = new)) {
+        reactionScope.launch {
+          delay(5000) // wait for the view maybe it's a screen rotation?
+          dispose()
+        }
+      }
+    }
+  }
 
-  internal val disposeFns = atom<ISeq<(Reaction<O>) -> Unit>>(l())
-
-  internal abstract val signalObserver: Job
-
-  internal val _state: MutableStateFlow<Any?> by lazy {
+  @Suppress("PropertyName")
+  internal val _state: Lazy<MutableStateFlow<Any?>> = lazy {
     MutableStateFlow(initialValue).apply {
       subscriptionCount
-        .onEach {
-          if (!isFresh()) {
-            // last subscriber just disappeared => composable left
-            // the Composition tree => Reaction is not active.
-            if (it == 0) {
-              dispose()
-            }
-          } else if (it > 0) {
+        .transform<Int, Unit> {
+          if (it > 0 && isFresh()) { // first subscriber.
             isFresh.reset(false)
+          } else if (it == 0 && !isFresh()) { // last sub just disappeared.
+            delay(5000) // wait for the view maybe it's a screen rotation?
+            dispose()
           }
         }
         .launchIn(reactionScope)
     }
   }
 
-  override val state: StateFlow<Any?>
-    get() = _state
+  abstract val state: StateFlow<Any?>
 
-  private val str: String by lazy { "$TAG(${hashCode()}, ${deref()})" }
+  private fun isNotActive(viewSubCount: Int = viewSubCount()) =
+    viewSubCount == 0 &&
+      (!_state.isInitialized() || _state.value.subscriptionCount.value == 0)
+
+  internal fun decUiSubCount() {
+    viewSubCount.swap { if (it < 0) 0 else it.dec() }
+  }
+
+  internal fun incUiSubCount() {
+    viewSubCount.swap { it.inc() }
+  }
 
   override fun addOnDispose(f: (Reaction<*>) -> Unit) {
     disposeFns.swap { it.cons(f) }
   }
 
   override fun dispose(): Boolean = when {
-    _state.subscriptionCount.value != 0 || isFresh() -> false
-    else -> {
+    !isDisposed() && isNotActive() -> {
       var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns()
       while (fs != null && fs.count > 0) {
         val f = fs.first()
         f(this)
         fs = fs.next()
       }
-      reactionScope.cancel("$this is canceled due to inactivity.")
       true
     }
+
+    else -> false
+  }
+
+  abstract val category: Char
+
+  private val str: String by lazy {
+    "$TAG$category($id, ${_state.value.value})"
   }
 
   override fun toString(): String = str
 
-  protected fun finalize() {
-    // FIXME: remove
-    Log.i("GCed", toString())
-  }
+  // FIXME: comment this out.
+  /* protected fun finalize() {
+     Log.d(TAG, "GCed: $id")
+   }*/
 
   companion object {
-    private const val TAG = "rx"
+    internal const val TAG = "rx"
   }
 }

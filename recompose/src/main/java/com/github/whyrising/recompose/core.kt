@@ -1,7 +1,7 @@
 package com.github.whyrising.recompose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.whyrising.recompose.cofx.injectDb
@@ -15,13 +15,14 @@ import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
+import com.github.whyrising.recompose.subs.Computation
+import com.github.whyrising.recompose.subs.Extraction
 import com.github.whyrising.recompose.subs.Query
 import com.github.whyrising.recompose.subs.Reaction
-import com.github.whyrising.recompose.subs.queryToReactionCache
+import com.github.whyrising.recompose.subs.ReactionBase
 import com.github.whyrising.recompose.subs.regCompSubscription
 import com.github.whyrising.recompose.subs.regDbSubscription
 import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -101,13 +102,12 @@ inline fun <Db> regSub(
 
 /**
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that returns a [ReactiveAtom], by subscribing to
+ * @param signalsFn a function that returns a [Reaction], by subscribing to
  * other nodes, and provides [computationFn] function with new input whenever
  * it changes.
- * @param initial is the first value for this [Reaction] so the UI can
+ * @param initialValue is the first value for this [Reaction] so the UI can
  * render until the right value is done calculating asynchronously. If null
  * then the first computation happens synchronously on the main thread.
- * @param context on which the first value calculation/initialization will be
  * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains input data from
  * [signalsFn], and computes derived data from it. Consider using [withContext]
@@ -132,14 +132,12 @@ inline fun <S, V> regSub(
  * signal inputs in vector.
  *
  * @param queryId a unique id for the subscription.
- * @param signalsFn a function that returns a vector of [ReactiveAtom]s,
+ * @param signalsFn a function that returns a vector of [Reaction]s,
  * by subscribing to other nodes, and provides [computationFn] function with new
  * set of input whenever it one of them changes.
- * @param initial is the first value for this [Reaction] so the UI can
+ * @param initialValue is the first value for this [Reaction] so the UI can
  * render until the right value is done calculating asynchronously. If null
  * then the first computation happens synchronously on the main thread.
- * @param context on which the first value calculation/initialization will be
- * executed. It's set to [Dispatchers.Default] by default.
  * @param computationFn a suspend function that obtains data from [signalsFn],
  * and compute derived data from it. Consider using [withContext] with
  * [Dispatchers.Main] when you have computations that should run on the UI
@@ -152,12 +150,22 @@ inline fun <V> regSubM(
   crossinline computationFn: ComputationFn2<V>
 ) = regCompSubscription(queryId, signalsFn, initialValue, computationFn)
 
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> watch(query: Query): T {
-  val cache by queryToReactionCache.collectAsStateWithLifecycle()
-  return remember(key1 = cache[query]) {
-    subscribe<T>(query)
-  }.state.collectAsStateWithLifecycle().value as T
+  val reaction = remember(Unit) { subscribe<T>(query) as ReactionBase<*, T> }
+
+  DisposableEffect(Unit) {
+    reaction.incUiSubCount()
+    onDispose { reaction.decUiSubCount() }
+  }
+
+  return when (reaction) {
+    is Extraction -> reaction.value as T
+    else -> remember {
+      (reaction as Computation).state
+    }.collectAsStateWithLifecycle().value as T
+  }
 }
 
 // -- Effects ------------------------------------------------------------------

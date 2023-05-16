@@ -1,8 +1,8 @@
 package com.github.whyrising.recompose
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlin.coroutines.CoroutineContext
 
 fun measureTime(id: String, action: () -> Unit) {
@@ -16,14 +16,10 @@ fun measureTime(id: String, action: () -> Unit) {
 suspend fun multiThreadedRun(
   coroutinesN: Int = 100,
   runN: Int = 1000,
-  context: CoroutineContext = Dispatchers.Default,
+  context: CoroutineContext = StandardTestDispatcher(),
   action: suspend () -> Unit
-) {
-  coroutineScope {
-    repeat(coroutinesN) {
-      launch(context) {
-        repeat(runN) { action() }
-      }
-    }
+) = coroutineScope {
+  repeat(coroutinesN) {
+    launch { repeat(runN) { action() } }
   }
 }

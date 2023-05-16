@@ -1,10 +1,12 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.whyrising.recompose.interceptor
 
 import com.github.whyrising.recompose.events.Event
+import com.github.whyrising.recompose.ids.InterceptSpec
 import com.github.whyrising.recompose.ids.coeffects
 import com.github.whyrising.recompose.ids.context.queue
 import com.github.whyrising.recompose.ids.context.stack
-import com.github.whyrising.recompose.ids.interceptor
 import com.github.whyrising.y.core.assocIn
 import com.github.whyrising.y.core.collections.IPersistentMap
 import com.github.whyrising.y.core.collections.ISeq
@@ -16,36 +18,35 @@ import com.github.whyrising.recompose.ids.context as ctx
 
 typealias Context = IPersistentMap<ctx, Any>
 
-typealias Interceptor = IPersistentMap<interceptor, Any>
+typealias Interceptor = IPersistentMap<InterceptSpec, Any>
 
 typealias InterceptorFn = (context: Context) -> Context
 
+typealias InterceptorFnAsync = suspend (context: Context) -> Context
+
 internal val defaultInterceptorFn: InterceptorFn = { it }
+
+internal val defaultInterceptorAsyncFn: InterceptorFnAsync = { it }
 
 fun toInterceptor(
   id: Any,
   before: InterceptorFn = defaultInterceptorFn,
-  after: InterceptorFn = defaultInterceptorFn
+  after: InterceptorFn = defaultInterceptorFn,
+  afterAsync: InterceptorFnAsync = defaultInterceptorAsyncFn
 ): Interceptor = m(
-  interceptor.id to id,
-  interceptor.before to before,
-  interceptor.after to after
+  InterceptSpec.id to id,
+  InterceptSpec.before to before,
+  InterceptSpec.after to after,
+  InterceptSpec.after_async to afterAsync
 )
 
-fun assocCofx(
-  context: Context,
-  key: coeffects,
-  value: Any
-): Context = assocIn(context, l(ctx.coeffects, key), value) as Context
+fun assocCofx(context: Context, key: coeffects, value: Any) =
+  assocIn(context, l(ctx.coeffects, key), value) as Context
 
-internal fun enqueue(
-  context: Context,
-  interceptors: ISeq<Interceptor>?
-): Context = context.assoc(queue, interceptors ?: l<Any>())
+internal fun enqueue(context: Context, interceptors: ISeq<Interceptor>?) =
+  context.assoc(queue, interceptors ?: l<Any>())
 
-/**
- * Create a fresh context.
- */
+/** Create a fresh context. */
 internal fun context(
   event: Event,
   interceptors: ISeq<Interceptor>
@@ -56,53 +57,48 @@ internal fun context(
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 
-@Suppress("UNCHECKED_CAST")
 internal fun invokeInterceptorFn(
   context: Context,
   interceptor: Interceptor,
-  direction: interceptor
-): Context = when (val fn = interceptor[direction] as InterceptorFn?) {
-  null -> context
-  else -> fn(context)
-}
+  direction: InterceptSpec
+): Context = (interceptor[direction] as InterceptorFn)(context)
+
+internal fun stackAndQueue(
+  context: Context,
+  que: ISeq<Interceptor>,
+  interceptor: Interceptor
+) = context
+  .assoc(queue, que.rest())
+  .assoc(stack, conj(context[stack] as ISeq<Any>?, interceptor))
 
 /**
  * :queue and :stack in context should be lists/interceptors of type
  * IPersistentVector<*>.
  */
-@Suppress("UNCHECKED_CAST")
-internal fun invokeInterceptors(
+internal tailrec fun invokeInterceptors(
   context: Context,
-  direction: interceptor
+  direction: InterceptSpec
 ): Context {
-  tailrec fun invokeInterceptors(context: Context): Context {
-    val que = context[queue] as ISeq<Interceptor>
-    return when (que.count) {
-      0 -> context
-      else -> {
-        val interceptor = que.first()
-        val stk = context[stack] as ISeq<Any>?
-        val newContext = context
-          .assoc(queue, que.rest())
-          .assoc(stack, conj(stk, interceptor))
-          .let { invokeInterceptorFn(it, interceptor, direction) }
+  val que = context[queue] as ISeq<Interceptor>
+  if (que.count == 0) return context
 
-        invokeInterceptors(newContext)
-      }
-    }
-  }
+  val interceptor = que.first()
 
-  return invokeInterceptors(context)
+  return invokeInterceptors(
+    context = invokeInterceptorFn(
+      context = stackAndQueue(context, que, interceptor),
+      interceptor = interceptor,
+      direction = direction
+    ),
+    direction = direction
+  )
 }
 
-@Suppress("UNCHECKED_CAST")
 internal fun changeDirection(context: Context): Context =
   enqueue(context, context[stack] as ISeq<Interceptor>?)
 
-fun execute(
-  event: Event,
-  interceptors: ISeq<Interceptor>
-): Context = context(event, interceptors)
-  .let { invokeInterceptors(it, interceptor.before) }
-  .let { changeDirection(it) }
-  .let { invokeInterceptors(it, interceptor.after) }
+fun execute(event: Event, interceptors: ISeq<Interceptor>): Context =
+  context(event, interceptors)
+    .let { invokeInterceptors(it, InterceptSpec.before) }
+    .let { changeDirection(it) }
+    .let { invokeInterceptors(it, InterceptSpec.after) }
