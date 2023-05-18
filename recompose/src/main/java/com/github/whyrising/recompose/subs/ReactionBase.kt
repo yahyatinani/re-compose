@@ -89,9 +89,7 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
 
   abstract val category: Char
 
-  private val str: String by lazy {
-    "$TAG$category($id, ${_state.value.value})"
-  }
+  private val str: String by lazy { "$TAG$category($id)" }
 
   override fun toString(): String = str
 

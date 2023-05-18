@@ -27,6 +27,19 @@ import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.reflect.KFunction
+import kotlin.reflect.KFunction1
+import kotlin.reflect.KFunction2
+import kotlin.reflect.KFunction3
+import kotlin.reflect.KFunction4
+import kotlin.reflect.KFunction5
+import kotlin.reflect.KFunction6
+import kotlin.reflect.KSuspendFunction1
+import kotlin.reflect.KSuspendFunction2
+import kotlin.reflect.KSuspendFunction3
+import kotlin.reflect.KSuspendFunction4
+import kotlin.reflect.KSuspendFunction5
+import kotlin.reflect.KSuspendFunction6
 
 typealias ComputationFn1<T, V> = suspend (
   input: T,
@@ -100,6 +113,29 @@ inline fun <Db> regSub(
   queryId: Any,
   crossinline extractor: (db: Db, queryVec: Query) -> Any?
 ) = regDbSubscription(queryId, extractor)
+
+/**
+ * This is just a syntactic sugar if you don't need the [Query] in the lambda.
+ *
+ * @param extractor This is the extraction function that should take one
+ * argument which is your appDb, then you pass it like this: `::functionName`.
+ */
+fun <Db, V> regSub(
+  queryId: Any,
+  extractor: KFunction1<Db, V>
+) = regDbSubscription(queryId) { db: Db, _ -> extractor(db) }
+
+/**
+ * This is just a syntactic sugar if you don't need the [Query] in the lambda
+ * and you're only extracting a value from the appDb [Map].
+ *
+ * CAUTION: This function should be used ONLY when your appDb is a [Map].
+ *
+ * @param queryId a unique id for the subscription.
+ * @param key The key that is used on appDb [Map] to extract the desired data.
+ */
+fun regSub(queryId: Any, key: Any) =
+  regDbSubscription(queryId) { db: Map<*, *>, _ -> db[key] }
 
 /**
  * @param queryId a unique id for the subscription.
@@ -186,6 +222,94 @@ inline fun <V> regSub(
   signalsFn = { inputSignals.fold(v()) { acc, q -> acc.conj(subscribe(q)) } },
   initialValue = initialValue,
   computationFn = computationFn
+)
+
+@Suppress("UNCHECKED_CAST")
+private suspend inline fun <V> com(
+  arity: Int,
+  f: KFunction<Any?>,
+  args: IPersistentVector<Any?>
+): V = when (arity) {
+  1 -> if (f.isSuspend) (f as KSuspendFunction1<Any?, Any?>)(args[0])
+  else (f as KFunction1<Any?, Any?>)(args[0])
+
+  2 -> if (f.isSuspend) (f as KSuspendFunction2<Any?, Any?, Any?>)(
+    args[0],
+    args[1]
+  )
+  else (f as KFunction2<Any?, Any?, Any?>)(args[0], args[1])
+
+  3 -> if (f.isSuspend) (f as KSuspendFunction3<Any?, Any?, Any?, Any?>)(
+    args[0],
+    args[1],
+    args[2]
+  )
+  else (f as KFunction3<Any?, Any?, Any?, Any?>)(
+    args[0],
+    args[1],
+    args[2]
+  )
+
+  4 -> if (f.isSuspend) (f as KSuspendFunction4<Any?, Any?, Any?, Any?, Any?>)(
+    args[0],
+    args[1],
+    args[2],
+    args[3]
+  )
+  else (f as KFunction4<Any?, Any?, Any?, Any?, Any?>)(
+    args[0],
+    args[1],
+    args[2],
+    args[3]
+  )
+
+  5 -> if (f.isSuspend) {
+    (f as KSuspendFunction5<Any?, Any?, Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+      args[4]
+    )
+  } else (f as KFunction5<Any?, Any?, Any?, Any?, Any?, Any?>)(
+    args[0],
+    args[1],
+    args[2],
+    args[3],
+    args[4]
+  )
+
+  6 -> if (f.isSuspend) {
+    (f as KSuspendFunction6<Any?, Any?, Any?, Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+      args[4],
+      args[5]
+    )
+  } else (f as KFunction6<Any?, Any?, Any?, Any?, Any?, Any?, Any?>)(
+    args[0],
+    args[1],
+    args[2],
+    args[3],
+    args[4],
+    args[5]
+  )
+
+  else -> TODO("Registration not supported yet for $arity inputSignals")
+} as V
+
+fun regSub(
+  queryId: Any,
+  initialValue: Any?,
+  vararg inputSignals: Query,
+  computationFn: KFunction<Any?>
+) = regCompSubscription(
+  queryId = queryId,
+  signalsFn = { inputSignals.fold(v()) { acc, q -> acc.conj(subscribe(q)) } },
+  initialValue = initialValue,
+  computationFn = { subs, _, _ -> com(inputSignals.size, computationFn, subs) }
 )
 
 @Suppress("UNCHECKED_CAST")

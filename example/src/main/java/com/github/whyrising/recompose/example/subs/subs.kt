@@ -28,7 +28,7 @@ const val HH_MM_SS = "HH:mm:ss"
 
 private val hexColorRegex = Regex("^#([A-Fa-f0-9]{6})$")
 
-fun toColor(color: String, default: Color = Color.Gray): Color = color
+fun toColor(color: String): Color = color
   .lowercase()
   .trim()
   .let {
@@ -48,7 +48,7 @@ fun toColor(color: String, default: Color = Color.Gray): Color = color
       it == "pink" -> Color(parseColor("#FBA0E3"))
       it == "brown" -> Color(parseColor("#8b4513"))
       hexColorRegex.matches(color) -> Color(parseColor(color))
-      else -> default
+      else -> Color.Gray.copy(alpha = .5f)
     }
   }
 
@@ -138,4 +138,20 @@ fun regAllSubs(defaultColors: Colors) {
   regSub<AppDb>(queryId = Ids.info) { db, _ ->
     db.info
   }
+  // ** test -------------------------------------------------------------------
+  fun info(appDb: AppDb): String = appDb.info
+  fun showAboutDialog(appDb: AppDb): Boolean = appDb.showAboutDialog
+
+  regSub(queryId = Ids.info, ::info)
+
+  regSub(queryId = Ids.about_dialog, ::showAboutDialog)
+
+//  regSub(queryId = Ids.about_dialog, "")
+
+  regSub(
+    queryId = secondaryColor,
+    initialValue = Yellow,
+    v(secondaryColorStr),
+    computationFn = ::toColor
+  )
 }

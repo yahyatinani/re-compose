@@ -47,7 +47,7 @@ class ComputationTest : FreeSpec({
     val r = Computation(v(), defaultVal, id) { _, _ -> defaultVal }
 
     r.isFresh.deref().shouldBeTrue()
-    r.toString() shouldBe "rxc($id, ${0})"
+    r.toString() shouldBe "rxc($id)"
     r.state.value shouldBe defaultVal
     r.initialValue shouldBe defaultVal
   }
