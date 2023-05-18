@@ -34,9 +34,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
   ) {
     OutlinedTextField(
       value = watch<String>(v(Ids.primaryColorStr)),
-      onValueChange = { input ->
-        dispatchSync(v(Ids.setPrimaryColor, input))
-      },
+      onValueChange = { input -> dispatchSync(v(Ids.setPrimaryColor, input)) },
       placeholder = { Text(text = "Primary Color") },
       singleLine = true,
       maxLines = 1,

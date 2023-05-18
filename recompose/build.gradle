@@ -8,6 +8,7 @@ dependencies {
   implementation deps.androidx.lifecycle.viewmodel
   implementation deps.androidx.lifecycle.runtimeCompose
   implementation deps.kotlinx.coroutines.core
+  implementation deps.kotlin.reflect
 
   api deps.y.core
   api deps.y.concurrency
