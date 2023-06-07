@@ -15,12 +15,13 @@ import com.github.whyrising.recompose.router.State.SCHEDULING
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.v
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 internal enum class State {
   IDLE,
@@ -43,9 +44,9 @@ typealias FsmAction = (arg: Any?) -> Unit
 internal class EventQueueFSM(
   internal val eventQueue: EventQueueActions,
   start: State = IDLE,
-  val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  val context: CoroutineContext = Dispatchers.Default,
   internal val scope: CoroutineScope = CoroutineScope(
-    dispatcher + CoroutineName("Recompose Events Scope")
+    context + CoroutineName("Recompose Events Scope")
   )
 ) {
   // -- FSM actions -----------------------------------------------
@@ -54,17 +55,15 @@ internal class EventQueueFSM(
    * @return Returns [Deferred] only because of testing purposes.
    */
   @Suppress("UNUSED_PARAMETER")
-  internal fun processAllCurrentEvents(arg: Any?): Deferred<Unit> {
-    return scope.async {
-      try {
-        eventQueue.processCurrentEvents()
-      } catch (ex: Throwable) {
-        fsmTrigger(EXCEPTION, ex)
-      }
-      // this doesn't execute when an exception occurs because fsmTrigger()
-      // throws again in catch block.
-      fsmTrigger(FINISH_RUN)
+  internal fun processAllCurrentEvents(arg: Any?): Job = scope.launch {
+    try {
+      eventQueue.processCurrentEvents()
+    } catch (ex: Throwable) {
+      fsmTrigger(EXCEPTION, ex)
     }
+    // this doesn't execute when an exception occurs because fsmTrigger()
+    // throws again in catch block.
+    fsmTrigger(FINISH_RUN)
   }
 
   @Suppress("UNUSED_PARAMETER")

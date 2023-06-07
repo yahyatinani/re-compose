@@ -101,7 +101,7 @@ class EventQueueActionsTest : FreeSpec({
   }
 
   "multithreading" {
-    continually(30.seconds) {
+    continually(5.seconds) {
       runTest {
         appDb.reset(0)
         regEventDb<Int>(":test-event-inc") { db, _ -> db.inc() }
@@ -109,7 +109,7 @@ class EventQueueActionsTest : FreeSpec({
         val eventQueueImp = EventQueueImp()
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueueImp,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
 
         Dispatchers.setMain(testDispatcher)

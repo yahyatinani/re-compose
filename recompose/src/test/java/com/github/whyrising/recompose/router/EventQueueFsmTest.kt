@@ -12,6 +12,8 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -40,7 +42,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueue = EventQueueImp()
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
         var state1: State? = null
         var isEventQueued = false
@@ -69,7 +71,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = SCHEDULING,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
 
         eventQueueFSM.fsmTrigger(ADD_EVENT, v("new-event"))
@@ -90,7 +92,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = SCHEDULING,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
         var state1: State? = null
         eventQueueFSM._state.addWatch("running") { _, _, _, new ->
@@ -116,7 +118,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
 
         shouldThrowExactly<RuntimeException> {
@@ -136,7 +138,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
 
         eventQueueFSM.fsmTrigger(ADD_EVENT, v("new-event"))
@@ -153,7 +155,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
 
         eventQueueFSM.fsmTrigger(FsmEvent.FINISH_RUN)
@@ -173,7 +175,7 @@ class EventQueueFsmTest : FreeSpec({
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueue,
           start = RUNNING,
-          dispatcher = testDispatcher
+          context = testDispatcher
         )
         var state1: State? = null
         eventQueueFSM._state.addWatch("scheduling") { _, _, _, new ->
@@ -215,17 +217,17 @@ class EventQueueFsmTest : FreeSpec({
       continually(5.seconds) {
         runTest {
           val eventQueue = EventQueueImp().apply { enqueue(v(eventId)) }
+          val handler = CoroutineExceptionHandler { _, exception ->
+            exception.shouldBeTypeOf<RuntimeException>()
+            exception.message shouldBe "event: [$eventId]"
+          }
           val eventQueueFSM = EventQueueFSM(
             eventQueue = eventQueue,
             start = RUNNING,
-            dispatcher = testDispatcher
+            context = testDispatcher + handler
           )
 
-          shouldThrowExactly<RuntimeException> {
-            eventQueueFSM.processAllCurrentEvents(null).await()
-
-            advanceUntilIdle()
-          }.message shouldBe "event: [$eventId]"
+          eventQueueFSM.processAllCurrentEvents(null).join()
 
           eventQueueFSM.state shouldBe IDLE
         }
