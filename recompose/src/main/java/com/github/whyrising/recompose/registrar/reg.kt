@@ -1,9 +1,12 @@
 package com.github.whyrising.recompose.registrar
 
+import android.util.Log
+import com.github.whyrising.recompose.TAG
 import com.github.whyrising.y.concurrency.Atom
 import com.github.whyrising.y.concurrency.atom
 import com.github.whyrising.y.core.assocIn
 import com.github.whyrising.y.core.collections.IPersistentMap
+import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.getIn
 import com.github.whyrising.y.core.l
 import com.github.whyrising.y.core.m
@@ -20,11 +23,12 @@ typealias Register = IPersistentMap<Any, IPersistentMap<Any, Any>?>
  *  Sub to { id to handler } }
  * Leaf nodes are handlers.
  */
-internal var register: Atom<Register> = atom(m())
+internal var kindIdHandler: Atom<Register> = atom(m())
 
-enum class Kinds { Event, Fx, FxAsync, Cofx, Sub }
+enum class Kinds { Event, Fx, Cofx, Sub }
 
-fun getHandler(kind: Kinds, id: Any?): Any? = getIn(register(), l(kind, id))
+fun getHandler(kind: Kinds, id: Any?): Any? =
+  getIn(kindIdHandler(), l(kind, id))
 
 @Suppress("UNCHECKED_CAST")
 fun registerHandler(
@@ -32,8 +36,28 @@ fun registerHandler(
   kind: Kinds,
   handlerFn: Any
 ): Any {
-  register.swap(l(kind, id), handlerFn) { currentVal, ks, v ->
+  kindIdHandler.swap(l(kind, id), handlerFn) { currentVal, ks, v ->
     assocIn(currentVal, ks, v) as Register
   }
   return handlerFn
+}
+
+internal fun clearHandlers() {
+  kindIdHandler.reset(m())
+}
+
+internal fun clearHandlers(kind: Kinds) {
+  kindIdHandler.swap { it.dissoc(kind) }
+}
+
+internal fun clearHandlers(kind: Kinds, id: Any) {
+  if (getHandler(kind, id) == null) {
+    Log.w(TAG, "Can't clear $kind handler for $id. Handler not found.")
+    return
+  }
+
+  kindIdHandler.swap {
+    val kindWithoutId = it[kind]!!.dissoc(id)
+    it.assoc(kind, kindWithoutId)
+  }
 }

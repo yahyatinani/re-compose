@@ -28,7 +28,7 @@ class EventQueueActionsTest : FreeSpec({
   Dispatchers.setMain(testDispatcher)
 
   beforeEach {
-    com.github.whyrising.recompose.registrar.register.reset(m())
+    com.github.whyrising.recompose.registrar.kindIdHandler.reset(m())
     appDb.reset(m<Any, Any>())
     registerDbInjectorCofx()
     injectCofx(recompose.db)

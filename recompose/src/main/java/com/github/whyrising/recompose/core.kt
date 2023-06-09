@@ -13,6 +13,8 @@ import com.github.whyrising.recompose.events.register
 import com.github.whyrising.recompose.fx.EffectHandler
 import com.github.whyrising.recompose.fx.doFx
 import com.github.whyrising.recompose.interceptor.Interceptor
+import com.github.whyrising.recompose.registrar.Kinds
+import com.github.whyrising.recompose.registrar.clearHandlers
 import com.github.whyrising.recompose.stdinterceptors.dbHandlerToInterceptor
 import com.github.whyrising.recompose.stdinterceptors.fxHandlerToInterceptor
 import com.github.whyrising.recompose.subs.Computation
@@ -98,6 +100,20 @@ inline fun regEventFx(
     fxHandlerToInterceptor(handler)
   )
 )
+
+/**
+ * Unregisters all currently registered event handlers via [regEventDb] or
+ * [regEventFx].
+ */
+fun clearEvent() = clearHandlers(Kinds.Event)
+
+/**
+ * Unregisters the event handler associated with `id`. Will produce a warning
+ * to console if it finds no matching registration.
+ *
+ * @param id The `id` of a previously registered event handler.
+ */
+fun clearEvent(id: Any) = clearHandlers(Kinds.Event, id)
 
 // -- Subscriptions ------------------------------------------------------------
 

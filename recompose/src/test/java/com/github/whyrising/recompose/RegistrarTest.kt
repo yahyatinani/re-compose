@@ -4,16 +4,19 @@ import com.github.whyrising.recompose.registrar.Kinds.Cofx
 import com.github.whyrising.recompose.registrar.Kinds.Event
 import com.github.whyrising.recompose.registrar.Kinds.Fx
 import com.github.whyrising.recompose.registrar.Kinds.Sub
+import com.github.whyrising.recompose.registrar.clearHandlers
 import com.github.whyrising.recompose.registrar.getHandler
+import com.github.whyrising.recompose.registrar.kindIdHandler
 import com.github.whyrising.recompose.registrar.registerHandler
 import com.github.whyrising.y.core.collections.IPersistentVector
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
-import com.github.whyrising.recompose.registrar.register as myRegister
+import com.github.whyrising.recompose.registrar.kindIdHandler as myRegister
 
 class RegistrarTest : FreeSpec({
   afterTest {
@@ -88,6 +91,44 @@ class RegistrarTest : FreeSpec({
       handler2 shouldNotBeSameInstanceAs handler3
       handler3 shouldNotBeSameInstanceAs handler4
       handler4 shouldNotBeSameInstanceAs handler1
+    }
+  }
+
+  "clearHandlers" - {
+    "clearHandlers() should clear all event handlers." {
+      registerHandler(":event1", Event, {})
+      registerHandler(":event2", Event, {})
+
+      clearHandlers()
+
+      kindIdHandler() shouldBe m<Any, Any>()
+    }
+
+    "clearHandlers(kind) should clear all event handlers of given kind." {
+      registerHandler(":event1", Event, {})
+      registerHandler(":event2", Event, {})
+      val subHandler = {}
+      registerHandler(":sub", Sub, subHandler)
+
+      clearHandlers(Event)
+
+      kindIdHandler() shouldBe m<Any, Any>(Sub to m(":sub" to subHandler))
+    }
+
+    "clearHandlers(kind) should clear all event handlers of given kind." {
+      registerHandler(":event1", Event, {})
+      val eventHandler = {}
+      registerHandler(":event2", Event, eventHandler)
+      val subHandler = {}
+      registerHandler(":sub", Sub, subHandler)
+
+      clearHandlers(Event, ":event1")
+      clearHandlers(Event, ":not-found-event")
+
+      kindIdHandler() shouldBe m<Any, Any>(
+        Sub to m(":sub" to subHandler),
+        Event to m(":event2" to eventHandler)
+      )
     }
   }
 })

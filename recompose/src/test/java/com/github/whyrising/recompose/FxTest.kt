@@ -24,7 +24,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.every
 import io.mockk.mockkStatic
-import com.github.whyrising.recompose.registrar.register as myRegister
+import com.github.whyrising.recompose.registrar.kindIdHandler as myRegister
 
 @Suppress("UNCHECKED_CAST")
 class FxTest : FreeSpec({
