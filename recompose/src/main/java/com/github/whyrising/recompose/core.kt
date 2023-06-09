@@ -105,7 +105,7 @@ inline fun regEventFx(
  * Unregisters all currently registered event handlers via [regEventDb] or
  * [regEventFx].
  */
-fun clearEvent() = clearHandlers(Kinds.Event)
+fun clearEvents() = clearHandlers(Kinds.Event)
 
 /**
  * Unregisters the event handler associated with `id`. Will produce a warning
@@ -356,3 +356,16 @@ fun <T> watch(query: Query): T {
  */
 fun regFx(id: Any, handler: EffectHandler) =
   com.github.whyrising.recompose.fx.regFx(id, handler)
+
+/**
+ * Unregisters all currently registered event handlers via [regFx].
+ */
+fun clearFx() = clearHandlers(Kinds.Fx)
+
+/**
+ * Unregisters the effect handler associated with `id`. Will produce a warning
+ * to console if it finds no matching registration.
+ *
+ * @param id The `id` of a previously registered effect handler.
+ */
+fun clearFx(id: Any) = clearHandlers(Kinds.Fx, id)
