@@ -4,7 +4,7 @@ object Ci {
   const val groupId = "com.github.whyrising.recompose"
   const val artifactId = "recompose"
 
-  private const val snapshotBase = "0.2.0"
+  private const val snapshotBase = "0.3.0"
 
   private fun githubBuildNumber() = System.getenv("GITHUB_RUN_NUMBER")
 
