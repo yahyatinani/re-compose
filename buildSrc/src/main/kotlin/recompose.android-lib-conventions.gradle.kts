@@ -3,7 +3,7 @@ import com.github.whyrising.recompose.Versions
 
 plugins {
   id("kotlin-conventions")
-  id("com.android.library")
+  `android-library`
   id("recompose.publishing-conventions")
 }
 
