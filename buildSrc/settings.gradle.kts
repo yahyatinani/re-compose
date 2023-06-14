@@ -1,4 +1,4 @@
-rootProject.name = "re-compose"
+rootProject.name = "buildSrc"
 
 dependencyResolutionManagement {
   versionCatalogs {

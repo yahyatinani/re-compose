@@ -1,0 +1,20 @@
+plugins {
+  id 'recompose.android-lib-conventions'
+}
+
+dependencies {
+  implementation deps.androidx.core.ktx
+  implementation deps.androidx.compose.runtime
+  implementation deps.kotlinx.coroutines.core
+  implementation deps.kotlin.reflect
+
+  api deps.y.core
+  api deps.y.concurrency
+
+  testImplementation deps.kotlin.reflect
+  testImplementation deps.kotest.jvm.runner
+  testImplementation deps.kotest.assertions
+  testImplementation deps.kotlinx.coroutines.test
+  testImplementation deps.mockk
+  testImplementation deps.mockkjvm
+}

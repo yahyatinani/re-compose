@@ -1,7 +1,6 @@
 import com.github.whyrising.recompose.Ci
 
 plugins {
-  id("recompose.android-lib-conventions")
   signing
   `maven-publish`
 }
@@ -34,7 +33,7 @@ publishing {
   publications {
     register<MavenPublication>("release") {
       groupId = Ci.groupId
-      artifactId = Ci.artifactId
+      artifactId = project.name
       version = Ci.publishVersion
 
       pom {

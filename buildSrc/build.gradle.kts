@@ -9,6 +9,7 @@ repositories {
 }
 
 dependencies {
-  implementation(deps.android.gradle.plugin)
-  implementation(deps.android.library.gradle.plugin)
+  implementation(deps.gradlePlugin.android)
+  implementation(deps.gradlePlugin.kotlin)
+  implementation(deps.gradlePlugin.mavenPublish)
 }

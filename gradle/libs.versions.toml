@@ -29,6 +29,12 @@ junit = "1.1.5"
 benchmark-junit4 = "1.1.1"
 
 [libraries]
+gradlePlugin-android = { module = "com.android.tools.build:gradle", version.ref = "gradleplugin" }
+gradlePlugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+#android-gradle-plugin = { module = "org.jetbrains.kotlin.android:org.jetbrains.kotlin.android.gradle.plugin", version.ref = "kotlin" }
+#android-library-gradle-plugin = { module = "com.android.library:com.android.library.gradle.plugin", version.ref = "gradleplugin" }
+
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -36,9 +42,6 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 
 androidx-activity-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
-
-android-gradle-plugin = { module = "org.jetbrains.kotlin.android:org.jetbrains.kotlin.android.gradle.plugin", version.ref = "kotlin" }
-android-library-gradle-plugin = { module = "com.android.library:com.android.library.gradle.plugin", version.ref = "gradleplugin" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
@@ -76,6 +79,8 @@ benchmark-junit4 = { group = "androidx.benchmark", name = "benchmark-junit4", ve
 
 y-core = { module = "com.github.whyrising.y:y-core", version.ref = "ylib" }
 y-concurrency = { module = "com.github.whyrising.y:y-concurrency", version.ref = "ylib" }
+
+gradlePlugin-mavenPublish = "com.vanniktech:gradle-maven-publish-plugin:0.25.2"
 
 [plugins]
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
