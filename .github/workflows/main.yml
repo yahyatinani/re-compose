@@ -36,10 +36,10 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Run tests
-        run: ./gradlew :recompose:check --stacktrace
+        run: ./gradlew :re-compose:check --stacktrace
 
       - name: Publish snapshots 🚀
-        run: ./gradlew :recompose:publishAllPublicationsToDeployRepository
+        run: ./gradlew :re-compose:publishAllPublicationsToDeployRepository
 
       - name: Bundle the build report
         if: failure()

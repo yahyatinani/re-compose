@@ -33,10 +33,10 @@ jobs:
       - uses: gradle/gradle-build-action@v2
 
       - name: Build AAR️🛠
-        run: ./gradlew :recompose:assemble
+        run: ./gradlew :re-compose:assemble
 
       - name: Publish to Maven Central 🚀
-        run: ./gradlew :recompose:publishAllPublicationsToDeployRepository
+        run: ./gradlew :re-compose:publishAllPublicationsToDeployRepository
 
       - name: Create Release ✅
         id: create_release
