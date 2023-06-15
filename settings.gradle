@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "re-compose"
 
-include ':recompose'
+include ':re-compose'
 include ':http-fx'
 
 include ':example'

@@ -82,7 +82,7 @@ dependencies {
   implementation deps.androidx.activity.activityCompose
   implementation deps.androidx.core.splashscreen
   implementation deps.accompanist.systemuicontroller
-  implementation project(':recompose')
+  implementation project(':re-compose')
 
   debugImplementation deps.androidx.compose.ui.tooling
 
