@@ -9,7 +9,7 @@ dependencies {
   implementation deps.kotlinx.coroutines.core
   implementation deps.kotlin.reflect
   implementation deps.kotlinx.datetime
-  implementation deps.bundles.ktor
+  api deps.bundles.ktor
 
   testImplementation deps.kotlin.reflect
   testImplementation deps.kotest.jvm.runner
