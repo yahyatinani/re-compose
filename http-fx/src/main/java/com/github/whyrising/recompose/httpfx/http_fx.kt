@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.net.UnknownHostException
 
-var client: HttpClient = HttpClient(Android) {
+var httpFxClient: HttpClient = HttpClient(Android) {
   install(Logging) {
     logger = Logger.DEFAULT
     level = LogLevel.ALL
@@ -68,7 +68,7 @@ fun httpEffect(request: Any?) {
       val url = get<String>(request, ktor.url)!!
       val timeout = request[ktor.timeout]
       val method = request[ktor.method] as HttpMethod // TODO:
-      val httpResponse = client.get {
+      val httpResponse = httpFxClient.get {
         url(url)
         timeout {
           requestTimeoutMillis = (timeout as Number?)?.toLong()
