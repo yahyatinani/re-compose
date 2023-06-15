@@ -90,7 +90,7 @@ internal class EventQueueFSM(
   private val SCHEDULING_enqueueEventAndRunQueue =
     v(SCHEDULING, ::enqueueEventAndRunQueue)
   private val RUNNING_processAllCurrentEvents =
-    v(RUNNING, ::processAllCurrentEvents)
+    v(RUNNING, { arg: Any? -> processAllCurrentEvents(arg) })
   private val IDLE_exception = v(IDLE, ::exception)
 
   // -- FSM implementation -----------------------------------------------------

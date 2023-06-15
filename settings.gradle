@@ -1,3 +1,5 @@
+// pluginManagement {} block must appear before any other statements in the
+// script.
 pluginManagement {
   repositories {
     mavenCentral()
@@ -8,7 +10,6 @@ pluginManagement {
 
 dependencyResolutionManagement {
   defaultLibrariesExtensionName.set('deps')
-
   //    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     google()
@@ -18,9 +19,11 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Recompose"
+rootProject.name = "re-compose"
 
-include ':recompose'
+include ':re-compose'
+include ':http-fx'
+
 include ':example'
 
 include ':benchmark'

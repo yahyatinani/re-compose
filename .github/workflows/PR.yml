@@ -34,7 +34,7 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Run tests
-        run: ./gradlew :recompose:check --stacktrace
+        run: ./gradlew :re-compose:check --stacktrace
 
       - name: Bundle the build report
         if: failure()
