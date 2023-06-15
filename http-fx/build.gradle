@@ -3,13 +3,13 @@ plugins {
 }
 
 dependencies {
+  implementation project(':re-compose')
   implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.runtime
   implementation deps.kotlinx.coroutines.core
   implementation deps.kotlin.reflect
-
-  api deps.y.core
-  api deps.y.concurrency
+  implementation deps.kotlinx.datetime
+  implementation deps.bundles.ktor
 
   testImplementation deps.kotlin.reflect
   testImplementation deps.kotest.jvm.runner
