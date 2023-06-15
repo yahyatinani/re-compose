@@ -39,7 +39,7 @@ jobs:
         run: ./gradlew :re-compose:check --stacktrace
 
       - name: Publish snapshots 🚀
-        run: ./gradlew :re-compose:publishAllPublicationsToDeployRepository
+        run: ./gradlew :re-compose:publishAllPublicationsToDeployRepository --stacktrace
 
       - name: Bundle the build report
         if: failure()
