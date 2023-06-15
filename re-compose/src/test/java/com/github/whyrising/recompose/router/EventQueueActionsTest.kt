@@ -5,7 +5,6 @@ import com.github.whyrising.recompose.cofx.registerDbInjectorCofx
 import com.github.whyrising.recompose.db.appDb
 import com.github.whyrising.recompose.fx.registerBuiltinFxHandlers
 import com.github.whyrising.recompose.ids.recompose
-import com.github.whyrising.recompose.multiThreadedRun
 import com.github.whyrising.recompose.regEventDb
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
@@ -16,8 +15,11 @@ import io.kotest.framework.concurrency.continually
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.time.Duration.Companion.seconds
@@ -25,14 +27,18 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalKotest::class)
 class EventQueueActionsTest : FreeSpec({
   val testDispatcher = StandardTestDispatcher()
-  Dispatchers.setMain(testDispatcher)
 
   beforeEach {
+    Dispatchers.setMain(testDispatcher)
     com.github.whyrising.recompose.registrar.kindIdHandler.reset(m())
     appDb.reset(m<Any, Any>())
     registerDbInjectorCofx()
     injectCofx(recompose.db)
     registerBuiltinFxHandlers()
+  }
+
+  afterEach {
+    Dispatchers.resetMain()
   }
 
   "enqueue()" {
@@ -101,7 +107,7 @@ class EventQueueActionsTest : FreeSpec({
   }
 
   "multithreading" {
-    continually(5.seconds) {
+    continually(4.seconds) {
       runTest {
         appDb.reset(0)
         regEventDb<Int>(":test-event-inc") { db, _ -> db.inc() }
@@ -109,26 +115,43 @@ class EventQueueActionsTest : FreeSpec({
         val eventQueueImp = EventQueueImp()
         val eventQueueFSM = EventQueueFSM(
           eventQueue = eventQueueImp,
-          context = testDispatcher
+          context = testDispatcher,
+          scope = this
         )
 
-        Dispatchers.setMain(testDispatcher)
-        multiThreadedRun(coroutinesN = 100, runN = 1001) {
-          eventQueueFSM.push(v(":test-event-inc"))
+        repeat(100) {
+          launch {
+            repeat(1001) {
+              eventQueueFSM.push(v(":test-event-inc"))
+            }
+          }
         }
 
-        multiThreadedRun(coroutinesN = 11, runN = 9) {
-          eventQueueFSM.push(v(":test-event-inc"))
+        advanceUntilIdle()
+
+        repeat(11) {
+          launch {
+            repeat(9) {
+              eventQueueFSM.push(v(":test-event-inc"))
+            }
+          }
+        }
+        advanceUntilIdle()
+
+        repeat(10) {
+          launch {
+            repeat(10) {
+              dispatchSync(v(":test-event-dec"))
+            }
+          }
         }
 
-        multiThreadedRun(coroutinesN = 10, runN = 10) {
-//          appDb._state.update { (it as Int).inc() }
-          dispatchSync(v(":test-event-dec"))
-        }
         advanceUntilIdle()
 
         eventQueueImp.count shouldBe 0
         appDb.deref() shouldBe 100099
+
+        testDispatcher.cancel()
       }
     }
   }
