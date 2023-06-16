@@ -1,0 +1,55 @@
+package com.github.yahyatinani.recompose.events
+
+import com.github.whyrising.y.core.collections.IPersistentVector
+import com.github.whyrising.y.core.collections.ISeq
+import com.github.whyrising.y.core.concat
+import com.github.whyrising.y.core.conj
+import com.github.whyrising.y.core.lazySeq
+import com.github.yahyatinani.recompose.cofx.Coeffects
+import com.github.yahyatinani.recompose.fx.Effects
+import com.github.yahyatinani.recompose.interceptor.Interceptor
+import com.github.yahyatinani.recompose.interceptor.execute
+import com.github.yahyatinani.recompose.registrar.Kinds
+import com.github.yahyatinani.recompose.registrar.getHandler
+import com.github.yahyatinani.recompose.registrar.registerHandler
+
+val kind: Kinds = Kinds.Event
+
+typealias DbEventHandler<Db> = (db: Db, event: Event) -> Any
+typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
+
+// TODO: Move flatten to y library?
+/**
+ * Returns a flat nested seq of interceptors.
+ * (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
+
+ * It preserves the order of `interceptors`.
+ */
+internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
+  lazySeq {
+    interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
+      when (interceptor) {
+        is IPersistentVector<*> -> concat(interceptor, seq)
+        else -> conj(seq, interceptor) as ISeq<Any>
+      }
+    }
+  }
+
+/***
+ * Associate the given event `id` with the given collection of `interceptors`.
+ */
+fun register(id: Any, interceptors: IPersistentVector<Any>) {
+  registerHandler(id, kind, flatten(interceptors))
+}
+
+/*
+-------------  Handle event ----------------------
+ */
+
+typealias Event = IPersistentVector<Any>
+
+@Suppress("UNCHECKED_CAST")
+fun handle(event: Event) {
+  val interceptors = getHandler(kind, event[0]) as ISeq<Interceptor>? ?: return
+  execute(event, interceptors)
+}

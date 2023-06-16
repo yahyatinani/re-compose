@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:name=".example.App"
+        android:name="com.github.yahyatinani.recompose.example.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -15,7 +15,7 @@
             tools:targetApi="29" />
 
         <activity
-            android:name=".example.MainActivity"
+            android:name="com.github.yahyatinani.recompose.example.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
