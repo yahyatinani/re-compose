@@ -1,88 +1,51 @@
 import com.github.whyrising.recompose.Ci
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 
 plugins {
-  signing
-  `maven-publish`
+  id("com.vanniktech.maven.publish.base")
 }
 
-val ossrhUsername: String by project
-val ossrhPassword: String by project
-val signingKey: String? by project
-val signingPassword: String? by project
+extensions.configure<MavenPublishBaseExtension> {
+  pom {
+    val devUrl = "https://github.com/whyrising"
+    val libUrl = "$devUrl/re-compose"
 
-publishing {
-  repositories {
-    maven {
-      val host = "https://oss.sonatype.org"
-      val releasesRepoUrl =
-        uri("$host/service/local/staging/deploy/maven2/")
-      val snapshotsRepoUrl = uri("$host/content/repositories/snapshots/")
+    name.set("Re-compose")
+    description.set("Event Driven Android UI Framework")
+    url.set(libUrl)
 
-      name = "deploy"
-      url = when {
-        Ci.isRelease -> releasesRepoUrl
-        else -> snapshotsRepoUrl
+    licenses {
+      license {
+        name.set("GPL-3.0")
+        url.set("https://opensource.org/licenses/gpl-3.0")
       }
-      credentials {
-        username = System.getenv("OSSRH_USERNAME") ?: ossrhUsername
-        password = System.getenv("OSSRH_PASSWORD") ?: ossrhPassword
+    }
+
+    developers {
+      developer {
+        id.set("whyrising")
+        name.set("Yahya Tinani")
+        email.set("yahyatinani@gmail.com")
       }
+    }
+
+    scm {
+      connection.set("scm:git:$libUrl")
+      developerConnection.set("scm:git:$devUrl")
+      url.set(libUrl)
     }
   }
 
-  publications {
-    register<MavenPublication>("release") {
-      groupId = Ci.groupId
-      artifactId = project.name
-      version = Ci.publishVersion
-
-      pom {
-        val devUrl = "https://github.com/whyrising"
-        val libUrl = "$devUrl/re-compose"
-
-        name.set("Re-compose")
-        description.set("Event Driven Android UI Framework")
-        url.set(libUrl)
-
-        licenses {
-          license {
-            name.set("GPL-3.0")
-            url.set("https://opensource.org/licenses/gpl-3.0")
-          }
-        }
-
-        developers {
-          developer {
-            id.set("whyrising")
-            name.set("Yahya Tinani")
-            email.set("yahyatinani@gmail.com")
-          }
-        }
-
-        scm {
-          connection.set("scm:git:$libUrl")
-          developerConnection.set("scm:git:$devUrl")
-          url.set(libUrl)
-        }
-      }
-
-      afterEvaluate {
-        from(components["release"])
-      }
-    }
+  publishToMavenCentral()
+  if (Ci.isRelease || Ci.isSnapshot) {
+    signAllPublications()
   }
-}
-
-val publications: PublicationContainer =
-  (extensions.getByName("publishing") as PublishingExtension).publications
-
-signing {
-  useGpgCmd()
-  if (signingKey != null && signingPassword != null) {
-    useInMemoryPgpKeys(signingKey, signingPassword)
-  }
-
-  if (Ci.isRelease) {
-    sign(publications)
-  }
+  configure(AndroidSingleVariantLibrary())
+  println("namename: $name")
+  coordinates(
+    groupId = Ci.groupId,
+    artifactId = name,
+    version = Ci.publishVersion
+  )
 }

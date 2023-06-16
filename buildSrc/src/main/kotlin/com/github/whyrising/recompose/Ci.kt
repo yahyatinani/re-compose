@@ -15,5 +15,7 @@ object Ci {
 
   val isRelease get() = releaseVersion() != null
 
+  val isSnapshot get() = snapshotVersion().endsWith("SNAPSHOT")
+
   val publishVersion: String = releaseVersion() ?: snapshotVersion()
 }
