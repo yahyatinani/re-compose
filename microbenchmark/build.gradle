@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-  namespace 'com.github.yahyatinani.recompose.microbenchmark'
+  namespace 'io.github.yahyatinani.recompose.microbenchmark'
   compileSdk 33
 
   compileOptions {

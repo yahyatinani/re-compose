@@ -1,19 +1,19 @@
-Lcom/github/whyrising/recompose/router/*;
-Lcom/github/whyrising/recompose/db/*;
-Lcom/github/whyrising/recompose/subs/*;
+Lio/github/yahyatinani/re-compose/router/*;
+Lio/github/yahyatinani/re-compose/db/*;
+Lio/github/yahyatinani/re-compose/subs/*;
 
 # router. include everything
-HSPLcom/github/whyrising/recompose/router/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/router/**->**(**)**
 
 # db. include everything
-HSPLcom/github/whyrising/recompose/db/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/db/**->**(**)**
 
-HSPLcom/github/whyrising/recompose/cofx/**->**(**)**
-HSPLcom/github/whyrising/recompose/events/**->**(**)**
-HSPLcom/github/whyrising/recompose/fx/**->**(**)**
-HSPLcom/github/whyrising/recompose/ids/**->**(**)**
-HSPLcom/github/whyrising/recompose/interceptor/**->**(**)**
-HSPLcom/github/whyrising/recompose/registrar/**->**(**)**
-HSPLcom/github/whyrising/recompose/stdinterceptors/**->**(**)**
-HSPLcom/github/whyrising/recompose/subs/**->**(**)**
-HSPLcom/github/whyrising/recompose/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/cofx/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/events/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/fx/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/ids/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/interceptor/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/registrar/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/stdinterceptors/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/subs/**->**(**)**
+HSPLio/github/yahyatinani/re-compose/**->**(**)**

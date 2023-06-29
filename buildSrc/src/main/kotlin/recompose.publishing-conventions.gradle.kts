@@ -1,6 +1,7 @@
-import com.github.whyrising.recompose.Ci
 import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.SonatypeHost
+import io.github.yahyatinani.recompose.Ci
 
 plugins {
   id("com.vanniktech.maven.publish.base")
@@ -8,7 +9,7 @@ plugins {
 
 extensions.configure<MavenPublishBaseExtension> {
   pom {
-    val devUrl = "https://github.com/whyrising"
+    val devUrl = "https://github.com/yahyatinani"
     val libUrl = "$devUrl/re-compose"
 
     name.set("Re-compose")
@@ -24,7 +25,7 @@ extensions.configure<MavenPublishBaseExtension> {
 
     developers {
       developer {
-        id.set("whyrising")
+        id.set("yahyatinani")
         name.set("Yahya Tinani")
         email.set("yahyatinani@gmail.com")
       }
@@ -37,7 +38,7 @@ extensions.configure<MavenPublishBaseExtension> {
     }
   }
 
-  publishToMavenCentral()
+  publishToMavenCentral(SonatypeHost.S01)
   if (Ci.isRelease || Ci.isSnapshot) {
     signAllPublications()
   }

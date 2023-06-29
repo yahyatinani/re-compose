@@ -1,5 +1,5 @@
-import com.github.whyrising.recompose.Ci.groupId
-import com.github.whyrising.recompose.Versions
+import io.github.yahyatinani.recompose.Ci.groupId
+import io.github.yahyatinani.recompose.Versions
 
 plugins {
   id("kotlin-conventions")

@@ -1,4 +1,4 @@
-import com.github.whyrising.recompose.Versions
+import io.github.yahyatinani.recompose.Versions
 
 plugins {
   id 'kotlin-conventions'
@@ -8,10 +8,10 @@ plugins {
 android {
   compileSdk 33
 
-  namespace 'com.github.whyrising.recompose'
+  namespace 'io.github.yahyatinani.recompose'
 
   defaultConfig {
-    applicationId 'com.github.whyrising.recompose.example'
+    applicationId 'io.github.yahyatinani.recompose.example'
     minSdkVersion 22
     targetSdkVersion 33
     versionCode 1

@@ -1,6 +1,6 @@
-import com.github.whyrising.recompose.Ci
-import com.github.whyrising.recompose.Versions
-import com.github.whyrising.recompose.Versions.KOTLIN
+import io.github.yahyatinani.recompose.Ci
+import io.github.yahyatinani.recompose.Versions
+import io.github.yahyatinani.recompose.Versions.KOTLIN
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
