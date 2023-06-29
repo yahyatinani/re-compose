@@ -1,10 +1,10 @@
 Re-compose
 ========
 
-[![build](https://github.com/whyrising/re-compose/actions/workflows/main.yml/badge.svg)](https://github.com/whyrising/re-compose/actions/workflows/main.yml)
-![Maven Central](https://img.shields.io/maven-central/v/com.github.whyrising.recompose/recompose?color=blue&label=latest%20release)
-![GitHub](https://img.shields.io/github/license/whyrising/re-compose)
-[![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/com.github.whyrising.recompose/re-compose?label=latest%20snapshot&server=https%3A%2F%2Foss.sonatype.org)](https://oss.sonatype.org/content/repositories/snapshots/com/github/whyrising/recompose/re-compose/)
+[![build](https://github.com/yahyatinani/re-compose/actions/workflows/main.yml/badge.svg)](https://github.com/yahyatinani/re-compose/actions/workflows/main.yml)
+![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/io.github.yahyatinani.recompose/re-compose?server=https%3A%2F%2Fs01.oss.sonatype.org%2F&label=latest%20release&color=blue)
+[![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/io.github.yahyatinani.recompose/re-compose?server=https%3A%2F%2Fs01.oss.sonatype.org%2F&label=latest%20snapshots)](https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/yahyatinani/recompose/re-compose/)
+![GitHub](https://img.shields.io/github/license/yahyatinani/re-compose)
 
 `re-compose` is a data-oriented event driven framework for manging state in
 Android Compose applications.
