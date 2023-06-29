@@ -1,6 +1,6 @@
 package com.github.yahyatinani.recompose.subs
 
-import com.github.whyrising.y.concurrency.atom
+import io.github.yahyatinani.y.concurrency.atom
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers

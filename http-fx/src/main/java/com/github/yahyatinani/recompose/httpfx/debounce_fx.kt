@@ -1,13 +1,13 @@
 package com.github.yahyatinani.recompose.httpfx
 
-import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.collections.IPersistentMap
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.m
 import com.github.yahyatinani.recompose.dispatch
 import com.github.yahyatinani.recompose.events.Event
 import com.github.yahyatinani.recompose.fx.regFx
+import io.github.yahyatinani.y.concurrency.Atom
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.collections.IPersistentMap
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

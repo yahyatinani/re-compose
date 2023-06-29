@@ -3,9 +3,6 @@
 package com.github.yahyatinani.recompose.cofx
 
 import android.util.Log
-import com.github.whyrising.y.core.collections.IPersistentMap
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.m
 import com.github.yahyatinani.recompose.db.appDb
 import com.github.yahyatinani.recompose.ids.context.coeffects
 import com.github.yahyatinani.recompose.ids.recompose.db
@@ -15,6 +12,9 @@ import com.github.yahyatinani.recompose.registrar.Kinds
 import com.github.yahyatinani.recompose.registrar.Kinds.Cofx
 import com.github.yahyatinani.recompose.registrar.getHandler
 import com.github.yahyatinani.recompose.registrar.registerHandler
+import io.github.yahyatinani.y.core.collections.IPersistentMap
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
 
 // -- Registration -------------------------------------------------------------
 
@@ -50,7 +50,7 @@ fun injectCofx(id: Any) = toInterceptor(
       return@toInterceptor context
     }
 
-    val cofx: Coeffects = context[coeffects] as Coeffects? ?: m()
+    val cofx: Coeffects = (context[coeffects] as Coeffects? ?: m()) as Coeffects
     val newCofx = cofxHandler(cofx)
     context.assoc(coeffects, newCofx)
   }
@@ -66,7 +66,7 @@ fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
       return@toInterceptor context
     }
 
-    val cofx: Coeffects = context[coeffects] as Coeffects? ?: m()
+    val cofx: Coeffects = (context[coeffects] as Coeffects? ?: m()) as Coeffects
     val newCofx = cofxHandler(cofx, value)
     context.assoc(coeffects, newCofx)
   }

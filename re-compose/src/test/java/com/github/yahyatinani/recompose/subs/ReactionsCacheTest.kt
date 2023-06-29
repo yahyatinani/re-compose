@@ -1,10 +1,10 @@
 package com.github.yahyatinani.recompose.subs
 
 import android.util.Log
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.m
-import com.github.whyrising.y.core.v
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
+import io.github.yahyatinani.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -43,7 +43,7 @@ class ReactionsCacheTest : FreeSpec({
 
       val cached = cacheReaction(key, reaction)
 
-      reactionsCache()[key].shouldNotBeNull()
+      reactionsCache.deref()[key].shouldNotBeNull()
       cached shouldBeSameInstanceAs reaction
     }
   }

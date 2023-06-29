@@ -16,13 +16,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.example.Ids
 import com.github.yahyatinani.recompose.example.events.regAllEvents
 import com.github.yahyatinani.recompose.example.initAppDb
 import com.github.yahyatinani.recompose.example.subs.regAllSubs
 import com.github.yahyatinani.recompose.example.theme.RecomposeTheme
 import com.github.yahyatinani.recompose.watch
+import io.github.yahyatinani.y.core.v
 
 @Composable
 fun DigitalWatch(modifier: Modifier = Modifier) {

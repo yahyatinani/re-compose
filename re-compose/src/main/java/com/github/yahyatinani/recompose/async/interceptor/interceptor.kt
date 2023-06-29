@@ -2,8 +2,6 @@
 
 package com.github.yahyatinani.recompose.async.interceptor
 
-import com.github.whyrising.y.core.collections.ISeq
-import com.github.whyrising.y.core.get
 import com.github.yahyatinani.recompose.events.Event
 import com.github.yahyatinani.recompose.ids.InterceptSpec
 import com.github.yahyatinani.recompose.ids.InterceptSpec.after
@@ -19,6 +17,8 @@ import com.github.yahyatinani.recompose.interceptor.defaultInterceptorAsyncFn
 import com.github.yahyatinani.recompose.interceptor.invokeInterceptorFn
 import com.github.yahyatinani.recompose.interceptor.invokeInterceptors
 import com.github.yahyatinani.recompose.interceptor.stackAndQueue
+import io.github.yahyatinani.y.core.collections.ISeq
+import io.github.yahyatinani.y.core.get
 
 // -- Execute Interceptor Chain  ----------------------------------------------
 

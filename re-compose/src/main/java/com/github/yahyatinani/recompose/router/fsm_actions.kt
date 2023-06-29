@@ -1,11 +1,11 @@
 package com.github.yahyatinani.recompose.router
 
-import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.collections.PersistentQueue
-import com.github.whyrising.y.core.q
 import com.github.yahyatinani.recompose.async.events.handle
 import com.github.yahyatinani.recompose.events.Event
+import io.github.yahyatinani.y.concurrency.Atom
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.collections.PersistentQueue
+import io.github.yahyatinani.y.core.q
 
 typealias EventQueue = PersistentQueue<Event>
 
@@ -13,7 +13,7 @@ typealias EventQueue = PersistentQueue<Event>
 internal interface EventQueueActions {
   val count: Int
   fun enqueue(event: Event): EventQueue
-  suspend fun processFirstEventInQueue(): Unit
+  suspend fun processFirstEventInQueue()
   suspend fun processCurrentEvents()
   fun pause()
   fun resume()
@@ -22,13 +22,13 @@ internal interface EventQueueActions {
 
 /* Implementation */
 
-internal class EventQueueImp(queue: EventQueue = q()) :
+internal class EventQueueImp(queue: EventQueue = q() as EventQueue) :
   EventQueueActions,
   IEventQueue {
   internal val _eventQueueRef: Atom<EventQueue> = atom(queue)
 
   val queue: EventQueue
-    get() = _eventQueueRef()
+    get() = _eventQueueRef.deref()
 
   override val count: Int
     get() = queue.size
@@ -68,6 +68,6 @@ internal class EventQueueImp(queue: EventQueue = q()) :
   }
 
   override fun purge() {
-    _eventQueueRef.reset(q())
+    _eventQueueRef.reset(q() as EventQueue)
   }
 }

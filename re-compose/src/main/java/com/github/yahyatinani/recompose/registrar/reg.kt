@@ -1,15 +1,15 @@
 package com.github.yahyatinani.recompose.registrar
 
 import android.util.Log
-import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.assocIn
-import com.github.whyrising.y.core.collections.IPersistentMap
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.getIn
-import com.github.whyrising.y.core.l
-import com.github.whyrising.y.core.m
 import com.github.yahyatinani.recompose.TAG
+import io.github.yahyatinani.y.concurrency.Atom
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.assocIn
+import io.github.yahyatinani.y.core.collections.IPersistentMap
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.getIn
+import io.github.yahyatinani.y.core.l
+import io.github.yahyatinani.y.core.m
 
 typealias Register = IPersistentMap<Any, IPersistentMap<Any, Any>?>
 

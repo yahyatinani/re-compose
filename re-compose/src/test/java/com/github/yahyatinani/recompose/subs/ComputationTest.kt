@@ -1,12 +1,11 @@
 package com.github.yahyatinani.recompose.subs
 
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.collections.Associative
-import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.inc
-import com.github.whyrising.y.core.m
-import com.github.whyrising.y.core.v
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.collections.Associative
+import io.github.yahyatinani.y.core.collections.IPersistentVector
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
+import io.github.yahyatinani.y.core.v
 import io.kotest.assertions.timing.continually
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -76,7 +75,7 @@ class ComputationTest : FreeSpec({
           context = testDispatcher
         ) { args, _ ->
           args as IPersistentVector<Int>
-          inc(args[0])
+          args[0].inc()
         }
         val reaction = Computation(
           inputSignals = v(input2),
@@ -85,7 +84,7 @@ class ComputationTest : FreeSpec({
           context = testDispatcher
         ) { args, _ ->
           args as IPersistentVector<Int>
-          "${inc(args[0])}"
+          "${args[0].inc()}"
         }
         appDb.reset(5)
 
@@ -150,7 +149,7 @@ class ComputationTest : FreeSpec({
         advanceUntilIdle()
 
         isDisposed.shouldBeFalse()
-        reaction.isDisposed().shouldBeFalse()
+        reaction.isDisposed.deref().shouldBeFalse()
         reaction.isFresh.deref().shouldBeTrue()
         reaction._state.value.subscriptionCount.value shouldBeExactly 0
         reaction.reactionScope.isActive.shouldBeTrue()
@@ -179,14 +178,14 @@ class ComputationTest : FreeSpec({
         j.cancel()
         advanceUntilIdle()
 
-        subscriber.isDisposed().shouldBeTrue()
-        subscriber.isFresh().shouldBeFalse()
+        subscriber.isDisposed.deref().shouldBeTrue()
+        subscriber.isFresh.deref().shouldBeFalse()
         subscriber._state.value.subscriptionCount.value shouldBeExactly 0
         subscriber.reactionScope.isActive.shouldBeFalse()
 
-        reaction.isDisposed().shouldBeTrue()
+        reaction.isDisposed.deref().shouldBeTrue()
         isSubscriberDisposed.shouldBeTrue()
-        reaction.isFresh().shouldBeFalse()
+        reaction.isFresh.deref().shouldBeFalse()
         reaction._state.value.subscriptionCount.value shouldBeExactly 0
         reaction.reactionScope.isActive.shouldBeFalse()
       }
@@ -208,7 +207,7 @@ class ComputationTest : FreeSpec({
           initial = -1,
           id = "r",
           context = testDispatcher
-        ) { args, _ -> inc((args as IPersistentVector<Int>)[0]) }
+        ) { args, _ -> (args as IPersistentVector<Int>)[0].inc() }
         appDb.reset(5)
 
         advanceUntilIdle()
@@ -229,7 +228,7 @@ class ComputationTest : FreeSpec({
           context = testDispatcher
         ) { args, _ ->
           val (a, b) = args as IPersistentVector<Int>
-          inc(a + b)
+          (a + b).inc()
         }
 
         in1.value = 3
@@ -270,7 +269,7 @@ class ComputationTest : FreeSpec({
             context = testDispatcher
           ) { args, _ ->
             val (a, b) = args as IPersistentVector<Int>
-            inc(a + b)
+            (a + b).inc()
           }
           repeat(100) {
             launch {
@@ -329,7 +328,7 @@ class ComputationTest : FreeSpec({
           initial = -1
         ) { args, currentValue ->
           val x = (args as IPersistentVector<*>)[0] as Int
-          if (x < 40) inc(x) else currentValue
+          if (x < 40) x.inc() else currentValue
         }
         advanceUntilIdle()
         input._state.value.emit(30)

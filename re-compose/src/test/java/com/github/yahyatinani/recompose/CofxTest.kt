@@ -1,7 +1,5 @@
 package com.github.yahyatinani.recompose
 
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.m
 import com.github.yahyatinani.recompose.cofx.Coeffects
 import com.github.yahyatinani.recompose.cofx.CofxHandler1
 import com.github.yahyatinani.recompose.cofx.CofxHandler2
@@ -19,6 +17,8 @@ import com.github.yahyatinani.recompose.interceptor.InterceptorFn
 import com.github.yahyatinani.recompose.interceptor.defaultInterceptorFn
 import com.github.yahyatinani.recompose.registrar.Kinds
 import com.github.yahyatinani.recompose.registrar.getHandler
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs

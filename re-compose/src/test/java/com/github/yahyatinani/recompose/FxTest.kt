@@ -1,9 +1,6 @@
 package com.github.yahyatinani.recompose
 
 import android.util.Log
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.m
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.db.appDb
 import com.github.yahyatinani.recompose.fx.BuiltInFx.dispatch
 import com.github.yahyatinani.recompose.fx.BuiltInFx.fx
@@ -17,6 +14,9 @@ import com.github.yahyatinani.recompose.ids.context
 import com.github.yahyatinani.recompose.ids.recompose.db
 import com.github.yahyatinani.recompose.interceptor.InterceptorFn
 import com.github.yahyatinani.recompose.registrar.Kinds
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
+import io.github.yahyatinani.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -42,7 +42,7 @@ class FxTest : FreeSpec({
 
     regFx(":fx-test", fxHandler)
 
-    myRegister()[Kinds.Fx]!![":fx-test"] shouldBeSameInstanceAs fxHandler
+    myRegister.deref()[Kinds.Fx]!![":fx-test"] shouldBeSameInstanceAs fxHandler
   }
 
   "doFx interceptor should update the appDb and apply other effects" {
@@ -165,9 +165,9 @@ class FxTest : FreeSpec({
   "initBuiltinEffectHandlers()" {
     registerBuiltinFxHandlers()
 
-    val fxFxHandler: Any? = myRegister()[Kinds.Fx]!![fx]
-    val dbFxHandler: Any? = myRegister()[Kinds.Fx]!![db]
-    val dispatchFxHandler: Any? = myRegister()[Kinds.Fx]!![dispatch]
+    val fxFxHandler: Any? = myRegister.deref()[Kinds.Fx]!![fx]
+    val dbFxHandler: Any? = myRegister.deref()[Kinds.Fx]!![db]
+    val dispatchFxHandler: Any? = myRegister.deref()[Kinds.Fx]!![dispatch]
 
     fxFxHandler.shouldNotBeNull()
     dbFxHandler.shouldNotBeNull()

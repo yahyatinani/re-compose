@@ -2,9 +2,6 @@
 
 package com.github.yahyatinani.recompose.router
 
-import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.cofx.registerDbInjectorCofx
 import com.github.yahyatinani.recompose.events.Event
 import com.github.yahyatinani.recompose.fx.registerBuiltinFxHandlers
@@ -15,6 +12,9 @@ import com.github.yahyatinani.recompose.router.FsmEvent.RUN_QUEUE
 import com.github.yahyatinani.recompose.router.State.IDLE
 import com.github.yahyatinani.recompose.router.State.RUNNING
 import com.github.yahyatinani.recompose.router.State.SCHEDULING
+import io.github.yahyatinani.y.concurrency.Atom
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.v
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -98,7 +98,7 @@ internal class EventQueueFSM(
   internal val _state: Atom<State> = atom(start)
 
   val state: State
-    get() = _state()
+    get() = _state.deref()
 
   /**
    * @param currentState Current FSM state.

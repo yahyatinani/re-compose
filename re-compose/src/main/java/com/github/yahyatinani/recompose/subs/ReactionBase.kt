@@ -1,8 +1,8 @@
 package com.github.yahyatinani.recompose.subs
 
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.collections.ISeq
-import com.github.whyrising.y.core.l
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.collections.ISeq
+import io.github.yahyatinani.y.core.l
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -30,7 +30,7 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
 
   private val viewSubCount = atom(0).apply {
     addWatch(id) { _, _, _, new ->
-      if (isNotActive(viewSubCount = new)) {
+      if (isNotActive(subCount = new)) {
         reactionScope.launch {
           delay(5000) // wait for the view maybe it's a screen rotation?
           dispose()
@@ -44,9 +44,9 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
     MutableStateFlow(initialValue).apply {
       subscriptionCount
         .transform<Int, Unit> {
-          if (it > 0 && isFresh()) { // first subscriber.
+          if (it > 0 && isFresh.deref()) { // first subscriber.
             isFresh.reset(false)
-          } else if (it == 0 && !isFresh()) { // last sub just disappeared.
+          } else if (it == 0 && !isFresh.deref()) { // last sub disappeared.
             delay(5000) // wait for the view maybe it's a screen rotation?
             dispose()
           }
@@ -57,8 +57,8 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
 
   abstract val state: StateFlow<Any?>
 
-  private fun isNotActive(viewSubCount: Int = viewSubCount()) =
-    viewSubCount == 0 &&
+  private fun isNotActive(subCount: Int = viewSubCount.deref()) =
+    subCount == 0 &&
       (!_state.isInitialized() || _state.value.subscriptionCount.value == 0)
 
   internal fun decUiSubCount() {
@@ -74,8 +74,8 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
   }
 
   override fun dispose(): Boolean = when {
-    !isDisposed() && isNotActive() -> {
-      var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns()
+    !isDisposed.deref() && isNotActive() -> {
+      var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns.deref()
       while (fs != null && fs.count > 0) {
         val f = fs.first()
         f(this)

@@ -1,10 +1,10 @@
 package com.github.yahyatinani.recompose.httpfx
 
-import com.github.whyrising.y.core.collections.IPersistentMap
-import com.github.whyrising.y.core.get
 import com.github.yahyatinani.recompose.dispatch
 import com.github.yahyatinani.recompose.events.Event
 import com.github.yahyatinani.recompose.fx.regFx
+import io.github.yahyatinani.y.core.collections.IPersistentMap
+import io.github.yahyatinani.y.core.get
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpRequestTimeoutException

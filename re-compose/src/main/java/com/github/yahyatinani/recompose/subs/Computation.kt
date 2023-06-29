@@ -1,8 +1,8 @@
 package com.github.yahyatinani.recompose.subs
 
-import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.collections.PersistentVector
-import com.github.whyrising.y.core.v
+import io.github.yahyatinani.y.core.collections.IPersistentVector
+import io.github.yahyatinani.y.core.collections.PersistentVector
+import io.github.yahyatinani.y.core.v
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Job

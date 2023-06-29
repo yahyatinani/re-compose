@@ -1,8 +1,5 @@
 package com.github.yahyatinani.recompose
 
-import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.m
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.registrar.Kinds.Cofx
 import com.github.yahyatinani.recompose.registrar.Kinds.Event
 import com.github.yahyatinani.recompose.registrar.Kinds.Fx
@@ -11,6 +8,9 @@ import com.github.yahyatinani.recompose.registrar.clearHandlers
 import com.github.yahyatinani.recompose.registrar.getHandler
 import com.github.yahyatinani.recompose.registrar.kindIdHandler
 import com.github.yahyatinani.recompose.registrar.registerHandler
+import io.github.yahyatinani.y.core.collections.IPersistentVector
+import io.github.yahyatinani.y.core.m
+import io.github.yahyatinani.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
@@ -52,7 +52,7 @@ class RegistrarTest : FreeSpec({
 
       val handler = getHandler(Cofx, id)
 
-      myRegister().count shouldBeExactly 1
+      myRegister.deref().count shouldBeExactly 1
       handler shouldBeSameInstanceAs handlerFn
     }
 
@@ -112,7 +112,7 @@ class RegistrarTest : FreeSpec({
 
       clearHandlers(Event)
 
-      kindIdHandler() shouldBe m<Any, Any>(Sub to m(":sub" to subHandler))
+      kindIdHandler() shouldBe m(Sub to m(":sub" to subHandler))
     }
 
     "clearHandlers(kind) should clear all event handlers of given kind." {
@@ -125,7 +125,7 @@ class RegistrarTest : FreeSpec({
       clearHandlers(Event, ":event1")
       clearHandlers(Event, ":not-found-event")
 
-      kindIdHandler() shouldBe m<Any, Any>(
+      kindIdHandler() shouldBe m(
         Sub to m(":sub" to subHandler),
         Event to m(":event2" to eventHandler)
       )

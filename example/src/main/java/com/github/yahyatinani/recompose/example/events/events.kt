@@ -1,8 +1,5 @@
 package com.github.yahyatinani.recompose.example.events
 
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.m
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.cofx.Coeffects
 import com.github.yahyatinani.recompose.cofx.injectCofx
 import com.github.yahyatinani.recompose.events.Event
@@ -18,6 +15,9 @@ import com.github.yahyatinani.recompose.fx.BuiltInFx
 import com.github.yahyatinani.recompose.ids.recompose.db
 import com.github.yahyatinani.recompose.regEventDb
 import com.github.yahyatinani.recompose.regEventFx
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.m
+import io.github.yahyatinani.y.core.v
 import java.util.Date
 
 fun regAllEvents() {

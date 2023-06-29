@@ -6,9 +6,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.example.Ids.themeColors
 import com.github.yahyatinani.recompose.watch
+import io.github.yahyatinani.y.core.v
 
 private val DarkColorPalette = darkColors(
   primary = Purple200,

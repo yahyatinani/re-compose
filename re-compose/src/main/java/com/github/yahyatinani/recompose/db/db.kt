@@ -1,8 +1,8 @@
 package com.github.yahyatinani.recompose.db
 
-import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.m
+import io.github.yahyatinani.y.concurrency.Atom
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.m
 
 /**
  * ------------------ Application State ---------------

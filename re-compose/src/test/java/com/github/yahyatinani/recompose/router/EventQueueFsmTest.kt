@@ -1,12 +1,12 @@
 package com.github.yahyatinani.recompose.router
 
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.regEventDb
 import com.github.yahyatinani.recompose.router.FsmEvent.ADD_EVENT
 import com.github.yahyatinani.recompose.router.FsmEvent.RUN_QUEUE
 import com.github.yahyatinani.recompose.router.State.IDLE
 import com.github.yahyatinani.recompose.router.State.RUNNING
 import com.github.yahyatinani.recompose.router.State.SCHEDULING
+import io.github.yahyatinani.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.FreeSpec

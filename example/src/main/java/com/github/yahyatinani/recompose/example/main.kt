@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.coroutineScope
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.dispatch
 import com.github.yahyatinani.recompose.dispatchSync
 import com.github.yahyatinani.recompose.example.Ids.about_dialog
@@ -49,6 +48,7 @@ import com.github.yahyatinani.recompose.example.theme.RecomposeTheme
 import com.github.yahyatinani.recompose.regEventDb
 import com.github.yahyatinani.recompose.watch
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import io.github.yahyatinani.y.core.v
 
 @Composable
 fun MyApp() {

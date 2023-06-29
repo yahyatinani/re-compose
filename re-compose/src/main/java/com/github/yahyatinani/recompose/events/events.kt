@@ -1,10 +1,5 @@
 package com.github.yahyatinani.recompose.events
 
-import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.collections.ISeq
-import com.github.whyrising.y.core.concat
-import com.github.whyrising.y.core.conj
-import com.github.whyrising.y.core.lazySeq
 import com.github.yahyatinani.recompose.cofx.Coeffects
 import com.github.yahyatinani.recompose.fx.Effects
 import com.github.yahyatinani.recompose.interceptor.Interceptor
@@ -12,6 +7,11 @@ import com.github.yahyatinani.recompose.interceptor.execute
 import com.github.yahyatinani.recompose.registrar.Kinds
 import com.github.yahyatinani.recompose.registrar.getHandler
 import com.github.yahyatinani.recompose.registrar.registerHandler
+import io.github.yahyatinani.y.core.collections.IPersistentVector
+import io.github.yahyatinani.y.core.collections.ISeq
+import io.github.yahyatinani.y.core.concat
+import io.github.yahyatinani.y.core.conj
+import io.github.yahyatinani.y.core.lazySeq
 
 val kind: Kinds = Kinds.Event
 

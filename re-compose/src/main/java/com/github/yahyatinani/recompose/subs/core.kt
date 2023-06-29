@@ -3,17 +3,17 @@
 package com.github.yahyatinani.recompose.subs
 
 import android.util.Log
-import com.github.whyrising.y.concurrency.Atom
-import com.github.whyrising.y.concurrency.atom
-import com.github.whyrising.y.core.collections.IPersistentVector
-import com.github.whyrising.y.core.get
-import com.github.whyrising.y.core.util.m
 import com.github.yahyatinani.recompose.TAG
 import com.github.yahyatinani.recompose.db.appDb
 import com.github.yahyatinani.recompose.registrar.Kinds
 import com.github.yahyatinani.recompose.registrar.Kinds.Sub
 import com.github.yahyatinani.recompose.registrar.getHandler
 import com.github.yahyatinani.recompose.registrar.registerHandler
+import io.github.yahyatinani.y.concurrency.Atom
+import io.github.yahyatinani.y.concurrency.atom
+import io.github.yahyatinani.y.core.collections.IPersistentVector
+import io.github.yahyatinani.y.core.get
+import io.github.yahyatinani.y.core.util.m
 
 val kind: Kinds = Sub
 
@@ -45,7 +45,7 @@ internal fun <V> cacheReaction(key: Query, reaction: Reaction<V>): Reaction<V> {
 
 @Suppress("UNCHECKED_CAST")
 internal fun <V> subscribe(query: Query): Reaction<V> {
-  val cachedReaction = reactionsCache()[query]
+  val cachedReaction = reactionsCache.deref()[query]
 
   if (cachedReaction != null) return cachedReaction as Reaction<V>
 

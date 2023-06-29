@@ -1,6 +1,6 @@
 package com.github.yahyatinani.recompose.subs
 
-import com.github.whyrising.y.concurrency.IDeref
+import io.github.yahyatinani.y.concurrency.IDeref
 import kotlinx.coroutines.flow.Flow
 
 interface Disposable {

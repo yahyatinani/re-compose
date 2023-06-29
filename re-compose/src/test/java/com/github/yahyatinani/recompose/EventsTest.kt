@@ -1,8 +1,8 @@
 package com.github.yahyatinani.recompose
 
-import com.github.whyrising.y.core.collections.LazySeq
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.events.flatten
+import io.github.yahyatinani.y.core.collections.LazySeq
+import io.github.yahyatinani.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.reflection.shouldBeSubtypeOf
 import io.kotest.matchers.shouldBe

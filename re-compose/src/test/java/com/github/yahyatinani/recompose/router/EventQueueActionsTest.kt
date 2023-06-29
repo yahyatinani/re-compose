@@ -1,13 +1,13 @@
 package com.github.yahyatinani.recompose.router
 
-import com.github.whyrising.y.core.m
-import com.github.whyrising.y.core.v
 import com.github.yahyatinani.recompose.cofx.injectCofx
 import com.github.yahyatinani.recompose.cofx.registerDbInjectorCofx
 import com.github.yahyatinani.recompose.db.appDb
 import com.github.yahyatinani.recompose.fx.registerBuiltinFxHandlers
 import com.github.yahyatinani.recompose.ids.recompose
 import com.github.yahyatinani.recompose.registrar.kindIdHandler
+import io.github.yahyatinani.y.core.m
+import io.github.yahyatinani.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
