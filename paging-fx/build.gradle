@@ -1,0 +1,22 @@
+plugins {
+  id 'recompose.android-lib-conventions'
+}
+
+dependencies {
+  implementation project(':re-compose')
+  implementation project(':http-fx')
+  implementation deps.androidx.core.ktx
+  implementation deps.androidx.compose.runtime
+  implementation deps.kotlinx.coroutines.core
+  implementation deps.kotlin.reflect
+  implementation deps.kotlinx.datetime
+  api deps.bundles.ktor
+  implementation deps.bundles.paging
+
+  testImplementation deps.kotlin.reflect
+  testImplementation deps.kotest.jvm.runner
+  testImplementation deps.kotest.assertions
+  testImplementation deps.kotlinx.coroutines.test
+  testImplementation deps.mockk
+  testImplementation deps.mockkjvm
+}
