@@ -27,6 +27,9 @@ import androidx.paging.ItemSnapshotList
 import androidx.paging.LOGGER
 import androidx.paging.LOG_TAG
 import androidx.paging.LoadState
+import androidx.paging.LoadState.Error
+import androidx.paging.LoadState.Loading
+import androidx.paging.LoadState.NotLoading
 import androidx.paging.LoadStates
 import androidx.paging.Logger
 import androidx.paging.NullPaddedList
@@ -41,6 +44,7 @@ import io.github.yahyatinani.recompose.regEventFx
 import io.github.yahyatinani.recompose.regFx
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
+import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -48,9 +52,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import java.net.UnknownHostException
 
-private val IncompleteLoadState = LoadState.NotLoading(false)
+private val IncompleteLoadState = NotLoading(false)
 private val InitialLoadStates = LoadStates(
-  LoadState.Loading,
+  Loading,
   IncompleteLoadState,
   IncompleteLoadState
 )
@@ -198,25 +202,25 @@ class LazyPagingItems<T : Any> internal constructor(
   )
     private set
 
-  internal suspend fun collectLoadState() {
-    pagingDataDiffer.loadStateFlow.filterNotNull().collect {
-      if (it.append == LoadState.Loading) {
-        dispatch(onAppendEvent.conj(it))
-      } else if (it.refresh is LoadState.Error) {
-        val status = when (val error = (it.refresh as LoadState.Error).error) {
+  internal suspend fun collectLoadState() = pagingDataDiffer
+    .loadStateFlow
+    .filterNotNull()
+    .collect { loadStates: CombinedLoadStates ->
+      if (loadStates.refresh is Error) {
+        val status = when (val e = (loadStates.refresh as Error).error) {
           is UnknownHostException -> 0
           is HttpRequestTimeoutException -> -1
-          /*
-                    catch (e: NoTransformationFoundException) {
-                        TODO("504 Gateway Time-out: $e")
-                    } */
-          else -> throw error
+          is NoTransformationFoundException -> TODO("504 Gateway Time-out: $e")
+
+          else -> throw e
         }
         dispatch(onFailure.conj(status))
       }
-      loadState = it
+
+      dispatch(onAppendEvent.conj(loadStates.source.append))
+
+      loadState = loadStates
     }
-  }
 
   internal suspend fun collectPagingData() {
     flow.collectLatest {

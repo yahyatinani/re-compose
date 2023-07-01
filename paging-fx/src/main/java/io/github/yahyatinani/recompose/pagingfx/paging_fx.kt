@@ -75,7 +75,6 @@ internal suspend fun httpCall(request: Any?, loadParams: LoadParams<Any>): Any =
     if (httpResponse.status == HttpStatusCode.OK) {
       val responseTypeInfo = get<TypeInfo>(request, ktor.response_type_info)!!
       httpResponse.call.body(responseTypeInfo) as Page
-//    httpResponse.call.body<Page>()
     } else {
       TODO("${httpResponse.status}, $url")
     }
