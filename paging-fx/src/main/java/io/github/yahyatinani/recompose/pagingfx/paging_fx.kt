@@ -6,6 +6,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingSource.LoadParams
 import androidx.paging.PagingState
 import androidx.paging.cachedIn
+import io.github.yahyatinani.recompose.dispatch
 import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.recompose.httpfx.httpFxClient
 import io.github.yahyatinani.recompose.httpfx.ktor
@@ -23,7 +24,10 @@ import kotlinx.coroutines.launch
 
 @Suppress("ClassName", "EnumEntryName")
 enum class paging {
-  fx;
+  fx,
+  on_page_success,
+  page_size,
+  append_id;
 
   override fun toString(): String = "${this::class.simpleName}:$name"
 }
@@ -33,14 +37,15 @@ fun regPagingFx() = regFx(paging.fx, ::pagingEffect)
 // val pagingSrcCache: Atom<IPersistentMap<Any, Any>> = atom(m())
 
 data class PagingSourceImp(
+  val onSuccess: Event,
   val onFailure: Event,
-  val httpCall: suspend (LoadParams<Any>) -> Any
+  val request: Any?
 ) : PagingSource<Any, Any>() {
   override fun getRefreshKey(state: PagingState<Any, Any>) =
     state.anchorPosition?.let { i -> state.closestPageToPosition(i)?.nextKey }
 
   override suspend fun load(params: LoadParams<Any>): LoadResult<Any, Any> {
-    return when (val result = httpCall(params)) {
+    return when (val result = httpCall(request, params, onSuccess, onFailure)) {
       is Page -> LoadResult.Page(result.data, result.prevKey, result.nextKey)
       is Throwable -> LoadResult.Error(result)
 
@@ -51,7 +56,12 @@ data class PagingSourceImp(
 
 private const val INITIAL_KEY = "INITIAL_KEY"
 
-internal suspend fun httpCall(request: Any?, loadParams: LoadParams<Any>): Any =
+internal suspend fun httpCall(
+  request: Any?,
+  loadParams: LoadParams<Any>,
+  onSuccess: Event,
+  onFailure: Event
+): Any =
   try {
     // TODO: 1. validate(request).
     request as IPersistentMap<Any, Any>
@@ -59,7 +69,12 @@ internal suspend fun httpCall(request: Any?, loadParams: LoadParams<Any>): Any =
     val url = when (val nextPageKey = loadParams.key) {
       INITIAL_KEY -> get<String>(request, ktor.url)!!
 
-      else -> "${request["nextUrl"]}&${request["pageName"]}=$nextPageKey"
+      else -> {
+        val nextUrl = get<String>(request, "nextUrl")!!.let {
+          if (it.contains("?")) "$it&" else "$it?"
+        }
+        "$nextUrl${request["pageName"]}=$nextPageKey"
+      }
     }
 
     val timeout = request[ktor.timeout]
@@ -74,7 +89,11 @@ internal suspend fun httpCall(request: Any?, loadParams: LoadParams<Any>): Any =
 
     if (httpResponse.status == HttpStatusCode.OK) {
       val responseTypeInfo = get<TypeInfo>(request, ktor.response_type_info)!!
-      httpResponse.call.body(responseTypeInfo) as Page
+      val response = httpResponse.call.body(responseTypeInfo)
+
+      dispatch(onSuccess.conj(response))
+
+      response as Page
     } else {
       TODO("${httpResponse.status}, $url")
     }
@@ -85,19 +104,29 @@ internal suspend fun httpCall(request: Any?, loadParams: LoadParams<Any>): Any =
 fun pagingEffect(request: Any?) {
   val coroutineScope = get<CoroutineScope>(request, ktor.coroutine_scope)!!
   val job = coroutineScope.launch {
+    val onSuccess = get<Event>(request, ktor.on_success)!!
     val onFailure = get<Event>(request, ktor.on_failure)!!
     val eventId = get<Any>(request, "eventId")!!
-    val pager = Pager(PagingConfig(pageSize = 10), initialKey = INITIAL_KEY) {
-      PagingSourceImp(onFailure) { loadParams: LoadParams<Any> ->
-        return@PagingSourceImp httpCall(request, loadParams)
-      }
+    val appendId = get<Any>(request, paging.append_id)!!
+    val pager = Pager(
+      config = PagingConfig(pageSize = get(request, paging.page_size, 10)!!),
+      initialKey = INITIAL_KEY
+    ) {
+      PagingSourceImp(
+        onSuccess = onSuccess,
+        onFailure = onFailure,
+        request = request
+      )
     }
 
+    val onSuccessEvent = get<Event>(request, paging.on_page_success)!!
+    val onAppendEvent = get<Event>(request, "on_appending")!!
     val lazyPagingItems = LazyPagingItems(
       flow = pager.flow.cachedIn(coroutineScope),
-      onSuccessEvent = get<Event>(request, ktor.on_success)!!,
-      onAppendEvent = get<Event>(request, "on_appending")!!,
-      onFailure = onFailure
+      onSuccessEvent = onSuccessEvent,
+      onAppendEvent = onAppendEvent,
+      onFailure = onFailure,
+      triggerAppending = appendId
     )
     launch { lazyPagingItems.collectPagingData() }
       .invokeOnCompletion { lazyPagingItems.clear() }

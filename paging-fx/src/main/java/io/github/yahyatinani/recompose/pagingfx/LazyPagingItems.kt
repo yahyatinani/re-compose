@@ -42,6 +42,7 @@ import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.recompose.fx.BuiltInFx.fx
 import io.github.yahyatinani.recompose.regEventFx
 import io.github.yahyatinani.recompose.regFx
+import io.github.yahyatinani.y.core.collections.PersistentVector
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
 import io.ktor.client.call.NoTransformationFoundException
@@ -67,11 +68,9 @@ class LazyPagingItems<T : Any> internal constructor(
   private val flow: Flow<PagingData<T>>,
   val onSuccessEvent: Event,
   val onAppendEvent: Event,
-  val onFailure: Event
+  val onFailure: Event,
+  private val triggerAppending: Any
 ) {
-  private val triggerAppending =
-    hashCode() + onSuccessEvent.hashCode() + onAppendEvent.hashCode()
-
   init {
     regFx(triggerAppending) { index ->
       // Notify Paging of the item access to trigger any loads necessary to
@@ -144,17 +143,16 @@ class LazyPagingItems<T : Any> internal constructor(
     }
 
   private fun updateItemSnapshotList() {
-    itemSnapshotList = pagingDataDiffer.snapshot()
+    val snapshot = pagingDataDiffer.snapshot()
+    itemSnapshotList = snapshot
 
-    val event = onSuccessEvent.conj(
-      v(
-        triggerAppending,
-        itemSnapshotList.fold(v<T>()) { acc, t ->
+    dispatch(
+      onSuccessEvent.conj(
+        snapshot.fold<T?, PersistentVector<T>>(v()) { acc, t ->
           if (t != null) acc.conj(t) else acc
         }
       )
     )
-    dispatch(event)
   }
 
   /**
@@ -206,6 +204,7 @@ class LazyPagingItems<T : Any> internal constructor(
     .loadStateFlow
     .filterNotNull()
     .collect { loadStates: CombinedLoadStates ->
+      loadState = loadStates
       if (loadStates.refresh is Error) {
         val status = when (val e = (loadStates.refresh as Error).error) {
           is UnknownHostException -> 0
@@ -218,8 +217,6 @@ class LazyPagingItems<T : Any> internal constructor(
       }
 
       dispatch(onAppendEvent.conj(loadStates.source.append))
-
-      loadState = loadStates
     }
 
   internal suspend fun collectPagingData() {
