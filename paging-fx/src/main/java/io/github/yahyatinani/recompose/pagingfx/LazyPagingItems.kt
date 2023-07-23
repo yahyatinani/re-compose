@@ -75,7 +75,9 @@ class LazyPagingItems<T : Any> internal constructor(
     regFx(triggerAppending) { index ->
       // Notify Paging of the item access to trigger any loads necessary to
       // fulfill prefetchDistance.
-      pagingDataDiffer[index as Int]
+      if ((index as Int) < pagingDataDiffer.size) {
+        pagingDataDiffer[index]
+      }
     }
 
     regEventFx(triggerAppending) { _, event ->
