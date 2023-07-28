@@ -218,7 +218,9 @@ class LazyPagingItems<T : Any> internal constructor(
         dispatch(onFailure.conj(status))
       }
 
-      dispatch(onAppendEvent.conj(loadStates.source.append))
+      dispatch(
+        onAppendEvent.conj(v(triggerAppending, loadStates.source.append))
+      )
     }
 
   internal suspend fun collectPagingData() {
