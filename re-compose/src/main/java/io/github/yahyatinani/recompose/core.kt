@@ -369,3 +369,47 @@ fun clearFx() = clearHandlers(Kinds.Fx)
  * @param id The `id` of a previously registered effect handler.
  */
 fun clearFx(id: Any) = clearHandlers(Kinds.Fx, id)
+
+@Composable
+fun RegFx(id: Any, handler: EffectHandler) {
+  DisposableEffect(Unit) {
+    io.github.yahyatinani.recompose.fx.regFx(id, handler)
+
+    onDispose {
+      clearFx(id)
+    }
+  }
+}
+
+/**
+ * A side effect of composition that must run for any new unique value of [key1]
+ * and will be cleaned up if [key1] changes or if the RegFx leaves the
+ * composition.
+ *
+ * @param id is the identifier for the [effectHandler].
+ * @param key1 is a value that defines the identity of the RegFx.
+ * If a key changes, the RegFx will clear its current effect and register a new
+ * effect.
+ * @param effectHandler is the effect handler function [EffectHandler]
+ */
+@Composable
+fun RegFx(id: Any, key1: Any?, effectHandler: EffectHandler) {
+  DisposableEffect(key1) {
+    io.github.yahyatinani.recompose.fx.regFx(id, effectHandler)
+
+    onDispose {
+      clearFx(id)
+    }
+  }
+}
+
+@Composable
+fun RegFx(id: Any, vararg keys: Any?, effectHandler: EffectHandler) {
+  DisposableEffect(keys = keys) {
+    io.github.yahyatinani.recompose.fx.regFx(id, effectHandler)
+
+    onDispose {
+      clearFx(id)
+    }
+  }
+}
