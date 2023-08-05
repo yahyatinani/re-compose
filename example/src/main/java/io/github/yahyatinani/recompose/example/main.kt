@@ -26,13 +26,14 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.coroutineScope
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import io.github.yahyatinani.recompose.RegFx
 import io.github.yahyatinani.recompose.dispatch
 import io.github.yahyatinani.recompose.dispatchSync
 import io.github.yahyatinani.recompose.example.Ids.about_dialog
@@ -49,6 +50,9 @@ import io.github.yahyatinani.recompose.example.theme.RecomposeTheme
 import io.github.yahyatinani.recompose.regEventDb
 import io.github.yahyatinani.recompose.watch
 import io.github.yahyatinani.y.core.v
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyApp() {
@@ -151,8 +155,20 @@ class MainActivity : ComponentActivity() {
 
     regAllEvents()
     regAllCofx()
-    regAllFx(lifecycle.coroutineScope)
+    regAllFx()
+
     setContent {
+      val scope = rememberCoroutineScope()
+
+      RegFx(id = Ids.ticker, key1 = scope) {
+        scope.launch(Dispatchers.Default) {
+          while (true) {
+            dispatch(v(Ids.nextTick))
+            delay(1_000)
+          }
+        }
+      }
+
       SideEffect {
         dispatch(v(startTicking))
       }
