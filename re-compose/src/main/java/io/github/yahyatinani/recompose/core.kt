@@ -413,3 +413,8 @@ fun RegFx(id: Any, vararg keys: Any?, effectHandler: EffectHandler) {
     }
   }
 }
+
+// -- Coeffects ----------------------------------------------------------------
+
+fun clearCofx() = clearHandlers(Kinds.Cofx)
+fun clearCofx(id: Any) = clearHandlers(Kinds.Cofx, id)
