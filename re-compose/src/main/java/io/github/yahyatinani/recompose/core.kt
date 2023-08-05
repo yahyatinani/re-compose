@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.yahyatinani.recompose.cofx.CofxHandler1
 import io.github.yahyatinani.recompose.cofx.injectDb
+import io.github.yahyatinani.recompose.cofx.regCofx
 import io.github.yahyatinani.recompose.db.appDb
 import io.github.yahyatinani.recompose.events.DbEventHandler
 import io.github.yahyatinani.recompose.events.Event
@@ -417,4 +419,38 @@ fun RegFx(id: Any, vararg keys: Any?, effectHandler: EffectHandler) {
 // -- Coeffects ----------------------------------------------------------------
 
 fun clearCofx() = clearHandlers(Kinds.Cofx)
+
 fun clearCofx(id: Any) = clearHandlers(Kinds.Cofx, id)
+
+@Composable
+fun RegCofx(id: Any, handler: CofxHandler1) {
+  DisposableEffect(Unit) {
+    regCofx(id, handler)
+
+    onDispose {
+      clearCofx(id)
+    }
+  }
+}
+
+@Composable
+fun RegCofx(id: Any, key1: Any?, handler: CofxHandler1) {
+  DisposableEffect(key1) {
+    regCofx(id, handler)
+
+    onDispose {
+      clearCofx(id)
+    }
+  }
+}
+
+@Composable
+fun RegCofx(id: Any, vararg keys: Any?, handler: CofxHandler1) {
+  DisposableEffect(keys = keys) {
+    regCofx(id, handler)
+
+    onDispose {
+      clearCofx(id)
+    }
+  }
+}
