@@ -11,7 +11,7 @@ group = groupId
 
 android {
   namespace = groupId
-  compileSdk = 33
+  compileSdk = 34
 
   buildFeatures {
     compose = true
@@ -24,6 +24,12 @@ android {
     consumerProguardFiles("consumer-rules.pro")
     aarMetadata {
       minCompileSdk = 22
+    }
+  }
+
+  packaging {
+    resources {
+      excludes += listOf("/*.jar", "/META-INF/{AL2.0,LGPL2.1}")
     }
   }
 
