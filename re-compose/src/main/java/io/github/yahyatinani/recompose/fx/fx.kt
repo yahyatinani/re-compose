@@ -6,7 +6,6 @@ import android.util.Log
 import io.github.yahyatinani.recompose.TAG
 import io.github.yahyatinani.recompose.cofx.Coeffects
 import io.github.yahyatinani.recompose.db.appDb
-import io.github.yahyatinani.recompose.dispatchSync
 import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.recompose.fx.BuiltInFx.db_async
 import io.github.yahyatinani.recompose.ids.coeffects.originalEvent
@@ -27,10 +26,8 @@ import io.github.yahyatinani.y.core.collections.IPersistentVector
 import io.github.yahyatinani.y.core.collections.PersistentVector
 import io.github.yahyatinani.y.core.get
 import io.github.yahyatinani.y.core.v
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = (value: Any?) -> Unit
@@ -226,11 +223,13 @@ internal fun registerBuiltinFxHandlers() {
    */
   regFx(id = db) { v ->
     val (event, o, n) = v as PersistentVector<Any>
-    val current = appDb.deref()
-    if (current != o || !appDb.compareAndSet(current, n)) {
-      dispatchSync(event as Event)
-      throw RaceCondition
-    }
+
+    appDb.value = n
+//    val current = appDb.value
+//    if (current != o || !appDb.compareAndSet(current, n)) {
+//      dispatchSync(event as Event)
+//      throw RaceCondition
+//    }
   }
 
   /**
@@ -243,14 +242,22 @@ internal fun registerBuiltinFxHandlers() {
    */
   val handler: suspend (value: Any?) -> Unit = { v ->
     val (event, o, n) = v as PersistentVector<Any>
-    val current = appDb.deref()
-    if (current != o || !withContext(Dispatchers.Main) {
-      appDb.compareAndSet(current, n)
-    }
-    ) {
-      dispatchSync(event as Event)
-      throw RaceCondition
-    }
+    appDb.value = n
+
+//    val oldDb = appDb.value
+//    if (oldDb === o) {
+//      appDb.value = n
+//    } else {
+//      // throw RaceCondition
+//    }
+//    val current = appDb.value
+//    if (current != o || !withContext(Dispatchers.Main) {
+//        appDb.compareAndSet(current, n)
+//      }
+//    ) {
+//      dispatchSync(event as Event)
+//      throw RaceCondition
+//    }
   }
   registerHandler(id = db_async, kind, handler)
 }

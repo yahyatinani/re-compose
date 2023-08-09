@@ -4,6 +4,10 @@ import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yahyatinani.recompose.regSub
+import io.github.yahyatinani.recompose.subs.Computation
+import io.github.yahyatinani.recompose.subs.Extraction
+import io.github.yahyatinani.recompose.subs.ReactionBase
+import io.github.yahyatinani.recompose.subscribe
 import io.github.yahyatinani.y.core.collections.IPersistentMap
 import io.github.yahyatinani.y.core.v
 import org.junit.Rule
@@ -22,13 +26,35 @@ class CacheBenchmark {
   val benchmarkRule = BenchmarkRule()
 
   @Test
-  fun subscribe() {
-    regSub<IPersistentMap<*, *>>(queryId = "info") { db, _ ->
-      db
+  fun watchTest() {
+    repeat(11) {
+      regSub<IPersistentMap<*, *>>(queryId = "info$it") { db, _ -> db }
     }
 
     benchmarkRule.measureRepeated {
-      io.github.yahyatinani.recompose.subscribe<Any>(v("info"))
+      repeat(9) {
+        val reaction = subscribe<Any>(v("info$it")) as ReactionBase<*, *>
+        when (reaction) {
+          is Extraction -> reaction
+          else -> (reaction as Computation).state.value
+        }
+      }
+    }
+  }
+
+  @Test
+  fun regSubTest() {
+    /*
+      5 times: 45,678   ns         290 allocs    trace
+      6 times: 60,850   ns         378 allocs    trace
+      7 times: 76,202   ns         476 allocs    trace
+      8 times: 100,513   ns        584 allocs   trace
+      9 times: 138,976   ns         764 allocs
+     */
+    benchmarkRule.measureRepeated {
+      repeat(11) {
+        regSub<IPersistentMap<*, *>>(queryId = "info$it") { db, _ -> db }
+      }
     }
   }
 }

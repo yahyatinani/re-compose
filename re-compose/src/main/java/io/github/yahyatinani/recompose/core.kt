@@ -3,7 +3,6 @@ package io.github.yahyatinani.recompose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.yahyatinani.recompose.cofx.CofxHandler1
 import io.github.yahyatinani.recompose.cofx.injectDb
 import io.github.yahyatinani.recompose.cofx.regCofx
@@ -19,8 +18,6 @@ import io.github.yahyatinani.recompose.registrar.Kinds
 import io.github.yahyatinani.recompose.registrar.clearHandlers
 import io.github.yahyatinani.recompose.stdinterceptors.dbHandlerToInterceptor
 import io.github.yahyatinani.recompose.stdinterceptors.fxHandlerToInterceptor
-import io.github.yahyatinani.recompose.subs.Computation
-import io.github.yahyatinani.recompose.subs.Extraction
 import io.github.yahyatinani.recompose.subs.Query
 import io.github.yahyatinani.recompose.subs.Reaction
 import io.github.yahyatinani.recompose.subs.ReactionBase
@@ -330,22 +327,14 @@ fun regSub(
   computationFn = { subs, _, _ -> com(inputSignals.size, computationFn, subs) }
 )
 
+/**
+ * This function is not skipped on recomposition.
+ * See: https://issuetracker.google.com/issues/206021557?pli=1
+ */
 @Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> watch(query: Query): T {
-  val reaction = remember(Unit) { subscribe<T>(query) as ReactionBase<*, T> }
-
-  DisposableEffect(Unit) {
-    reaction.incUiSubCount()
-    onDispose { reaction.decUiSubCount() }
-  }
-
-  return when (reaction) {
-    is Extraction -> reaction.value as T
-    else -> remember {
-      (reaction as Computation).state
-    }.collectAsStateWithLifecycle().value as T
-  }
+  return remember { subscribe<T>(query) as ReactionBase<*, *> }.watch() as T
 }
 
 // -- Effects ------------------------------------------------------------------

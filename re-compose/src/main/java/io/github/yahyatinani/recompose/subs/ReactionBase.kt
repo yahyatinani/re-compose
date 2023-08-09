@@ -1,5 +1,7 @@
 package io.github.yahyatinani.recompose.subs
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import io.github.yahyatinani.y.concurrency.atom
 import io.github.yahyatinani.y.core.collections.ISeq
 import io.github.yahyatinani.y.core.l
@@ -28,7 +30,7 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
 
   val isDisposed = atom(false)
 
-  private val viewSubCount = atom(0).apply {
+  internal val viewSubCount = atom(0).apply {
     addWatch(id) { _, _, _, new ->
       if (isNotActive(subCount = new)) {
         reactionScope.launch {
@@ -55,9 +57,9 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
     }
   }
 
-  abstract val state: StateFlow<Any?>
+  abstract val stateFlow: StateFlow<Any?>
 
-  private fun isNotActive(subCount: Int = viewSubCount.deref()) =
+  internal fun isNotActive(subCount: Int = viewSubCount.deref()) =
     subCount == 0 &&
       (!_state.isInitialized() || _state.value.subscriptionCount.value == 0)
 
@@ -92,6 +94,18 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
   private val str: String by lazy { "$TAG$category($id)" }
 
   override fun toString(): String = str
+
+  @Composable
+  override fun watch(): O {
+    DisposableEffect(Unit) {
+      incUiSubCount()
+      onDispose {
+        decUiSubCount()
+      }
+    }
+
+    return initialValue as O
+  }
 
   // FIXME: comment this out.
   /* protected fun finalize() {

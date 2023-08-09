@@ -47,7 +47,7 @@ class ComputationTest : FreeSpec({
 
     r.isFresh.deref().shouldBeTrue()
     r.toString() shouldBe "rxc($id)"
-    r.state.value shouldBe defaultVal
+    r.stateFlow.value shouldBe defaultVal
     r.initialValue shouldBe defaultVal
   }
 
@@ -231,8 +231,8 @@ class ComputationTest : FreeSpec({
           (a + b).inc()
         }
 
-        in1.value = 3
-        in2.value = 5
+        in1.state = 3
+        in2.state = 5
         advanceUntilIdle()
 
         node.deref() shouldBe 9

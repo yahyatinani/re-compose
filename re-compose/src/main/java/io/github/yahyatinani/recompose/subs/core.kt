@@ -3,13 +3,13 @@
 package io.github.yahyatinani.recompose.subs
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import io.github.yahyatinani.recompose.TAG
 import io.github.yahyatinani.recompose.db.appDb
 import io.github.yahyatinani.recompose.registrar.Kinds
 import io.github.yahyatinani.recompose.registrar.Kinds.Sub
 import io.github.yahyatinani.recompose.registrar.getHandler
 import io.github.yahyatinani.recompose.registrar.registerHandler
-import io.github.yahyatinani.y.concurrency.Atom
 import io.github.yahyatinani.y.concurrency.atom
 import io.github.yahyatinani.y.core.collections.IPersistentVector
 import io.github.yahyatinani.y.core.get
@@ -19,7 +19,7 @@ val kind: Kinds = Sub
 
 typealias Query = IPersistentVector<Any>
 
-typealias SubHandler<V> = (Atom<Any>, Query) -> Reaction<V>
+typealias SubHandler<V> = (MutableState<Any>, Query) -> Reaction<V>
 
 // -- cache --------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ inline fun <Db, V> regDbSubscription(
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = { appDb: Atom<*>, queryVec: Query ->
+    handlerFn = { appDb: MutableState<*>, queryVec: Query ->
       Extraction(appDb = appDb, id = queryId) { signalValue: Any? ->
         extractorFn(signalValue as Db, queryVec)
       }
@@ -86,13 +86,13 @@ inline fun <I, V> regCompSubscription(
     queryVec: Query
   ) -> V
 ) {
-  registerHandler(
-    id = queryId,
-    kind = kind,
-    handlerFn = { _: Atom<*>, queryVec: Query ->
+  // warning: leave it unlined, the compiler doesn't catch the new type of appDb
+  // if we changed it.
+  val handlerFn: (MutableState<*>, Query) -> Computation =
+    { _: MutableState<*>, queryVec: Query ->
       Computation(
         inputSignals = signalsFn(queryVec) as Signals,
-        initial = initialValue,
+        initialValue = initialValue,
         id = queryId
       ) { signalsValues, currentValue ->
         computationFn(
@@ -102,5 +102,9 @@ inline fun <I, V> regCompSubscription(
         )
       }
     }
+  registerHandler(
+    id = queryId,
+    kind = kind,
+    handlerFn = handlerFn
   )
 }

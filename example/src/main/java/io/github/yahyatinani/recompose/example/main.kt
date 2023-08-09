@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import io.github.yahyatinani.recompose.RegFx
 import io.github.yahyatinani.recompose.dispatch
 import io.github.yahyatinani.recompose.dispatchSync
 import io.github.yahyatinani.recompose.example.Ids.about_dialog
@@ -48,6 +47,7 @@ import io.github.yahyatinani.recompose.example.fx.regAllFx
 import io.github.yahyatinani.recompose.example.subs.regAllSubs
 import io.github.yahyatinani.recompose.example.theme.RecomposeTheme
 import io.github.yahyatinani.recompose.regEventDb
+import io.github.yahyatinani.recompose.regFx
 import io.github.yahyatinani.recompose.watch
 import io.github.yahyatinani.y.core.v
 import kotlinx.coroutines.Dispatchers
@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
     setContent {
       val scope = rememberCoroutineScope()
 
-      RegFx(id = Ids.ticker, key1 = scope) {
+      regFx(id = Ids.ticker) {
         scope.launch(Dispatchers.Default) {
           while (true) {
             dispatch(v(Ids.nextTick))
@@ -176,4 +176,10 @@ class MainActivity : ComponentActivity() {
       MyApp()
     }
   }
+
+/*  override fun onBackPressed() {
+    super.onBackPressed()
+
+    finish()
+  }*/
 }
