@@ -115,7 +115,7 @@ class RegistrarTest : FreeSpec({
       kindIdHandler() shouldBe m(Sub to m(":sub" to subHandler))
     }
 
-    "clearHandlers(kind) should clear all event handlers of given kind." {
+    "clearHandlers(kind, id) should clear event of given id" {
       registerHandler(":event1", Event, {})
       val eventHandler = {}
       registerHandler(":event2", Event, eventHandler)

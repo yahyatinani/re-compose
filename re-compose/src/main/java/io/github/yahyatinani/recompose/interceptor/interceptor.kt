@@ -22,22 +22,17 @@ typealias Interceptor = IPersistentMap<InterceptSpec, Any>
 
 typealias InterceptorFn = (context: Context) -> Context
 
-typealias InterceptorFnAsync = suspend (context: Context) -> Context
-
 internal val defaultInterceptorFn: InterceptorFn = { it }
 
-internal val defaultInterceptorAsyncFn: InterceptorFnAsync = { it }
 
 fun toInterceptor(
   id: Any,
   before: InterceptorFn = defaultInterceptorFn,
   after: InterceptorFn = defaultInterceptorFn,
-  afterAsync: InterceptorFnAsync = defaultInterceptorAsyncFn
 ): Interceptor = m(
   InterceptSpec.id to id,
   InterceptSpec.before to before,
   InterceptSpec.after to after,
-  InterceptSpec.after_async to afterAsync
 )
 
 fun assocCofx(context: Context, key: coeffects, value: Any) =

@@ -4,12 +4,8 @@ package io.github.yahyatinani.recompose.fx
 
 import android.util.Log
 import io.github.yahyatinani.recompose.TAG
-import io.github.yahyatinani.recompose.cofx.Coeffects
 import io.github.yahyatinani.recompose.db.appDb
 import io.github.yahyatinani.recompose.events.Event
-import io.github.yahyatinani.recompose.fx.BuiltInFx.db_async
-import io.github.yahyatinani.recompose.ids.coeffects.originalEvent
-import io.github.yahyatinani.recompose.ids.context.coeffects
 import io.github.yahyatinani.recompose.ids.context.effects
 import io.github.yahyatinani.recompose.ids.recompose
 import io.github.yahyatinani.recompose.ids.recompose.db
@@ -25,13 +21,11 @@ import io.github.yahyatinani.y.core.collections.IPersistentMap
 import io.github.yahyatinani.y.core.collections.IPersistentVector
 import io.github.yahyatinani.y.core.collections.PersistentVector
 import io.github.yahyatinani.y.core.get
-import io.github.yahyatinani.y.core.v
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 typealias Effects = IPersistentMap<Any, Any?>
 typealias EffectHandler = (value: Any?) -> Unit
-typealias EffectHandlerAsync = suspend (value: Any?) -> Unit
 typealias VecOfEffects = IPersistentVector<IPersistentVector<Any?>?>
 
 @Suppress("EnumEntryName")
@@ -39,8 +33,7 @@ enum class BuiltInFx {
   fx,
   dispatch,
   dispatch_later,
-  ms,
-  db_async;
+  ms;
 
   override fun toString(): String = ":${super.toString()}"
 }
@@ -74,40 +67,8 @@ val doFx: Interceptor = toInterceptor(
     val effectsWithoutDb: Effects = effects.dissoc(db)
     val newDb = effects[db]
 
-    val cofx: Coeffects = context[coeffects] as Coeffects
-    val eventVec = cofx[originalEvent] as Event
-    val oldDb = cofx[db]
-
     if (newDb != null) { // new appDb value.
-      try {
-        (getHandler(kind, db) as EffectHandler)(v(eventVec, oldDb, newDb))
-      } catch (e: RaceCondition) {
-        Log.w(TAG, e.toString())
-        return@toInterceptor context
-      }
-    }
-
-    execFx(effectsWithoutDb)
-
-    context
-  },
-  afterAsync = { context ->
-    val effects: Effects = context[effects] as Effects
-    val effectsWithoutDb: Effects = effects.dissoc(db)
-    val newDb = effects[db]
-
-    val cofx: Coeffects = context[coeffects] as Coeffects
-    val eventVec = cofx[originalEvent] as Event
-    val oldDb = cofx[db]
-
-    if (newDb != null) { // new appDb value.
-      try {
-        val fx = getHandler(kind, db_async) as EffectHandlerAsync
-        fx(v(eventVec, oldDb, newDb))
-      } catch (e: RaceCondition) {
-        Log.w(TAG, e.toString())
-        return@toInterceptor context
-      }
+      (getHandler(kind, db) as EffectHandler)(newDb)
     }
 
     execFx(effectsWithoutDb)
@@ -117,8 +78,6 @@ val doFx: Interceptor = toInterceptor(
 )
 
 // -- Builtin Effect Handlers --------------------------------------------------
-
-object RaceCondition : IllegalStateException("AppDb was changed synchronously.")
 
 internal fun registerBuiltinFxHandlers() {
   /**
@@ -221,43 +180,9 @@ internal fun registerBuiltinFxHandlers() {
    * usage:
    * {:db  {:key1 value1 key2 value2}}
    */
-  regFx(id = db) { v ->
-    val (event, o, n) = v as PersistentVector<Any>
-
-    appDb.value = n
-//    val current = appDb.value
-//    if (current != o || !appDb.compareAndSet(current, n)) {
-//      dispatchSync(event as Event)
-//      throw RaceCondition
-//    }
+  regFx(id = db) { newDb ->
+    if (newDb != null) {
+      appDb.value = newDb
+    }
   }
-
-  /**
-   * :db_async
-   *
-   * reset appDb with a new value.
-   *
-   * usage:
-   * {:db  {:key1 value1 key2 value2}}
-   */
-  val handler: suspend (value: Any?) -> Unit = { v ->
-    val (event, o, n) = v as PersistentVector<Any>
-    appDb.value = n
-
-//    val oldDb = appDb.value
-//    if (oldDb === o) {
-//      appDb.value = n
-//    } else {
-//      // throw RaceCondition
-//    }
-//    val current = appDb.value
-//    if (current != o || !withContext(Dispatchers.Main) {
-//        appDb.compareAndSet(current, n)
-//      }
-//    ) {
-//      dispatchSync(event as Event)
-//      throw RaceCondition
-//    }
-  }
-  registerHandler(id = db_async, kind, handler)
 }

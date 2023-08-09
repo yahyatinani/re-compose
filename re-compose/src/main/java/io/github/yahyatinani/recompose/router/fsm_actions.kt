@@ -1,6 +1,5 @@
 package io.github.yahyatinani.recompose.router
 
-import io.github.yahyatinani.recompose.async.events.handle
 import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.y.concurrency.Atom
 import io.github.yahyatinani.y.concurrency.atom
@@ -41,7 +40,7 @@ internal class EventQueueImp(queue: EventQueue = q() as EventQueue) :
   override suspend fun processFirstEventInQueue() {
     val event = queue.peek()
     if (event != null) {
-      handle(event)
+      io.github.yahyatinani.recompose.events.handle(event)
       _eventQueueRef.swap { it.pop() }
     }
   }
