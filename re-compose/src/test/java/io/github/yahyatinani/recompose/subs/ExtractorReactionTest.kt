@@ -1,7 +1,6 @@
 package io.github.yahyatinani.recompose.subs
 
 import androidx.compose.runtime.mutableStateOf
-import io.github.yahyatinani.y.concurrency.atom
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +40,11 @@ class ExtractorReactionTest : FreeSpec({
     runTest {
       val db = mutableStateOf(0)
       var result: Int? = null
-      val inputSignal = Extraction(db, testDispatcher) { (it as Int).inc() }
+      val inputSignal = Extraction(
+        appDb = db,
+        id = "ext",
+        context = testDispatcher
+      ) { (it as Int).inc() }
 
       val job: Job = launch { inputSignal.collect { result = it as Int } }
       launch { db.value = 4 }

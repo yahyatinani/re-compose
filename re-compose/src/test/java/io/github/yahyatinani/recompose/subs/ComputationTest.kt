@@ -323,7 +323,7 @@ class ComputationTest : FreeSpec({
       runTest {
         val appDb = mutableStateOf(4)
         val input = Computation(
-          inputSignals = v(Extraction(appDb, testDispatcher) { it }),
+          inputSignals = v(Extraction(appDb, "ext", testDispatcher) { it }),
           context = testDispatcher,
           id = "input",
           initialValue = 7

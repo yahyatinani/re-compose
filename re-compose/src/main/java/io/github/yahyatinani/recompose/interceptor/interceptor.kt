@@ -26,15 +26,14 @@ typealias InterceptorFn = (context: Context) -> Context
 
 internal val defaultInterceptorFn: InterceptorFn = { it }
 
-
 fun toInterceptor(
   id: Any,
   before: InterceptorFn = defaultInterceptorFn,
-  after: InterceptorFn = defaultInterceptorFn,
+  after: InterceptorFn = defaultInterceptorFn
 ): Interceptor = m(
   InterceptSpec.id to id,
   InterceptSpec.before to before,
-  InterceptSpec.after to after,
+  InterceptSpec.after to after
 )
 
 fun assocCofx(context: Context, key: coeffects, value: Any) =

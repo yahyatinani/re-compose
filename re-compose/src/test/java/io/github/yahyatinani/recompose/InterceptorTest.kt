@@ -46,7 +46,7 @@ class InterceptorTest : FreeSpec({
       val expectedInterceptor = m(
         id to ":test",
         before to defaultInterceptorFn,
-        after to defaultInterceptorFn,
+        after to defaultInterceptorFn
       )
 
       val toInterceptor = toInterceptor(":test")
@@ -67,7 +67,7 @@ class InterceptorTest : FreeSpec({
       interceptor shouldBe m(
         id to ":test",
         before to f1,
-        after to f2,
+        after to f2
       )
     }
   }
