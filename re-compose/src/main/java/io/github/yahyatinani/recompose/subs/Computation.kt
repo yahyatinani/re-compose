@@ -1,5 +1,8 @@
 package io.github.yahyatinani.recompose.subs
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.yahyatinani.y.core.collections.IPersistentVector
 import io.github.yahyatinani.y.core.collections.PersistentVector
 import io.github.yahyatinani.y.core.v
@@ -22,7 +25,7 @@ typealias Signals = IPersistentVector<Flow<*>>
 
 class Computation(
   val inputSignals: Signals,
-  initial: Any?,
+  override val initialValue: Any?,
   id: Any,
   val context: CoroutineContext = Default,
   override val reactionScope: CoroutineScope = CoroutineScope(
@@ -30,8 +33,6 @@ class Computation(
   ),
   override val f: suspend (signalsValues: Any?, currentValue: Any?) -> Any?
 ) : ReactionBase<Any?, Any?>(id) {
-
-  override val initialValue: Any? = initial
 
   val signalObserver: Job = combineV(inputSignals)
     .distinctUntilChanged()
@@ -44,11 +45,17 @@ class Computation(
   override suspend fun collect(collector: FlowCollector<Any?>) =
     _state.value.collect(collector)
 
-  override val state: StateFlow<Any?> = _state.value
+  override val stateFlow: StateFlow<Any?> = _state.value
 
   override val category: Char = 'c'
 
   override fun deref(): Any? = _state.value.value
+
+  @Composable
+  override fun watch(): Any? {
+    super.watch()
+    return remember { stateFlow }.collectAsStateWithLifecycle().value
+  }
 
   companion object {
     /** Same as [combine] but with [IPersistentVector] instead of [Array]. */

@@ -3,7 +3,6 @@ package io.github.yahyatinani.recompose
 import io.github.yahyatinani.recompose.cofx.Coeffects
 import io.github.yahyatinani.recompose.ids.InterceptSpec
 import io.github.yahyatinani.recompose.ids.InterceptSpec.after
-import io.github.yahyatinani.recompose.ids.InterceptSpec.after_async
 import io.github.yahyatinani.recompose.ids.InterceptSpec.before
 import io.github.yahyatinani.recompose.ids.InterceptSpec.id
 import io.github.yahyatinani.recompose.ids.coeffects.event
@@ -19,7 +18,6 @@ import io.github.yahyatinani.recompose.interceptor.InterceptorFn
 import io.github.yahyatinani.recompose.interceptor.assocCofx
 import io.github.yahyatinani.recompose.interceptor.changeDirection
 import io.github.yahyatinani.recompose.interceptor.context
-import io.github.yahyatinani.recompose.interceptor.defaultInterceptorAsyncFn
 import io.github.yahyatinani.recompose.interceptor.defaultInterceptorFn
 import io.github.yahyatinani.recompose.interceptor.enqueue
 import io.github.yahyatinani.recompose.interceptor.execute
@@ -48,8 +46,7 @@ class InterceptorTest : FreeSpec({
       val expectedInterceptor = m(
         id to ":test",
         before to defaultInterceptorFn,
-        after to defaultInterceptorFn,
-        after_async to defaultInterceptorAsyncFn
+        after to defaultInterceptorFn
       )
 
       val toInterceptor = toInterceptor(":test")
@@ -70,8 +67,7 @@ class InterceptorTest : FreeSpec({
       interceptor shouldBe m(
         id to ":test",
         before to f1,
-        after to f2,
-        after_async to defaultInterceptorAsyncFn
+        after to f2
       )
     }
   }

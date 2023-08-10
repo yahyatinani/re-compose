@@ -1,5 +1,6 @@
 package io.github.yahyatinani.recompose.router
 
+import io.github.yahyatinani.recompose.db.appDb
 import io.github.yahyatinani.recompose.regEventDb
 import io.github.yahyatinani.recompose.router.FsmEvent.ADD_EVENT
 import io.github.yahyatinani.recompose.router.FsmEvent.RUN_QUEUE
@@ -16,6 +17,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -231,6 +233,39 @@ class EventQueueFsmTest : FreeSpec({
 
           eventQueueFSM.state shouldBe IDLE
         }
+      }
+    }
+  }
+
+  "race condition between dispatch() and dispatchSync()" {
+    io.kotest.assertions.timing.continually(10.seconds) {
+      runTest {
+        appDb.value = 0
+        regEventDb<Int>("inc-event") { db, _ -> db.inc() }
+        val eventQueue = EventQueueImp()
+        eventQueueFSM = EventQueueFSM(
+          eventQueue = eventQueue,
+          context = testDispatcher
+        )
+
+        // re-compose queue execution.
+        repeat(100) {
+          launch(Dispatchers.Default) {
+            repeat(100) {
+              dispatch(v("inc-event"))
+            }
+          }
+        }
+
+        // to simulate the Main thread.
+        repeat(100) {
+          launch(Dispatchers.Default) {
+            dispatchSync(v("inc-event"))
+          }.join()
+        }
+        advanceUntilIdle()
+
+        appDb.value shouldBe 10100
       }
     }
   }

@@ -1,7 +1,7 @@
 package io.github.yahyatinani.recompose.router
 
-import io.github.yahyatinani.recompose.async.events.handle
 import io.github.yahyatinani.recompose.events.Event
+import io.github.yahyatinani.recompose.events.handle
 import io.github.yahyatinani.y.concurrency.Atom
 import io.github.yahyatinani.y.concurrency.atom
 import io.github.yahyatinani.y.core.collections.PersistentQueue

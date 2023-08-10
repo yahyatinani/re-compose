@@ -32,7 +32,7 @@ class FxTest : FreeSpec({
   every { Log.w(any(), any<String>()) } returns 0
 
   beforeAny {
-    appDb.reset(m<Any, Any>())
+    appDb.value = m<Any, Any>()
     myRegister.swap { m() }
     registerBuiltinFxHandlers()
   }
@@ -46,7 +46,7 @@ class FxTest : FreeSpec({
   }
 
   "doFx interceptor should update the appDb and apply other effects" {
-    appDb.reset(0)
+    appDb.value = 0
     var i = 0
     regFx(id = ":add-to-i") { i += (it as Int) }
     regFx(id = ":subtract-from-i") { i -= (it as Int) }
@@ -64,13 +64,13 @@ class FxTest : FreeSpec({
     val newContext = applyFx(context)
 
     newContext shouldBeSameInstanceAs context
-    appDb.deref() shouldBe 156
+    appDb.value shouldBe 156
     i shouldBeExactly 15
   }
 
   "`fx` effect handler should execute, in order, the vector of effects" - {
     "when passing an effect id without a value, execute the effect" {
-      appDb.reset(0)
+      appDb.value = 0
       var i = 0
       regFx(id = ":inc-i") { i = i.inc() }
       regFx(id = ":multi-i") { i *= 4 }
@@ -84,7 +84,7 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe 185
+      appDb.value shouldBe 185
       i shouldBeExactly 0.inc() * 4
     }
 
@@ -93,7 +93,7 @@ class FxTest : FreeSpec({
       value
     """ {
       var i = 0
-      appDb.reset(0)
+      appDb.value = 0
       regFx(id = ":inc&add-i") { i = i.inc() + it as Int }
       val effects: Effects = m(db to 185, fx to v(v(":inc&add-i", 4)))
       val context = m(
@@ -105,12 +105,12 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe 185
+      appDb.value shouldBe 185
       i shouldBeExactly 5
     }
 
     "when passing an effect id with a null value, execute the effect" {
-      appDb.reset(0)
+      appDb.value = 0
       var i = 0
       regFx(id = ":inc-i") { i = i.inc() }
       val effects: Effects = m(db to 185, fx to v(v(":inc-i", null)))
@@ -123,7 +123,7 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe 185
+      appDb.value shouldBe 185
       i shouldBeExactly 1
     }
 
@@ -140,7 +140,7 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe m<Any, Any>()
+      appDb.value shouldBe m<Any, Any>()
       i shouldBeExactly 0
     }
 
@@ -157,7 +157,7 @@ class FxTest : FreeSpec({
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.deref() shouldBe m<Any, Any>()
+      appDb.value shouldBe m<Any, Any>()
       i shouldBeExactly 0
     }
   }

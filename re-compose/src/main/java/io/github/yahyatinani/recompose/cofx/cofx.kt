@@ -80,7 +80,7 @@ fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
  */
 fun registerDbInjectorCofx() {
   regCofx(id = db) { coeffects ->
-    coeffects.assoc(db, appDb.deref())
+    coeffects.assoc(db, appDb.value)
   }
 }
 

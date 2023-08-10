@@ -4,8 +4,7 @@ package io.github.yahyatinani.recompose.ids
 enum class InterceptSpec {
   id,
   before,
-  after,
-  after_async;
+  after;
 
   override fun toString(): String = ":${super.toString()}"
 }

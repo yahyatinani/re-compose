@@ -14,6 +14,8 @@ import io.github.yahyatinani.y.core.conj
 import io.github.yahyatinani.y.core.get
 import io.github.yahyatinani.y.core.l
 import io.github.yahyatinani.y.core.m
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 import io.github.yahyatinani.recompose.ids.context as ctx
 
 typealias Context = IPersistentMap<ctx, Any>
@@ -22,22 +24,16 @@ typealias Interceptor = IPersistentMap<InterceptSpec, Any>
 
 typealias InterceptorFn = (context: Context) -> Context
 
-typealias InterceptorFnAsync = suspend (context: Context) -> Context
-
 internal val defaultInterceptorFn: InterceptorFn = { it }
-
-internal val defaultInterceptorAsyncFn: InterceptorFnAsync = { it }
 
 fun toInterceptor(
   id: Any,
   before: InterceptorFn = defaultInterceptorFn,
-  after: InterceptorFn = defaultInterceptorFn,
-  afterAsync: InterceptorFnAsync = defaultInterceptorAsyncFn
+  after: InterceptorFn = defaultInterceptorFn
 ): Interceptor = m(
   InterceptSpec.id to id,
   InterceptSpec.before to before,
-  InterceptSpec.after to after,
-  InterceptSpec.after_async to afterAsync
+  InterceptSpec.after to after
 )
 
 fun assocCofx(context: Context, key: coeffects, value: Any) =
@@ -97,8 +93,14 @@ internal tailrec fun invokeInterceptors(
 internal fun changeDirection(context: Context): Context =
   enqueue(context, context[stack] as ISeq<Interceptor>?)
 
-fun execute(event: Event, interceptors: ISeq<Interceptor>): Context =
-  context(event, interceptors)
-    .let { invokeInterceptors(it, InterceptSpec.before) }
-    .let { changeDirection(it) }
-    .let { invokeInterceptors(it, InterceptSpec.after) }
+internal val lock = reentrantLock()
+
+fun execute(event: Event, interceptors: ISeq<Interceptor>): Context {
+  val context = context(event, interceptors)
+  return lock.withLock {
+    context
+      .let { invokeInterceptors(it, InterceptSpec.before) }
+      .let { changeDirection(it) }
+      .let { invokeInterceptors(it, InterceptSpec.after) }
+  }
+}

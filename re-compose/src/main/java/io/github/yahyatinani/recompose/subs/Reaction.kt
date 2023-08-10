@@ -1,5 +1,6 @@
 package io.github.yahyatinani.recompose.subs
 
+import androidx.compose.runtime.Composable
 import io.github.yahyatinani.y.concurrency.IDeref
 import kotlinx.coroutines.flow.Flow
 
@@ -13,4 +14,7 @@ interface Reaction<T> : IDeref<T>, Flow<T>, Disposable {
   val f: Any?
   val initialValue: Any?
   val id: Any
+
+  @Composable
+  fun watch(): T
 }

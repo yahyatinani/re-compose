@@ -24,7 +24,7 @@ class EventQueueActionsTest : FreeSpec({
   beforeEach {
     Dispatchers.setMain(testDispatcher)
     kindIdHandler.reset(m())
-    appDb.reset(m<Any, Any>())
+    appDb.value = m<Any, Any>()
     registerDbInjectorCofx()
     injectCofx(recompose.db)
     registerBuiltinFxHandlers()

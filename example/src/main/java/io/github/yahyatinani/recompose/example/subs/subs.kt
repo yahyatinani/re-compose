@@ -16,7 +16,6 @@ import io.github.yahyatinani.recompose.example.Ids.time
 import io.github.yahyatinani.recompose.example.db.AppDb
 import io.github.yahyatinani.recompose.regSub
 import io.github.yahyatinani.recompose.subs.Query
-import io.github.yahyatinani.recompose.subscribe
 import io.github.yahyatinani.y.core.v
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -66,13 +65,15 @@ fun regAllSubs(defaultColors: Colors) {
     db.time
   }
 
+  val simpleDateFormat = SimpleDateFormat(HH_MM_SS, Locale.getDefault())
+
   regSub(
     queryId = formattedTime,
     initialValue = "...",
     inputSignal = v(time)
   ) { date: Date, _, _: Query ->
 //    heavyComp()
-    SimpleDateFormat(HH_MM_SS, Locale.getDefault()).format(date)
+    simpleDateFormat.format(date)
   }
 
   regSub<AppDb>(queryId = primaryColorStr) { db, _ ->
@@ -113,24 +114,6 @@ fun regAllSubs(defaultColors: Colors) {
     }
   }
 
-  regSub(
-    queryId = themeColors,
-    initialValue = defaultColors,
-    inputSignals = { query ->
-      v(
-        subscribe(v(primaryColor)),
-        subscribe(v(secondaryColor))
-      )
-    }
-  ) { (primary, secondary), _, (_, colors) ->
-    withContext(Dispatchers.Main) {
-      (colors as Colors).copy(
-        primary = primary as Color,
-        secondary = secondary as Color
-      )
-    }
-  }
-
   regSub<AppDb>(queryId = Ids.about_dialog) { db, _ ->
     db.showAboutDialog
   }
@@ -138,20 +121,40 @@ fun regAllSubs(defaultColors: Colors) {
   regSub<AppDb>(queryId = Ids.info) { db, _ ->
     db.info
   }
+
   // ** test -------------------------------------------------------------------
-  fun info(appDb: AppDb): String = appDb.info
-  fun showAboutDialog(appDb: AppDb): Boolean = appDb.showAboutDialog
 
-  regSub(queryId = Ids.info, ::info)
+  /*  fun info(appDb: AppDb): String = appDb.info
+    fun showAboutDialog(appDb: AppDb): Boolean = appDb.showAboutDialog
 
-  regSub(queryId = Ids.about_dialog, ::showAboutDialog)
+    regSub(queryId = Ids.info, ::info)
 
-//  regSub(queryId = Ids.about_dialog, "")
+    regSub(queryId = Ids.about_dialog, ::showAboutDialog)
 
-  regSub(
-    queryId = secondaryColor,
-    initialValue = Yellow,
-    v(secondaryColorStr),
-    computationFn = ::toColor
-  )
+  //  regSub(queryId = Ids.about_dialog, "")
+
+    regSub(
+      queryId = secondaryColor,
+      initialValue = Yellow,
+      v(secondaryColorStr),
+      computationFn = ::toColor
+
+        regSub(
+      queryId = themeColors,
+      initialValue = defaultColors,
+      inputSignals = { query ->
+        v(
+          subscribe(v(primaryColor)),
+          subscribe(v(secondaryColor))
+        )
+      }
+    ) { (primary, secondary), _, (_, colors) ->
+      withContext(Dispatchers.Main) {
+        (colors as Colors).copy(
+          primary = primary as Color,
+          secondary = secondary as Color
+        )
+      }
+    }
+    )*/
 }

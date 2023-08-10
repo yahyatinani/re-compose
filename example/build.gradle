@@ -6,14 +6,14 @@ plugins {
 }
 
 android {
-  compileSdk 33
+  compileSdk 34
 
   namespace 'io.github.yahyatinani.recompose'
 
   defaultConfig {
     applicationId 'io.github.yahyatinani.recompose.example'
     minSdkVersion 22
-    targetSdkVersion 33
+    targetSdkVersion 34
     versionCode 1
     versionName '1.0'
     testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -85,15 +85,16 @@ dependencies {
   implementation project(':re-compose')
 
   debugImplementation deps.androidx.compose.ui.tooling
+  debugImplementation deps.leakcanary.android
 
   coreLibraryDesugaring deps.android.tools.desugar
 
   // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
-  configurations.configureEach {
-    resolutionStrategy {
-      force(deps.junit4)
-      // Temporary workaround for https://issuetracker.google.com/174733673
-      force("org.objenesis:objenesis:2.6")
-    }
-  }
+  /*  configurations.configureEach {
+   resolutionStrategy {
+   force(deps.junit4)
+   // Temporary workaround for https://issuetracker.google.com/174733673
+   force("org.objenesis:objenesis:2.6")
+   }
+   }*/
 }

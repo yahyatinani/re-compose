@@ -1,6 +1,7 @@
 package io.github.yahyatinani.recompose.subs
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import io.github.yahyatinani.y.concurrency.atom
 import io.github.yahyatinani.y.core.get
 import io.github.yahyatinani.y.core.m
@@ -39,7 +40,9 @@ class ReactionsCacheTest : FreeSpec({
 
     "should add the reaction to the cache map" {
       val key = v("test")
-      val reaction = Extraction(atom(1), id = "id") { (it as Int).inc() }
+      val reaction = Extraction(mutableStateOf(1), id = "id") {
+        (it as Int).inc()
+      }
 
       val cached = cacheReaction(key, reaction)
 
@@ -71,7 +74,7 @@ class ReactionsCacheTest : FreeSpec({
     override val initialValue: Any
       get() = TODO("Not yet implemented")
 
-    override val state: StateFlow<Any?>
+    override val stateFlow: StateFlow<Any?>
       get() = TODO("Not yet implemented")
 
     override fun addOnDispose(f: (Reaction<*>) -> Unit) {

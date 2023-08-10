@@ -1,7 +1,7 @@
 package io.github.yahyatinani.recompose.db
 
-import io.github.yahyatinani.y.concurrency.Atom
-import io.github.yahyatinani.y.concurrency.atom
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import io.github.yahyatinani.y.core.m
 
 /**
@@ -15,4 +15,5 @@ import io.github.yahyatinani.y.core.m
  *
  * It is set to a default token until it gets initialized via an event handler.
  * */
-internal val appDb: Atom<Any> = atom(m<Any, Any>())
+
+internal var appDb: MutableState<Any> = mutableStateOf(m<Any, Any>())

@@ -3,8 +3,9 @@ package io.github.yahyatinani.recompose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.yahyatinani.recompose.cofx.CofxHandler1
 import io.github.yahyatinani.recompose.cofx.injectDb
+import io.github.yahyatinani.recompose.cofx.regCofx
 import io.github.yahyatinani.recompose.db.appDb
 import io.github.yahyatinani.recompose.events.DbEventHandler
 import io.github.yahyatinani.recompose.events.Event
@@ -17,8 +18,6 @@ import io.github.yahyatinani.recompose.registrar.Kinds
 import io.github.yahyatinani.recompose.registrar.clearHandlers
 import io.github.yahyatinani.recompose.stdinterceptors.dbHandlerToInterceptor
 import io.github.yahyatinani.recompose.stdinterceptors.fxHandlerToInterceptor
-import io.github.yahyatinani.recompose.subs.Computation
-import io.github.yahyatinani.recompose.subs.Extraction
 import io.github.yahyatinani.recompose.subs.Query
 import io.github.yahyatinani.recompose.subs.Reaction
 import io.github.yahyatinani.recompose.subs.ReactionBase
@@ -328,22 +327,14 @@ fun regSub(
   computationFn = { subs, _, _ -> com(inputSignals.size, computationFn, subs) }
 )
 
+/**
+ * This function is not skipped on recomposition.
+ * See: https://issuetracker.google.com/issues/206021557?pli=1
+ */
 @Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> watch(query: Query): T {
-  val reaction = remember(Unit) { subscribe<T>(query) as ReactionBase<*, T> }
-
-  DisposableEffect(Unit) {
-    reaction.incUiSubCount()
-    onDispose { reaction.decUiSubCount() }
-  }
-
-  return when (reaction) {
-    is Extraction -> reaction.value as T
-    else -> remember {
-      (reaction as Computation).state
-    }.collectAsStateWithLifecycle().value as T
-  }
+  return remember { subscribe<T>(query) as ReactionBase<*, *> }.watch() as T
 }
 
 // -- Effects ------------------------------------------------------------------
@@ -369,3 +360,86 @@ fun clearFx() = clearHandlers(Kinds.Fx)
  * @param id The `id` of a previously registered effect handler.
  */
 fun clearFx(id: Any) = clearHandlers(Kinds.Fx, id)
+
+@Composable
+fun RegFx(id: Any, handler: EffectHandler) {
+  DisposableEffect(Unit) {
+    io.github.yahyatinani.recompose.fx.regFx(id, handler)
+
+    onDispose {
+      clearFx(id)
+    }
+  }
+}
+
+/**
+ * A side effect of composition that must run for any new unique value of [key1]
+ * and will be cleaned up if [key1] changes or if the RegFx leaves the
+ * composition.
+ *
+ * @param id is the identifier for the [effectHandler].
+ * @param key1 is a value that defines the identity of the RegFx.
+ * If a key changes, the RegFx will clear its current effect and register a new
+ * effect.
+ * @param effectHandler is the effect handler function [EffectHandler]
+ */
+@Composable
+fun RegFx(id: Any, key1: Any?, effectHandler: EffectHandler) {
+  DisposableEffect(key1) {
+    io.github.yahyatinani.recompose.fx.regFx(id, effectHandler)
+
+    onDispose {
+      clearFx(id)
+    }
+  }
+}
+
+@Composable
+fun RegFx(id: Any, vararg keys: Any?, effectHandler: EffectHandler) {
+  DisposableEffect(keys = keys) {
+    io.github.yahyatinani.recompose.fx.regFx(id, effectHandler)
+
+    onDispose {
+      clearFx(id)
+    }
+  }
+}
+
+// -- Coeffects ----------------------------------------------------------------
+
+fun clearCofx() = clearHandlers(Kinds.Cofx)
+
+fun clearCofx(id: Any) = clearHandlers(Kinds.Cofx, id)
+
+@Composable
+fun RegCofx(id: Any, handler: CofxHandler1) {
+  DisposableEffect(Unit) {
+    regCofx(id, handler)
+
+    onDispose {
+      clearCofx(id)
+    }
+  }
+}
+
+@Composable
+fun RegCofx(id: Any, key1: Any?, handler: CofxHandler1) {
+  DisposableEffect(key1) {
+    regCofx(id, handler)
+
+    onDispose {
+      clearCofx(id)
+    }
+  }
+}
+
+@Composable
+fun RegCofx(id: Any, vararg keys: Any?, handler: CofxHandler1) {
+  DisposableEffect(keys = keys) {
+    regCofx(id, handler)
+
+    onDispose {
+      clearCofx(id)
+    }
+  }
+}

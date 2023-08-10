@@ -1,6 +1,6 @@
 package io.github.yahyatinani.recompose.subs
 
-import io.github.yahyatinani.y.concurrency.atom
+import androidx.compose.runtime.mutableStateOf
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
@@ -18,14 +18,18 @@ class ExtractorReactionTest : FreeSpec({
   Dispatchers.setMain(testDispatcher)
 
   "ctor" {
-    val reaction = Extraction(atom(1), "Extraction") { (it as Int).inc() }
+    val reaction = Extraction(mutableStateOf(1), "Extraction") {
+      (it as Int).inc()
+    }
 
     reaction.deref() shouldBe 2
   }
 
   "deref()" {
     runTest {
-      val reaction = Extraction(atom(1), "Extraction") { (it as Int).inc() }
+      val reaction = Extraction(mutableStateOf(1), "Extraction") {
+        (it as Int).inc()
+      }
 
       reaction.deref() shouldBe 2
       reaction.deref() shouldBe reaction.deref()
@@ -34,12 +38,16 @@ class ExtractorReactionTest : FreeSpec({
 
   "collect()" {
     runTest {
-      val db = atom(0)
+      val db = mutableStateOf(0)
       var result: Int? = null
-      val inputSignal = Extraction(db, testDispatcher) { (it as Int).inc() }
+      val inputSignal = Extraction(
+        appDb = db,
+        id = "ext",
+        context = testDispatcher
+      ) { (it as Int).inc() }
 
       val job: Job = launch { inputSignal.collect { result = it as Int } }
-      launch { db.reset(4) }
+      launch { db.value = 4 }
 
       advanceUntilIdle()
 

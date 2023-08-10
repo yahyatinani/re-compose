@@ -47,7 +47,7 @@ class CofxTest : FreeSpec({
   }
 
   "when `cofxDb` loaded, it should register the appDb injector cofx" {
-    appDb.reset(-22)
+    appDb.value = -22
     registerDbInjectorCofx()
     val coeffects: Coeffects = m(db to -1)
 
@@ -63,7 +63,7 @@ class CofxTest : FreeSpec({
             injectCofx(id: Any) should return an Interceptor with before func
             that inject db value in coeffects.
             """ {
-        appDb.reset(-22)
+        appDb.value = -22
         registerDbInjectorCofx()
         val context: Context = m(coeffects to m(db to 10))
 
@@ -80,7 +80,7 @@ class CofxTest : FreeSpec({
             that inject db value in coeffects, if coeffects doesn't exist in
             passed context, add one.
             """ {
-        appDb.reset(-22)
+        appDb.value = -22
         registerDbInjectorCofx()
 
         val dbInjector: Interceptor = injectCofx(db)
@@ -95,7 +95,7 @@ class CofxTest : FreeSpec({
                 when no cofx handler registered for `id`, return the passed
                  context
             """ {
-        appDb.reset(-22)
+        appDb.value = -22
         val context: Context = m(coeffects to m(db to 10))
 
         val dbInjector: Interceptor = injectCofx("non-existent-id")
@@ -112,7 +112,7 @@ class CofxTest : FreeSpec({
                 when no cofx handler registered for `id`, return the passed
                 context
             """ {
-        appDb.reset(-22)
+        appDb.value = -22
         val context: Context = m(coeffects to m(db to 10))
 
         val dbInjector: Interceptor = injectCofx("non-existent-id", 0)
