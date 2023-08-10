@@ -4,7 +4,7 @@ import io.github.yahyatinani.recompose.TAG
 import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.recompose.events.handle
 
-internal val eventQueueFSM = EventQueueFSM(EventQueueImp())
+internal var eventQueueFSM = EventQueueFSM(EventQueueImp())
 
 // -- Dispatching --------------------------------------------------------------
 
