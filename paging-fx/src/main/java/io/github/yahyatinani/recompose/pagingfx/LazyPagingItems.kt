@@ -42,7 +42,6 @@ import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.recompose.fx.BuiltInFx.fx
 import io.github.yahyatinani.recompose.regEventFx
 import io.github.yahyatinani.recompose.regFx
-import io.github.yahyatinani.y.core.collections.PersistentVector
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
 import io.ktor.client.call.NoTransformationFoundException
@@ -148,13 +147,7 @@ class LazyPagingItems<T : Any> internal constructor(
     val snapshot = pagingDataDiffer.snapshot()
     itemSnapshotList = snapshot
 
-    dispatch(
-      onSuccessEvent.conj(
-        snapshot.fold<T?, PersistentVector<T>>(v()) { acc, t ->
-          if (t != null) acc.conj(t) else acc
-        }
-      )
-    )
+    dispatch(onSuccessEvent.conj(snapshot))
   }
 
   /**
@@ -223,10 +216,8 @@ class LazyPagingItems<T : Any> internal constructor(
       )
     }
 
-  internal suspend fun collectPagingData() {
-    flow.collectLatest {
-      pagingDataDiffer.collectFrom(it)
-    }
+  internal suspend fun collectPagingData() = flow.collectLatest {
+    pagingDataDiffer.collectFrom(it)
   }
 
   private companion object {
