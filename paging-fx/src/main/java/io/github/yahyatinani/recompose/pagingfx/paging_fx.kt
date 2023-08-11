@@ -131,6 +131,5 @@ fun pagingEffect(request: Any?) {
     launch { lazyPagingItems.collectPagingData() }
       .invokeOnCompletion { lazyPagingItems.clear() }
     launch { lazyPagingItems.collectLoadState() }
-      .invokeOnCompletion { lazyPagingItems.clear() }
   }
 }
