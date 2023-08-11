@@ -131,7 +131,7 @@ internal fun triggerParallel(
       updateIn(
         accFx,
         l(fsm.state_map, fsm._state),
-        { s: State -> s.dissoc(fsmKey) }
+        { s: State? -> s?.dissoc(fsmKey) }
       )
     } else {
       assocIn(accFx, l(fsm.state_map, fsm._state, fsmKey), nextRegionState)
@@ -202,7 +202,7 @@ fun trigger(
   } else { // fsm halt aka null => remove state from db.
     val last = statePath.peek()!!
     val butLast = statePath.pop().seq()
-    updateIn(appDb, butLast, { s: IPersistentMap<Any, Any> -> s.dissoc(last) })
+    updateIn(appDb, butLast, { s: State? -> s?.dissoc(last) })
   }
 
   return effects.assoc(recompose.db, newAppDb)
