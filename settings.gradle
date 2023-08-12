@@ -27,6 +27,6 @@ include ':http-fx'
 include ':example'
 
 include ':benchmark'
-include ':microbenchmark'
 include ':fsm'
 include ':paging-fx'
+include ':microbenchmark'

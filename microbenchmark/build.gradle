@@ -1,14 +1,7 @@
 plugins {
-  //
-  //  alias deps.plugins.android.library apply false
-  //  alias deps.plugins.androidx.benchmark apply false
-  //  alias deps.plugins.kotlin.android apply false
-  id 'kotlin-conventions'
-  //  id 'com.android.test'
+  alias(deps.plugins.androidx.benchmark)
   id 'com.android.library'
-  //  alias deps.plugins.android.library
-  //  alias deps.plugins.androidx.benchmark
-  //  alias deps.plugins.kotlin.android
+  id 'kotlin-conventions'
 }
 
 android {
@@ -46,11 +39,11 @@ android {
 }
 
 dependencies {
+  implementation project(':re-compose')
   androidTestImplementation deps.runner
   androidTestImplementation deps.junit
   androidTestImplementation deps.junit4
   androidTestImplementation deps.benchmark.junit4
-  androidTestImplementation project(':re-compose')
 
   // Add your dependencies here. Note that you cannot benchmark code
   // in an app module this way - you will need to move any code you
