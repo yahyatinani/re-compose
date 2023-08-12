@@ -197,49 +197,55 @@ class ComputationTest : FreeSpec({
 
   "input signals" - {
     "one input signal" {
-      runTest {
-        val appDb = mutableStateOf(0)
-        val input = Computation(
-          inputSignals = v(Extraction(appDb, "Extraction") { it }),
-          initialValue = -1,
-          id = "input",
-          context = testDispatcher
-        ) { args, _ -> (args as IPersistentVector<Int>)[0] }
-        val r = Computation(
-          inputSignals = v(input),
-          initialValue = -1,
-          id = "r",
-          context = testDispatcher
-        ) { args, _ -> (args as IPersistentVector<Int>)[0].inc() }
-        appDb.value = 5
+      continually(10.seconds) {
+        runTest {
+          val appDb = mutableStateOf(0)
+          val extraction =
+            Extraction(appDb = appDb, id = "Extraction", testDispatcher) { it }
+          val input = Computation(
+            inputSignals = v(extraction),
+            initialValue = -1,
+            id = "input",
+            context = testDispatcher
+          ) { args, _ -> (args as IPersistentVector<Int>)[0] }
+          val r = Computation(
+            inputSignals = v(input),
+            initialValue = -1,
+            id = "r",
+            context = testDispatcher
+          ) { args, _ -> (args as IPersistentVector<Int>)[0].inc() }
+          appDb.value = 5
 
-        advanceUntilIdle()
+          advanceUntilIdle()
 
-        r.deref() shouldBe 6
+          r.deref() shouldBe 6
+        }
       }
     }
 
     "multiple input signals" {
-      runTest {
-        val appDb1 = mutableStateOf(0)
-        val appDb2 = mutableStateOf(0)
-        val in1 = Extraction(appDb1, "Extraction", testDispatcher) { it }
-        val in2 = Extraction(appDb2, "Extraction", testDispatcher) { it }
+      continually(10.seconds) {
+        runTest {
+          val appDb1 = mutableStateOf(0)
+          val appDb2 = mutableStateOf(0)
+          val in1 = Extraction(appDb1, "Extraction", testDispatcher) { it }
+          val in2 = Extraction(appDb2, "Extraction", testDispatcher) { it }
 
-        val node = Computation(
-          inputSignals = v(in1, in2),
-          initialValue = -1,
-          id = "node",
-          context = testDispatcher
-        ) { args, _ ->
-          val (a, b) = args as IPersistentVector<Int>
-          (a + b).inc()
+          val node = Computation(
+            inputSignals = v(in1, in2),
+            initialValue = -1,
+            id = "node",
+            context = testDispatcher
+          ) { args, _ ->
+            val (a, b) = args as IPersistentVector<Int>
+            (a + b).inc()
+          }
+          appDb1.value = 3
+          appDb2.value = 5
+          advanceUntilIdle()
+
+          node.deref() shouldBe 9
         }
-        appDb1.value = 3
-        appDb2.value = 5
-        advanceUntilIdle()
-
-        node.deref() shouldBe 9
       }
     }
 
