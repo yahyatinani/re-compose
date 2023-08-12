@@ -14,7 +14,6 @@ import io.github.yahyatinani.recompose.router.State.RUNNING
 import io.github.yahyatinani.recompose.router.State.SCHEDULING
 import io.github.yahyatinani.y.concurrency.Atom
 import io.github.yahyatinani.y.concurrency.atom
-import io.github.yahyatinani.y.core.v
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -83,15 +82,15 @@ internal class EventQueueFSM(
 
   internal fun exception(ex: Throwable) = eventQueue.exception(ex)
 
-  private val IDLE_identity = v(IDLE, ::identity)
-  private val SCHEDULING_runQueue = v(SCHEDULING, ::runQueue)
-  private val SCHEDULING_enqueueEvent = v(SCHEDULING, ::enqueueEvent)
-  private val RUNNING_enqueuEvent = v(RUNNING, ::enqueueEvent)
+  private val IDLE_identity = Pair(IDLE, ::identity)
+  private val SCHEDULING_runQueue = Pair(SCHEDULING, ::runQueue)
+  private val SCHEDULING_enqueueEvent = Pair(SCHEDULING, ::enqueueEvent)
+  private val RUNNING_enqueuEvent = Pair(RUNNING, ::enqueueEvent)
   private val SCHEDULING_enqueueEventAndRunQueue =
-    v(SCHEDULING, ::enqueueEventAndRunQueue)
+    Pair(SCHEDULING, ::enqueueEventAndRunQueue)
   private val RUNNING_processAllCurrentEvents =
-    v(RUNNING, { arg: Any? -> processAllCurrentEvents(arg) })
-  private val IDLE_exception = v(IDLE, ::exception)
+    Pair(RUNNING, { arg: Any? -> processAllCurrentEvents(arg) })
+  private val IDLE_exception = Pair(IDLE, ::exception)
 
   // -- FSM implementation -----------------------------------------------------
 
@@ -108,7 +107,7 @@ internal class EventQueueFSM(
    * of next FSM state and action to execute.
    */
   private fun givenWhenThen(currentState: State, trigger: FsmEvent) =
-    when (v(currentState, trigger)) {
+    when (Pair(currentState, trigger)) {
       IDLE__ADD_EVENT -> SCHEDULING_enqueueEventAndRunQueue
       SCHEDULING__ADD_EVENT -> SCHEDULING_enqueueEvent
       SCHEDULING__RUN_QUEUE -> RUNNING_processAllCurrentEvents
@@ -145,11 +144,11 @@ internal class EventQueueFSM(
     }
 
     /* FSM transitions: */
-    internal val IDLE__ADD_EVENT = v(IDLE, ADD_EVENT)
-    internal val SCHEDULING__RUN_QUEUE = v(SCHEDULING, RUN_QUEUE)
-    internal val RUNNING__FINISH_RUN = v(RUNNING, FINISH_RUN)
-    internal val RUNNING__ADD_EVENT = v(RUNNING, ADD_EVENT)
-    internal val SCHEDULING__ADD_EVENT = v(SCHEDULING, ADD_EVENT)
-    internal val RUNNING__EXCEPTION = v(RUNNING, EXCEPTION)
+    internal val IDLE__ADD_EVENT = Pair(IDLE, ADD_EVENT)
+    internal val SCHEDULING__RUN_QUEUE = Pair(SCHEDULING, RUN_QUEUE)
+    internal val RUNNING__FINISH_RUN = Pair(RUNNING, FINISH_RUN)
+    internal val RUNNING__ADD_EVENT = Pair(RUNNING, ADD_EVENT)
+    internal val SCHEDULING__ADD_EVENT = Pair(SCHEDULING, ADD_EVENT)
+    internal val RUNNING__EXCEPTION = Pair(RUNNING, EXCEPTION)
   }
 }
