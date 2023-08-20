@@ -26,7 +26,7 @@ enum class bounce {
 
 private val debounceRecord: Atom<IPersistentMap<Any, Any>> = atom(m())
 
-val regBounceFx = run {
+fun regBounceFx() {
   fun dispatchLater(debounce: IPersistentMap<Any?, Any?>) {
     // TODO: pass a CoroutineScope?
     GlobalScope.launch {

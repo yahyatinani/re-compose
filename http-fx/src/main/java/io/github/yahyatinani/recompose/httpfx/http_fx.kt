@@ -99,4 +99,6 @@ fun httpEffect(request: Any?) {
   }
 }
 
-val regHttpKtor = run { regFx(ktor.http_fx, ::httpEffect) }
+fun regHttpKtor() {
+  regFx(ktor.http_fx, ::httpEffect)
+}

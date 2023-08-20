@@ -32,8 +32,6 @@ enum class paging {
   override fun toString(): String = "${this::class.simpleName}:$name"
 }
 
-fun regPagingFx() = regFx(paging.fx, ::pagingEffect)
-
 // val pagingSrcCache: Atom<IPersistentMap<Any, Any>> = atom(m())
 
 data class PagingSourceImp(
@@ -133,3 +131,5 @@ fun pagingEffect(request: Any?) {
     launch { lazyPagingItems.collectLoadState() }
   }
 }
+
+fun regPagingFx() = regFx(paging.fx, ::pagingEffect)
