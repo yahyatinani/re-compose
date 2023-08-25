@@ -1,0 +1,10 @@
+# Baseline profile rules for io.github.yahyatinani.recompose.httpfx
+# =============================================
+#
+# Include all methods in top level classes
+HSPLio/github/yahyatinani/recompose/httpfx/debounce_fxKt;->**(**)**
+HSPLio/github/yahyatinani/recompose/httpfx/Http_fxKt;->**(**)**
+
+#
+# Include all of httpfx
+Lio/github/yahyatinani/recompose/httpfx/**;

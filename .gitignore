@@ -44,6 +44,7 @@ gradle-app.setting
 *.apk
 *.ap_
 *.aab
+re-compose/src/main/generated/baselineProfiles/
 
 # Files for the ART/Dalvik VM
 *.dex

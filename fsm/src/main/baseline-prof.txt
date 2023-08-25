@@ -1,0 +1,9 @@
+# Baseline profile rules for io.github.yahyatinani.recompose.fsm
+# =============================================
+#
+# Include all methods in top level classes
+HSPLio/github/yahyatinani/recompose/fsm/CoreKt;->**(**)**
+
+#
+# Include all of fsm
+Lio/github/yahyatinani/recompose/fsm/**;

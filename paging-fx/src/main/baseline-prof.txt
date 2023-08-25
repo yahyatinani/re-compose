@@ -1,0 +1,11 @@
+# Baseline profile rules for io.github.yahyatinani.recompose.pagingfx
+# =============================================
+#
+# Include all methods in top level classes
+HSPLio/github/yahyatinani/recompose/pagingfx/Paging_fxKt;->**(**)**
+HSPLio/github/yahyatinani/recompose/pagingfx/LazyPagingItems;->**(**)**
+HSPLio/github/yahyatinani/recompose/pagingfx/Page;->**(**)**
+
+#
+# Include all of pagingfx
+Lio/github/yahyatinani/recompose/pagingfx/**;

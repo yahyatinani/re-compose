@@ -1,19 +1,39 @@
-Lio/github/yahyatinani/re-compose/router/*;
-Lio/github/yahyatinani/re-compose/db/*;
-Lio/github/yahyatinani/re-compose/subs/*;
+# Baseline profile rules for io.github.yahyatinani.recompose
+# =============================================
+#
+# Include all methods in top level classes
+HSPLio/github/yahyatinani/recompose/CoreKt;->**(**)**
 
-# router. include everything
-HSPLio/github/yahyatinani/re-compose/router/**->**(**)**
+# Include everything inside of the cofx namespace
+HSPLio/github/yahyatinani/recompose/cofx/**->**(**)**
 
-# db. include everything
-HSPLio/github/yahyatinani/re-compose/db/**->**(**)**
+# Include everything inside of the db namespace
+HSPLio/github/yahyatinani/recompose/db/**->**(**)**
 
-HSPLio/github/yahyatinani/re-compose/cofx/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/events/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/fx/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/ids/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/interceptor/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/registrar/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/stdinterceptors/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/subs/**->**(**)**
-HSPLio/github/yahyatinani/re-compose/**->**(**)**
+# Include everything inside of the events namespace
+HSPLio/github/yahyatinani/recompose/events/**->**(**)**
+
+# Include everything inside of the fx namespace
+HSPLio/github/yahyatinani/recompose/fx/**->**(**)**
+
+# Include everything inside of the ids namespace
+HSPLio/github/yahyatinani/recompose/ids/**->**(**)**
+
+# Include everything inside of the interceptor namespace
+HSPLio/github/yahyatinani/recompose/interceptor/**->**(**)**
+
+# Include everything inside of the registrar namespace
+HSPLio/github/yahyatinani/recompose/registrar/**->**(**)**
+
+# Include everything inside of the router namespace
+HSPLio/github/yahyatinani/recompose/router/**->**(**)**
+
+# Include everything inside of the stdinterceptors namespace
+HSPLio/github/yahyatinani/recompose/stdinterceptors/**->**(**)**
+
+# Include everything inside of the subs namespace
+HSPLio/github/yahyatinani/recompose/subs/**->**(**)**
+
+#
+# Include all of recompose
+Lio/github/yahyatinani/recompose/**;
