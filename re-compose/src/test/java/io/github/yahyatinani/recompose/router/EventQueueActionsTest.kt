@@ -5,7 +5,7 @@ import io.github.yahyatinani.recompose.cofx.registerDbInjectorCofx
 import io.github.yahyatinani.recompose.db.appDb
 import io.github.yahyatinani.recompose.fx.registerBuiltinFxHandlers
 import io.github.yahyatinani.recompose.ids.recompose
-import io.github.yahyatinani.recompose.registrar.kindIdHandler
+import io.github.yahyatinani.recompose.registrar.clearHandlers
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
@@ -23,7 +23,7 @@ class EventQueueActionsTest : FreeSpec({
 
   beforeEach {
     Dispatchers.setMain(testDispatcher)
-    kindIdHandler.reset(m())
+    clearHandlers()
     appDb.value = m<Any, Any>()
     registerDbInjectorCofx()
     injectCofx(recompose.db)

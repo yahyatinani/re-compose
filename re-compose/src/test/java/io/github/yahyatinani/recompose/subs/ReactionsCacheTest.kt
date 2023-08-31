@@ -40,7 +40,7 @@ class ReactionsCacheTest : FreeSpec({
 
     "should add the reaction to the cache map" {
       val key = v("test")
-      val reaction = Extraction(mutableStateOf(1), id = "id") {
+      val reaction = Extraction({ mutableStateOf(1).value }, id = "id") {
         (it as Int).inc()
       }
 
