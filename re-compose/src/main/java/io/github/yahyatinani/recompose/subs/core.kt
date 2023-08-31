@@ -65,14 +65,16 @@ inline fun <Db, V> regDbSubscription(
   queryId: Any,
   crossinline extractorFn: (db: Db, queryVec: Query) -> V
 ) {
-  registerHandler(
-    id = queryId,
-    kind = kind,
-    handlerFn = { appDb: MutableState<*>, queryVec: Query ->
-      Extraction(appDb = appDb, id = queryId) { signalValue: Any? ->
+  val handlerFn: (MutableState<*>, Query) -> Extraction =
+    { appDb: MutableState<*>, queryVec: Query ->
+      Extraction(appDb = { appDb.value }, id = queryId) { signalValue: Any? ->
         extractorFn(signalValue as Db, queryVec)
       }
     }
+  registerHandler(
+    id = queryId,
+    kind = kind,
+    handlerFn = handlerFn
   )
 }
 
