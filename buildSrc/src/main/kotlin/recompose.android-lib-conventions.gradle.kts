@@ -29,7 +29,7 @@ android {
 
   packaging {
     resources {
-      excludes += listOf("/*.jar", "/META-INF/{AL2.0,LGPL2.1}")
+      excludes += listOf("/*.jar", "/META-INF/{AL2.0,LGPL2.1,INDEX.LIST}")
     }
   }
 
