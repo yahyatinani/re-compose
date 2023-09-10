@@ -202,7 +202,9 @@ fun trigger(
   } else { // fsm halt aka null => remove state from db.
     val last = statePath.peek()!!
     val butLast = statePath.pop().seq()
-    updateIn(appDb, butLast, { s: State? -> s?.dissoc(last) })
+
+    if (butLast.count == 0) appDb.dissoc(last)
+    else updateIn(appDb, butLast, { s: State? -> s?.dissoc(last) })
   }
 
   return effects.assoc(recompose.db, newAppDb)
