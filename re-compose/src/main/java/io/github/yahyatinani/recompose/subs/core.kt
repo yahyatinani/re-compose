@@ -10,10 +10,11 @@ import io.github.yahyatinani.recompose.registrar.Kinds
 import io.github.yahyatinani.recompose.registrar.Kinds.Sub
 import io.github.yahyatinani.recompose.registrar.getHandler
 import io.github.yahyatinani.recompose.registrar.registerHandler
-import io.github.yahyatinani.y.concurrency.atom
 import io.github.yahyatinani.y.core.collections.IPersistentVector
-import io.github.yahyatinani.y.core.get
-import io.github.yahyatinani.y.core.util.m
+import kotlinx.atomicfu.locks.reentrantLock
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.component1
+import kotlin.collections.set
 
 val kind: Kinds = Sub
 
@@ -27,25 +28,23 @@ typealias SubHandler<V> = (MutableState<Any>, Query) -> Reaction<V>
  * [Reaction]s cache atom/hashmap.
  *
  * [Query] to [Reaction] associations. */
-internal val reactionsCache = atom(m<Query, Reaction<*>>())
+internal val reactionsCache = ConcurrentHashMap<Query, Reaction<*>>()
+
+private val lock = reentrantLock()
 
 internal fun <V> cacheReaction(key: Query, reaction: Reaction<V>): Reaction<V> {
   reaction.addOnDispose { r ->
-    reactionsCache.swap { cache ->
-      val cr = cache[key]
-      if (cr != null && r === cr) {
-        Log.d(TAG, "${r.id} is removed from cache.")
-        cache.dissoc(key)
-      } else cache
+    if (reactionsCache.remove(key, r)) {
+      Log.d(TAG, "${r.id} is removed from cache.")
     }
   }
-  reactionsCache.swap { cache -> cache.assoc(key, reaction) }
+  reactionsCache[key] = reaction
   return reaction
 }
 
 @Suppress("UNCHECKED_CAST")
 internal fun <V> subscribe(query: Query): Reaction<V> {
-  val cachedReaction = reactionsCache.deref()[query]
+  val cachedReaction = reactionsCache[query]
 
   if (cachedReaction != null) return cachedReaction as Reaction<V>
 
