@@ -6,7 +6,7 @@ import io.github.yahyatinani.recompose.registrar.Kinds.Fx
 import io.github.yahyatinani.recompose.registrar.Kinds.Sub
 import io.github.yahyatinani.recompose.registrar.clearHandlers
 import io.github.yahyatinani.recompose.registrar.getHandler
-import io.github.yahyatinani.recompose.registrar.kindIdHandler
+import io.github.yahyatinani.recompose.registrar.getRegistrar
 import io.github.yahyatinani.recompose.registrar.registerHandler
 import io.github.yahyatinani.y.core.collections.IPersistentVector
 import io.github.yahyatinani.y.core.m
@@ -16,11 +16,10 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
-import io.github.yahyatinani.recompose.registrar.kindIdHandler as myRegister
 
 class RegistrarTest : FreeSpec({
   afterTest {
-    myRegister.reset(m())
+    clearHandlers()
   }
 
   "registerHandler()/getHandler(kind)" - {
@@ -52,7 +51,7 @@ class RegistrarTest : FreeSpec({
 
       val handler = getHandler(Cofx, id)
 
-      myRegister.deref().count shouldBeExactly 1
+      getRegistrar(Cofx).size shouldBeExactly 1
       handler shouldBeSameInstanceAs handlerFn
     }
 
@@ -101,7 +100,7 @@ class RegistrarTest : FreeSpec({
 
       clearHandlers()
 
-      kindIdHandler() shouldBe m<Any, Any>()
+      getRegistrar(Event).size shouldBeExactly 0
     }
 
     "clearHandlers(kind) should clear all event handlers of given kind." {
@@ -112,7 +111,7 @@ class RegistrarTest : FreeSpec({
 
       clearHandlers(Event)
 
-      kindIdHandler() shouldBe m(Sub to m(":sub" to subHandler))
+      getRegistrar(Event).size shouldBeExactly 0
     }
 
     "clearHandlers(kind, id) should clear event of given id" {
@@ -125,10 +124,8 @@ class RegistrarTest : FreeSpec({
       clearHandlers(Event, ":event1")
       clearHandlers(Event, ":not-found-event")
 
-      kindIdHandler() shouldBe m(
-        Sub to m(":sub" to subHandler),
-        Event to m(":event2" to eventHandler)
-      )
+      getRegistrar(Event) shouldBe m(":event2" to eventHandler)
+      getRegistrar(Sub) shouldBe m(":sub" to subHandler)
     }
   }
 })

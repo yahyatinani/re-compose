@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import io.github.yahyatinani.y.concurrency.atom
 import io.github.yahyatinani.y.core.get
-import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -27,7 +26,7 @@ class ReactionsCacheTest : FreeSpec({
   every { Log.i(any(), any()) } returns 0
   Dispatchers.setMain(StandardTestDispatcher())
 
-  beforeEach { reactionsCache.reset(m()) }
+  beforeEach { reactionsCache.clear() }
 
   "cacheReaction()" - {
     "should call addOnDispose(f) on the cached reaction" {
@@ -40,13 +39,13 @@ class ReactionsCacheTest : FreeSpec({
 
     "should add the reaction to the cache map" {
       val key = v("test")
-      val reaction = Extraction(mutableStateOf(1), id = "id") {
+      val reaction = Extraction({ mutableStateOf(1).value }, id = "id") {
         (it as Int).inc()
       }
 
       val cached = cacheReaction(key, reaction)
 
-      reactionsCache.deref()[key].shouldNotBeNull()
+      reactionsCache[key].shouldNotBeNull()
       cached shouldBeSameInstanceAs reaction
     }
   }

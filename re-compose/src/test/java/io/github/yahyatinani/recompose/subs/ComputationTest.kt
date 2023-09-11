@@ -64,7 +64,7 @@ class ComputationTest : FreeSpec({
         val appDb = mutableStateOf(0)
         val input1 = Computation(
           inputSignals = v(
-            Extraction(appDb, "Extraction", testDispatcher) { it }
+            Extraction({ appDb.value }, "Extraction", testDispatcher) { it }
           ),
           initialValue = -1,
           id = "input1",
@@ -113,7 +113,7 @@ class ComputationTest : FreeSpec({
         var isDisposed = false
         val appDb = mutableStateOf(0)
         val computation = Computation(
-          inputSignals = v(Extraction(appDb, "Extraction") { 0 }),
+          inputSignals = v(Extraction({ appDb.value }, "Extraction") { 0 }),
           initialValue = -1,
           id = "computation",
           context = testDispatcher
@@ -140,7 +140,12 @@ class ComputationTest : FreeSpec({
     "when reaction is active, skip" {
       runTest {
         val reaction = Computation(
-          inputSignals = v(Extraction(mutableStateOf(0), "Extraction") { 0 }),
+          inputSignals = v(
+            Extraction(
+              appDb = { mutableStateOf(0).value },
+              id = "Extraction"
+            ) { 0 }
+          ),
           initialValue = -1,
           id = "reaction",
           context = testDispatcher
@@ -163,7 +168,12 @@ class ComputationTest : FreeSpec({
       runTest {
         var isSubscriberDisposed = false
         val reaction = Computation(
-          inputSignals = v(Extraction(mutableStateOf(0), "Extraction") { 0 }),
+          inputSignals = v(
+            Extraction(
+              appDb = { mutableStateOf(0).value },
+              id = "Extraction"
+            ) { 0 }
+          ),
           initialValue = -1,
           id = "reaction",
           context = testDispatcher
@@ -201,7 +211,11 @@ class ComputationTest : FreeSpec({
         runTest {
           val appDb = mutableStateOf(0)
           val extraction =
-            Extraction(appDb = appDb, id = "Extraction", testDispatcher) { it }
+            Extraction(
+              appDb = { appDb.value },
+              id = "Extraction",
+              testDispatcher
+            ) { it }
           val input = Computation(
             inputSignals = v(extraction),
             initialValue = -1,
@@ -228,8 +242,10 @@ class ComputationTest : FreeSpec({
         runTest {
           val appDb1 = mutableStateOf(0)
           val appDb2 = mutableStateOf(0)
-          val in1 = Extraction(appDb1, "Extraction", testDispatcher) { it }
-          val in2 = Extraction(appDb2, "Extraction", testDispatcher) { it }
+          val in1 =
+            Extraction({ appDb1.value }, "Extraction", testDispatcher) { it }
+          val in2 =
+            Extraction({ appDb2.value }, "Extraction", testDispatcher) { it }
 
           val node = Computation(
             inputSignals = v(in1, in2),
@@ -254,8 +270,10 @@ class ComputationTest : FreeSpec({
         runTest {
           val appDb =
             mutableStateOf<Associative<String, Int>>(m("a" to 0, "b" to 0))
-          val e1 = Extraction(appDb, "e1", testDispatcher) { get(it, "a") }
-          val e2 = Extraction(appDb, "e2", testDispatcher) { get(it, "b") }
+          val e1 =
+            Extraction({ appDb.value }, "e1", testDispatcher) { get(it, "a") }
+          val e2 =
+            Extraction({ appDb.value }, "e2", testDispatcher) { get(it, "b") }
           val input1 = Computation(
             inputSignals = v(e1),
             initialValue = -1,
@@ -329,7 +347,13 @@ class ComputationTest : FreeSpec({
       runTest {
         val appDb = mutableStateOf(4)
         val input = Computation(
-          inputSignals = v(Extraction(appDb, "ext", testDispatcher) { it }),
+          inputSignals = v(
+            Extraction(
+              appDb = { appDb.value },
+              id = "ext",
+              context = testDispatcher
+            ) { it }
+          ),
           context = testDispatcher,
           id = "input",
           initialValue = 7

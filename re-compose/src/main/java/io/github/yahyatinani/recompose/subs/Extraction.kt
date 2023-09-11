@@ -21,19 +21,19 @@ import kotlinx.coroutines.flow.transform
  * @param f - It takes the app db value as an input.
  */
 class Extraction(
-  val appDb: MutableState<*>,
+  val appDb: () -> Any?,
   id: Any,
   val context: CoroutineDispatcher = Dispatchers.Default,
   override val f: (signalValue: Any?) -> Any?
 ) : ReactionBase<Any?, Any?>(id) {
 
-  override val initialValue: Any? = f(appDb.value)
+  override val initialValue: Any? = f(appDb())
 
   override val reactionScope: CoroutineScope = MainScope()
 
   override val category: Char = 'e'
 
-  val state: State<Any?> = derivedStateOf { f(appDb.value) }
+  val state: State<Any?> = derivedStateOf { f(appDb()) }
 
   /**
    * This property is lazy because it is only realized if this [Extraction] was

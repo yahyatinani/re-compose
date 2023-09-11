@@ -77,6 +77,7 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
 
   override fun dispose(): Boolean = when {
     !isDisposed.deref() && isNotActive() -> {
+      viewSubCount.removeWatch(id)
       var fs: ISeq<(ReactionBase<T, O>) -> Unit>? = disposeFns.deref()
       while (fs != null && fs.count > 0) {
         val f = fs.first()

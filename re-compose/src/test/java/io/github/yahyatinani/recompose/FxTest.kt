@@ -14,6 +14,8 @@ import io.github.yahyatinani.recompose.ids.context
 import io.github.yahyatinani.recompose.ids.recompose.db
 import io.github.yahyatinani.recompose.interceptor.InterceptorFn
 import io.github.yahyatinani.recompose.registrar.Kinds
+import io.github.yahyatinani.recompose.registrar.clearHandlers
+import io.github.yahyatinani.recompose.registrar.getRegistrar
 import io.github.yahyatinani.y.core.get
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
@@ -24,7 +26,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.every
 import io.mockk.mockkStatic
-import io.github.yahyatinani.recompose.registrar.kindIdHandler as myRegister
 
 @Suppress("UNCHECKED_CAST")
 class FxTest : FreeSpec({
@@ -33,7 +34,7 @@ class FxTest : FreeSpec({
 
   beforeAny {
     appDb.value = m<Any, Any>()
-    myRegister.swap { m() }
+    clearHandlers()
     registerBuiltinFxHandlers()
   }
 
@@ -42,7 +43,7 @@ class FxTest : FreeSpec({
 
     regFx(":fx-test", fxHandler)
 
-    myRegister.deref()[Kinds.Fx]!![":fx-test"] shouldBeSameInstanceAs fxHandler
+    getRegistrar(Kinds.Fx)[":fx-test"] shouldBeSameInstanceAs fxHandler
   }
 
   "doFx interceptor should update the appDb and apply other effects" {
@@ -165,9 +166,9 @@ class FxTest : FreeSpec({
   "initBuiltinEffectHandlers()" {
     registerBuiltinFxHandlers()
 
-    val fxFxHandler: Any? = myRegister.deref()[Kinds.Fx]!![fx]
-    val dbFxHandler: Any? = myRegister.deref()[Kinds.Fx]!![db]
-    val dispatchFxHandler: Any? = myRegister.deref()[Kinds.Fx]!![dispatch]
+    val fxFxHandler: Any? = getRegistrar(Kinds.Fx)[fx]
+    val dbFxHandler: Any? = getRegistrar(Kinds.Fx)[db]
+    val dispatchFxHandler: Any? = getRegistrar(Kinds.Fx)[dispatch]
 
     fxFxHandler.shouldNotBeNull()
     dbFxHandler.shouldNotBeNull()

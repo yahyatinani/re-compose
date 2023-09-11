@@ -18,7 +18,10 @@ class ExtractorReactionTest : FreeSpec({
   Dispatchers.setMain(testDispatcher)
 
   "ctor" {
-    val reaction = Extraction(mutableStateOf(1), "Extraction") {
+    val reaction = Extraction(
+      appDb = { mutableStateOf(1).value },
+      id = "Extraction"
+    ) {
       (it as Int).inc()
     }
 
@@ -27,7 +30,10 @@ class ExtractorReactionTest : FreeSpec({
 
   "deref()" {
     runTest {
-      val reaction = Extraction(mutableStateOf(1), "Extraction") {
+      val reaction = Extraction(
+        appDb = { mutableStateOf(1).value },
+        id = "Extraction"
+      ) {
         (it as Int).inc()
       }
 
@@ -41,7 +47,7 @@ class ExtractorReactionTest : FreeSpec({
       val db = mutableStateOf(0)
       var result: Int? = null
       val inputSignal = Extraction(
-        appDb = db,
+        appDb = { db.value },
         id = "ext",
         context = testDispatcher
       ) { (it as Int).inc() }
