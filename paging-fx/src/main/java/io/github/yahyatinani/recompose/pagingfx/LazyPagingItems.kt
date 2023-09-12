@@ -42,15 +42,15 @@ import io.github.yahyatinani.recompose.events.Event
 import io.github.yahyatinani.recompose.fx.BuiltInFx.fx
 import io.github.yahyatinani.recompose.regEventFx
 import io.github.yahyatinani.recompose.regFx
+import io.github.yahyatinani.y.core.collections.ISeq
+import io.github.yahyatinani.y.core.fold
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
-import io.ktor.client.call.NoTransformationFoundException
-import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
-import java.net.UnknownHostException
 
 private val IncompleteLoadState = NotLoading(false)
 private val InitialLoadStates = LoadStates(
@@ -59,19 +59,18 @@ private val InitialLoadStates = LoadStates(
   IncompleteLoadState
 )
 
+/**
+ * @param flow the [Flow] object which contains a stream of [PagingData] elements.
+ */
 @SuppressLint("RestrictedApi")
 class LazyPagingItems<T : Any> internal constructor(
-  /**
-   * the [Flow] object which contains a stream of [PagingData] elements.
-   */
   private val flow: Flow<PagingData<T>>,
-  val onSuccessEvent: Event,
   val onAppendEvent: Event,
-  val onFailure: Event,
-  private val triggerAppending: Any
+  val onAppendArgs: ISeq<Any>?,
+  private val triggerAppendId: Any
 ) {
   init {
-    regFx(triggerAppending) { index ->
+    regFx(triggerAppendId) { index ->
       // Notify Paging of the item access to trigger any loads necessary to
       // fulfill prefetchDistance.
       if ((index as Int) < pagingDataDiffer.size) {
@@ -79,14 +78,14 @@ class LazyPagingItems<T : Any> internal constructor(
       }
     }
 
-    regEventFx(triggerAppending) { _, event ->
+    regEventFx(triggerAppendId) { _, event ->
       m(fx to v(event))
     }
   }
 
   fun clear() {
-    clearEvent(triggerAppending)
-    clearFx(triggerAppending)
+    clearEvent(triggerAppendId)
+    clearFx(triggerAppendId)
   }
 
   private val mainDispatcher = Dispatchers.Main
@@ -98,7 +97,13 @@ class LazyPagingItems<T : Any> internal constructor(
    * trigger any loads.
    * Use [get] to achieve such behavior.
    */
-  var itemSnapshotList by mutableStateOf(ItemSnapshotList<T>(0, 0, emptyList()))
+  var itemSnapshotList by mutableStateOf(
+    ItemSnapshotList<T>(
+      placeholdersBefore = 0,
+      placeholdersAfter = 0,
+      items = emptyList()
+    )
+  )
     private set
 
   /**
@@ -143,11 +148,11 @@ class LazyPagingItems<T : Any> internal constructor(
       }
     }
 
+  private val itemSnapshotListUpdateCount = atomic(0)
   private fun updateItemSnapshotList() {
     val snapshot = pagingDataDiffer.snapshot()
     itemSnapshotList = snapshot
-
-    dispatch(onSuccessEvent.conj(snapshot))
+    itemSnapshotListUpdateCount.incrementAndGet()
   }
 
   /**
@@ -200,20 +205,35 @@ class LazyPagingItems<T : Any> internal constructor(
     .filterNotNull()
     .collect { loadStates: CombinedLoadStates ->
       loadState = loadStates
-      if (loadStates.refresh is Error) {
-        val status = when (val e = (loadStates.refresh as Error).error) {
-          is UnknownHostException -> 0
-          is HttpRequestTimeoutException -> -1
-          is NoTransformationFoundException -> TODO("504 Gateway Time-out: $e")
 
-          else -> throw e
+      val event = when (loadStates.refresh) {
+        is Error ->
+          onAppendEvent
+            .conj(v(triggerAppendId, "error"))
+            .conj(loadStates.refresh)
+
+        else -> when (val append = loadStates.source.append) {
+          is Error ->
+            onAppendEvent
+              .conj(v(triggerAppendId, "error"))
+              .conj(append.error)
+
+          Loading -> onAppendEvent.conj(v(triggerAppendId, "loading"))
+
+          is NotLoading -> {
+            if (itemSnapshotListUpdateCount.value == 0) return@collect
+
+            onAppendEvent
+              .conj(v(triggerAppendId, "done_loading"))
+              .conj(itemSnapshotList)
+              .conj(append.endOfPaginationReached)
+              .let {
+                onAppendArgs?.fold(it) { acc, arg -> acc.conj(arg) } ?: it
+              }
+          }
         }
-        dispatch(onFailure.conj(status))
       }
-
-      dispatch(
-        onAppendEvent.conj(v(triggerAppending, loadStates.source.append))
-      )
+      dispatch(event)
     }
 
   internal suspend fun collectPagingData() = flow.collectLatest {
