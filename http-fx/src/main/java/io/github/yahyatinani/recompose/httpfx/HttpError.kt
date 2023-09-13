@@ -1,4 +1,4 @@
-package io.github.yahyatinani.recompose.pagingfx
+package io.github.yahyatinani.recompose.httpfx
 
 data class HttpError(
   val uri: String,

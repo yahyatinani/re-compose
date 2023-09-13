@@ -210,15 +210,26 @@ class LazyPagingItems<T : Any> internal constructor(
         is Error ->
           onAppendEvent
             .conj(v(triggerAppendId, "error"))
-            .conj(loadStates.refresh)
+            .conj((loadStates.refresh as Error).error)
+            .let {
+              onAppendArgs?.fold(it) { acc, arg -> acc.conj(arg) } ?: it
+            }
 
         else -> when (val append = loadStates.source.append) {
           is Error ->
             onAppendEvent
               .conj(v(triggerAppendId, "error"))
               .conj(append.error)
+              .let {
+                onAppendArgs?.fold(it) { acc, arg -> acc.conj(arg) } ?: it
+              }
 
-          Loading -> onAppendEvent.conj(v(triggerAppendId, "loading"))
+          Loading ->
+            onAppendEvent
+              .conj(v(triggerAppendId, "loading"))
+              .let {
+                onAppendArgs?.fold(it) { acc, arg -> acc.conj(arg) } ?: it
+              }
 
           is NotLoading -> {
             if (itemSnapshotListUpdateCount.value == 0) return@collect
@@ -226,13 +237,14 @@ class LazyPagingItems<T : Any> internal constructor(
             onAppendEvent
               .conj(v(triggerAppendId, "done_loading"))
               .conj(itemSnapshotList)
-              .conj(append.endOfPaginationReached)
               .let {
                 onAppendArgs?.fold(it) { acc, arg -> acc.conj(arg) } ?: it
               }
+              .conj(append.endOfPaginationReached)
           }
         }
       }
+
       dispatch(event)
     }
 

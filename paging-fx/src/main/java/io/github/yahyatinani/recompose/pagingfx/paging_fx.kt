@@ -8,6 +8,8 @@ import androidx.paging.PagingState
 import androidx.paging.cachedIn
 import io.github.yahyatinani.recompose.dispatch
 import io.github.yahyatinani.recompose.events.Event
+import io.github.yahyatinani.recompose.httpfx.HttpError
+import io.github.yahyatinani.recompose.httpfx.httpErrorByException
 import io.github.yahyatinani.recompose.httpfx.httpFxClient
 import io.github.yahyatinani.recompose.httpfx.ktor
 import io.github.yahyatinani.recompose.regFx
@@ -15,8 +17,6 @@ import io.github.yahyatinani.y.core.collections.IPersistentMap
 import io.github.yahyatinani.y.core.collections.ISeq
 import io.github.yahyatinani.y.core.get
 import io.github.yahyatinani.y.core.seq
-import io.ktor.client.call.NoTransformationFoundException
-import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.url
@@ -26,7 +26,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.util.reflect.TypeInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.net.UnknownHostException
 
 @Suppress("ClassName", "EnumEntryName")
 enum class paging {
@@ -68,10 +67,7 @@ internal suspend fun httpCall(
   val httpResponse = try {
     httpFxClient.get {
       url(url)
-      timeout {
-        requestTimeoutMillis =
-          (timeout as Number?)?.toLong()
-      }
+      timeout { requestTimeoutMillis = (timeout as Number?)?.toLong() }
     }
   } catch (e: Exception) {
     return httpErrorByException(e, url, method)
@@ -114,34 +110,6 @@ data class PagingSourceImp(
 }
 
 private const val INITIAL_KEY = "INITIAL_KEY"
-
-private fun httpErrorByException(
-  e: Exception,
-  url: String,
-  method: HttpMethod
-) = when (e) {
-  is UnknownHostException -> {
-    HttpError(
-      uri = url,
-      method = method.value,
-      status = 0,
-      error = e.cause?.message,
-      debugMessage = e.message
-    )
-  }
-
-  is HttpRequestTimeoutException -> HttpError(
-    uri = url,
-    method = method.value,
-    error = e.message,
-    status = -1,
-    debugMessage = "Request timed out"
-  )
-
-  is NoTransformationFoundException -> TODO("504 Gateway Time-out: $e")
-
-  else -> throw e
-}
 
 fun pagingEffect(request: Any?) {
   val coroutineScope = get<CoroutineScope>(request, ktor.coroutine_scope)!!
