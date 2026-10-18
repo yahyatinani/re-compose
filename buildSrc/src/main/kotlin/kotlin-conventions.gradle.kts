@@ -1,15 +1,16 @@
-import io.github.yahyatinani.recompose.Ci
-import io.github.yahyatinani.recompose.Versions
-import io.github.yahyatinani.recompose.Versions.KOTLIN
+import io.github.yahyatinani.recompose.ci
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  kotlin("android")
+  // REMOVE: id("org.jetbrains.kotlin.android")
+  // The kotlin-dsl helper in buildSrc/build.gradle.kts already provides
+  // precompiled script compilation support.
 }
 
-version = Ci.publishVersion
+val ci = ci()
+
+version = ci.publishVersion
 
 tasks.withType<Test> {
   useJUnitPlatform()
@@ -24,26 +25,26 @@ tasks.withType<Test> {
       TestLogEvent.SKIPPED,
       TestLogEvent.FAILED,
       TestLogEvent.STANDARD_OUT,
-      TestLogEvent.STANDARD_ERROR
+      TestLogEvent.STANDARD_ERROR,
     )
   }
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-  kotlinOptions {
-    freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    jvmTarget = Versions.JVM
-    apiVersion = KOTLIN
-    languageVersion = KOTLIN
-  }
-}
+// tasks.withType<KotlinCompile>().configureEach {
+//  compilerOptions {
+//    freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
+//    jvmTarget = Versions.JVM
+//    apiVersion = KOTLIN
+//    languageVersion = KOTLIN
+//  }
+// }
 
-kotlin {
-  sourceSets {
-    all {
-      languageSettings.optIn("kotlin.time.ExperimentalTime")
-      languageSettings.optIn("kotlin.experimental.ExperimentalTypeInference")
-      languageSettings.optIn("kotlin.contracts.ExperimentalContracts")
-    }
-  }
-}
+// kotlin {
+//  sourceSets {
+//    all {
+//      languageSettings.optIn("kotlin.time.ExperimentalTime")
+//      languageSettings.optIn("kotlin.experimental.ExperimentalTypeInference")
+//      languageSettings.optIn("kotlin.contracts.ExperimentalContracts")
+//    }
+//  }
+// }

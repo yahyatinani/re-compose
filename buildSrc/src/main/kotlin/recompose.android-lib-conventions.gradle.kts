@@ -1,5 +1,6 @@
-import io.github.yahyatinani.recompose.Ci.groupId
+import io.github.yahyatinani.recompose.Ci
 import io.github.yahyatinani.recompose.Versions
+import io.github.yahyatinani.recompose.ci
 
 plugins {
   id("kotlin-conventions")
@@ -7,11 +8,13 @@ plugins {
   id("recompose.publishing-conventions")
 }
 
-group = groupId
+val ci = ci()
+
+group = ci.groupId
 
 android {
-  namespace = groupId
-  compileSdk = 34
+  namespace = ci.groupId
+  compileSdk = 37
 
   buildFeatures {
     compose = true
@@ -37,7 +40,7 @@ android {
     release {
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
-        "proguard-rules.pro"
+        "proguard-rules.pro",
       )
     }
   }

@@ -53,7 +53,7 @@ fun injectCofx(id: Any) = toInterceptor(
     val cofx: Coeffects = (context[coeffects] as Coeffects? ?: m()) as Coeffects
     val newCofx = cofxHandler(cofx)
     context.assoc(coeffects, newCofx)
-  }
+  },
 )
 
 fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
@@ -69,7 +69,7 @@ fun injectCofx(id: Any, value: Any): Interceptor = toInterceptor(
     val cofx: Coeffects = (context[coeffects] as Coeffects? ?: m()) as Coeffects
     val newCofx = cofxHandler(cofx, value)
     context.assoc(coeffects, newCofx)
-  }
+  },
 )
 
 // -- Builtin CoEffects Handlers -----------------------------------------------

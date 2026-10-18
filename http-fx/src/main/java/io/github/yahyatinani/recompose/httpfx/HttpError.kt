@@ -5,5 +5,5 @@ data class HttpError(
   val method: String,
   val status: Int,
   val error: String?,
-  val debugMessage: String?
+  val debugMessage: String?,
 ) : RuntimeException()

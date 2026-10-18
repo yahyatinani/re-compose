@@ -11,7 +11,7 @@ import io.github.yahyatinani.y.core.m
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 @Suppress("EnumEntryName", "ClassName")
 enum class bounce {
@@ -19,7 +19,8 @@ enum class bounce {
   id,
   event,
   delay,
-  time_received;
+  time_received,
+  ;
 
   override fun toString(): String = ":$name"
 }

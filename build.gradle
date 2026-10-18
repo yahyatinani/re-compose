@@ -2,6 +2,7 @@ plugins {
   alias deps.plugins.spotless
   alias deps.plugins.kotlinx.kover
   alias(deps.plugins.androidx.benchmark) apply false
+  alias(deps.plugins.compose.compiler) apply false
 }
 
 spotless {
@@ -18,7 +19,14 @@ spotless {
     "indent_style"            : "space",
     "charset"                 : "utf-8",
     "end_of_line"             : "lf",
-    "disabled_rules"          : "filename,enum-entry-name-case",
+    "ktlint_standard_filename": "disabled",
+    "ktlint_standard_enum-entry-name-case": "disabled",
+    "ktlint_standard_max-line-length": "disabled",
+    "ktlint_standard_backing-property-naming": "disabled",
+    "ktlint_standard_function-naming": "disabled",
+    "ktlint_standard_class-naming": "disabled",
+    "ktlint_standard_kdoc": "disabled",
+    "ktlint_standard_property-naming": "disabled",
     "trim_trailing_whitespace": "true",
     "insert_final_newline"    : "true",
   ]

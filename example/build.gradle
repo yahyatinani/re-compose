@@ -3,17 +3,18 @@ import io.github.yahyatinani.recompose.Versions
 plugins {
   id 'kotlin-conventions'
   id 'com.android.application'
+  alias deps.plugins.compose.compiler
 }
 
 android {
-  compileSdk 34
+  compileSdk 37
 
-  namespace 'io.github.yahyatinani.recompose'
+  namespace 'io.github.yahyatinani.recompose.sample'
 
   defaultConfig {
     applicationId 'io.github.yahyatinani.recompose.example'
-    minSdkVersion 22
-    targetSdkVersion 34
+    minSdkVersion 23
+    targetSdkVersion 37
     versionCode 1
     versionName '1.0'
     testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -75,6 +76,7 @@ dependencies {
   implementation deps.androidx.compose.ui.ui
   implementation deps.androidx.compose.ui.tooling
   implementation deps.androidx.compose.runtime
+  implementation deps.androidx.compose.material.icons.core
   implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.material.material
   implementation deps.androidx.profileinstaller

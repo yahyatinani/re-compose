@@ -70,31 +70,31 @@ fun MyApp() {
             Text(
               text = "Re-compose Sample",
               color = colors.secondary,
-              style = MaterialTheme.typography.h5
+              style = MaterialTheme.typography.h5,
             )
           },
           actions = {
             IconButton(onClick = { dispatch(v(about_dialog, true)) }) {
               Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = "Info"
+                contentDescription = "Info",
               )
             }
             IconButton(onClick = { dispatch(v(Ids.exitApp)) }) {
               Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Exit"
+                contentDescription = "Exit",
               )
             }
-          }
+          },
         )
-      }
+      },
     ) { padding ->
       Surface(
         modifier = Modifier
           .fillMaxSize()
           .padding(padding),
-        color = colors.background
+        color = colors.background,
       ) {
         if (watch(query = v(about_dialog))) {
           AlertDialog(
@@ -104,7 +104,7 @@ fun MyApp() {
             text = {
               Text(text = watch<String>(query = v(Ids.info)))
             },
-            buttons = {}
+            buttons = {},
           )
         }
 
@@ -112,7 +112,7 @@ fun MyApp() {
           modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
-          verticalArrangement = Arrangement.Center
+          verticalArrangement = Arrangement.Center,
         ) {
           DigitalWatch()
 

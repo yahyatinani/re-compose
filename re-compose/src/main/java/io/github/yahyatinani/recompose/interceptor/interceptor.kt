@@ -29,24 +29,19 @@ internal val defaultInterceptorFn: InterceptorFn = { it }
 fun toInterceptor(
   id: Any,
   before: InterceptorFn = defaultInterceptorFn,
-  after: InterceptorFn = defaultInterceptorFn
+  after: InterceptorFn = defaultInterceptorFn,
 ): Interceptor = m(
   InterceptSpec.id to id,
   InterceptSpec.before to before,
-  InterceptSpec.after to after
+  InterceptSpec.after to after,
 )
 
-fun assocCofx(context: Context, key: coeffects, value: Any) =
-  assocIn(context, l(ctx.coeffects, key), value) as Context
+fun assocCofx(context: Context, key: coeffects, value: Any) = assocIn(context, l(ctx.coeffects, key), value) as Context
 
-internal fun enqueue(context: Context, interceptors: ISeq<Interceptor>?) =
-  context.assoc(queue, interceptors ?: l<Any>())
+internal fun enqueue(context: Context, interceptors: ISeq<Interceptor>?) = context.assoc(queue, interceptors ?: l<Any>())
 
 /** Create a fresh context. */
-internal fun context(
-  event: Event,
-  interceptors: ISeq<Interceptor>
-): Context = m<ctx, Any>()
+internal fun context(event: Event, interceptors: ISeq<Interceptor>): Context = m<ctx, Any>()
   .let { assocCofx(it, coeffects.event, event) }
   .let { assocCofx(it, coeffects.originalEvent, event) }
   .let { enqueue(it, interceptors) }
@@ -56,13 +51,13 @@ internal fun context(
 internal fun invokeInterceptorFn(
   context: Context,
   interceptor: Interceptor,
-  direction: InterceptSpec
+  direction: InterceptSpec,
 ): Context = (interceptor[direction] as InterceptorFn)(context)
 
 internal fun stackAndQueue(
   context: Context,
   que: ISeq<Interceptor>,
-  interceptor: Interceptor
+  interceptor: Interceptor,
 ) = context
   .assoc(queue, que.rest())
   .assoc(stack, conj(context[stack] as ISeq<Any>?, interceptor))
@@ -73,7 +68,7 @@ internal fun stackAndQueue(
  */
 internal tailrec fun invokeInterceptors(
   context: Context,
-  direction: InterceptSpec
+  direction: InterceptSpec,
 ): Context {
   val que = context[queue] as ISeq<Interceptor>
   if (que.count == 0) return context
@@ -84,14 +79,13 @@ internal tailrec fun invokeInterceptors(
     context = invokeInterceptorFn(
       context = stackAndQueue(context, que, interceptor),
       interceptor = interceptor,
-      direction = direction
+      direction = direction,
     ),
-    direction = direction
+    direction = direction,
   )
 }
 
-internal fun changeDirection(context: Context): Context =
-  enqueue(context, context[stack] as ISeq<Interceptor>?)
+internal fun changeDirection(context: Context): Context = enqueue(context, context[stack] as ISeq<Interceptor>?)
 
 internal val lock = reentrantLock()
 

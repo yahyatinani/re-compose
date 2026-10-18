@@ -13,52 +13,53 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ExtractorReactionTest : FreeSpec({
-  val testDispatcher = StandardTestDispatcher()
-  Dispatchers.setMain(testDispatcher)
+class ExtractorReactionTest :
+  FreeSpec({
+    val testDispatcher = StandardTestDispatcher()
+    Dispatchers.setMain(testDispatcher)
 
-  "ctor" {
-    val reaction = Extraction(
-      appDb = { mutableStateOf(1).value },
-      id = "Extraction"
-    ) {
-      (it as Int).inc()
-    }
-
-    reaction.deref() shouldBe 2
-  }
-
-  "deref()" {
-    runTest {
+    "ctor" {
       val reaction = Extraction(
         appDb = { mutableStateOf(1).value },
-        id = "Extraction"
+        id = "Extraction",
       ) {
         (it as Int).inc()
       }
 
       reaction.deref() shouldBe 2
-      reaction.deref() shouldBe reaction.deref()
     }
-  }
 
-  "collect()" {
-    runTest {
-      val db = mutableStateOf(0)
-      var result: Int? = null
-      val inputSignal = Extraction(
-        appDb = { db.value },
-        id = "ext",
-        context = testDispatcher
-      ) { (it as Int).inc() }
+    "deref()" {
+      runTest {
+        val reaction = Extraction(
+          appDb = { mutableStateOf(1).value },
+          id = "Extraction",
+        ) {
+          (it as Int).inc()
+        }
 
-      val job: Job = launch { inputSignal.collect { result = it as Int } }
-      launch { db.value = 4 }
-
-      advanceUntilIdle()
-
-      result shouldBe 5
-      job.cancel()
+        reaction.deref() shouldBe 2
+        reaction.deref() shouldBe reaction.deref()
+      }
     }
-  }
-})
+
+    "collect()" {
+      runTest {
+        val db = mutableStateOf(0)
+        var result: Int? = null
+        val inputSignal = Extraction(
+          appDb = { db.value },
+          id = "ext",
+          context = testDispatcher,
+        ) { (it as Int).inc() }
+
+        val job: Job = launch { inputSignal.collect { result = it as Int } }
+        launch { db.value = 4 }
+
+        advanceUntilIdle()
+
+        result shouldBe 5
+        job.cancel()
+      }
+    }
+  })

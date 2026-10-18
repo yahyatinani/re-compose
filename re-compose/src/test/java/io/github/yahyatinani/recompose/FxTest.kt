@@ -28,150 +28,151 @@ import io.mockk.every
 import io.mockk.mockkStatic
 
 @Suppress("UNCHECKED_CAST")
-class FxTest : FreeSpec({
-  mockkStatic(Log::class)
-  every { Log.w(any(), any<String>()) } returns 0
+class FxTest :
+  FreeSpec({
+    mockkStatic(Log::class)
+    every { Log.w(any(), any<String>()) } returns 0
 
-  beforeAny {
-    appDb.value = m<Any, Any>()
-    clearHandlers()
-    registerBuiltinFxHandlers()
-  }
+    beforeAny {
+      appDb.value = m<Any, Any>()
+      clearHandlers()
+      registerBuiltinFxHandlers()
+    }
 
-  "regFx(id, fxHandler)" {
-    val fxHandler: (Any?) -> Unit = { }
+    "regFx(id, fxHandler)" {
+      val fxHandler: (Any?) -> Unit = { }
 
-    regFx(":fx-test", fxHandler)
+      regFx(":fx-test", fxHandler)
 
-    getRegistrar(Kinds.Fx)[":fx-test"] shouldBeSameInstanceAs fxHandler
-  }
+      getRegistrar(Kinds.Fx)[":fx-test"] shouldBeSameInstanceAs fxHandler
+    }
 
-  "doFx interceptor should update the appDb and apply other effects" {
-    appDb.value = 0
-    var i = 0
-    regFx(id = ":add-to-i") { i += (it as Int) }
-    regFx(id = ":subtract-from-i") { i -= (it as Int) }
-    val effects: Effects = m(
-      db to 156,
-      ":add-to-i" to 18,
-      ":subtract-from-i" to 3
-    )
-    val context = m(
-      context.effects to effects,
-      context.coeffects to m(db to 0, coeffects.originalEvent to v(""))
-    )
-    val applyFx = doFx[after] as InterceptorFn
-
-    val newContext = applyFx(context)
-
-    newContext shouldBeSameInstanceAs context
-    appDb.value shouldBe 156
-    i shouldBeExactly 15
-  }
-
-  "`fx` effect handler should execute, in order, the vector of effects" - {
-    "when passing an effect id without a value, execute the effect" {
+    "doFx interceptor should update the appDb and apply other effects" {
       appDb.value = 0
       var i = 0
-      regFx(id = ":inc-i") { i = i.inc() }
-      regFx(id = ":multi-i") { i *= 4 }
-      val effects: Effects = m(db to 185, fx to v(v(":inc-i"), v(":multi-i")))
+      regFx(id = ":add-to-i") { i += (it as Int) }
+      regFx(id = ":subtract-from-i") { i -= (it as Int) }
+      val effects: Effects = m(
+        db to 156,
+        ":add-to-i" to 18,
+        ":subtract-from-i" to 3,
+      )
       val context = m(
         context.effects to effects,
-        context.coeffects to m(db to 0, coeffects.originalEvent to v(":inc-i"))
+        context.coeffects to m(db to 0, coeffects.originalEvent to v("")),
       )
       val applyFx = doFx[after] as InterceptorFn
 
       val newContext = applyFx(context)
 
       newContext shouldBeSameInstanceAs context
-      appDb.value shouldBe 185
-      i shouldBeExactly 0.inc() * 4
+      appDb.value shouldBe 156
+      i shouldBeExactly 15
     }
 
-    """
+    "`fx` effect handler should execute, in order, the vector of effects" - {
+      "when passing an effect id without a value, execute the effect" {
+        appDb.value = 0
+        var i = 0
+        regFx(id = ":inc-i") { i = i.inc() }
+        regFx(id = ":multi-i") { i *= 4 }
+        val effects: Effects = m(db to 185, fx to v(v(":inc-i"), v(":multi-i")))
+        val context = m(
+          context.effects to effects,
+          context.coeffects to m(db to 0, coeffects.originalEvent to v(":inc-i")),
+        )
+        val applyFx = doFx[after] as InterceptorFn
+
+        val newContext = applyFx(context)
+
+        newContext shouldBeSameInstanceAs context
+        appDb.value shouldBe 185
+        i shouldBeExactly 0.inc() * 4
+      }
+
+      """
       when passing an effect id with a value, execute the effect with given 
       value
     """ {
-      var i = 0
-      appDb.value = 0
-      regFx(id = ":inc&add-i") { i = i.inc() + it as Int }
-      val effects: Effects = m(db to 185, fx to v(v(":inc&add-i", 4)))
-      val context = m(
-        context.effects to effects,
-        context.coeffects to m(db to 0, coeffects.originalEvent to v(""))
-      )
-      val applyFx = doFx[after] as InterceptorFn
+        var i = 0
+        appDb.value = 0
+        regFx(id = ":inc&add-i") { i = i.inc() + it as Int }
+        val effects: Effects = m(db to 185, fx to v(v(":inc&add-i", 4)))
+        val context = m(
+          context.effects to effects,
+          context.coeffects to m(db to 0, coeffects.originalEvent to v("")),
+        )
+        val applyFx = doFx[after] as InterceptorFn
 
-      val newContext = applyFx(context)
+        val newContext = applyFx(context)
 
-      newContext shouldBeSameInstanceAs context
-      appDb.value shouldBe 185
-      i shouldBeExactly 5
+        newContext shouldBeSameInstanceAs context
+        appDb.value shouldBe 185
+        i shouldBeExactly 5
+      }
+
+      "when passing an effect id with a null value, execute the effect" {
+        appDb.value = 0
+        var i = 0
+        regFx(id = ":inc-i") { i = i.inc() }
+        val effects: Effects = m(db to 185, fx to v(v(":inc-i", null)))
+        val context = m(
+          context.effects to effects,
+          context.coeffects to m(db to 0, coeffects.originalEvent to v("")),
+        )
+        val applyFx = doFx[after] as InterceptorFn
+
+        val newContext = applyFx(context)
+
+        newContext shouldBeSameInstanceAs context
+        appDb.value shouldBe 185
+        i shouldBeExactly 1
+      }
+
+      "when passing a vec of null effects, it should skip" {
+        var i = 0
+        regFx(id = ":inc-i") { i = i.inc() }
+        val effects: Effects = m(fx to v(null, null))
+        val context = m(
+          context.effects to effects,
+          context.coeffects to m(db to 0, coeffects.originalEvent to v("")),
+        )
+        val applyFx = doFx[after] as InterceptorFn
+
+        val newContext = applyFx(context)
+
+        newContext shouldBeSameInstanceAs context
+        appDb.value shouldBe m<Any, Any>()
+        i shouldBeExactly 0
+      }
+
+      "when passing a null effect id, it should skip" {
+        var i = 0
+        regFx(id = ":inc-i") { i = i.inc() }
+        val effects: Effects = m(fx to v(v(null)))
+        val context = m(
+          context.effects to effects,
+          context.coeffects to m(db to 0, coeffects.originalEvent to v("")),
+        )
+        val applyFx = doFx[after] as InterceptorFn
+
+        val newContext = applyFx(context)
+
+        newContext shouldBeSameInstanceAs context
+        appDb.value shouldBe m<Any, Any>()
+        i shouldBeExactly 0
+      }
     }
 
-    "when passing an effect id with a null value, execute the effect" {
-      appDb.value = 0
-      var i = 0
-      regFx(id = ":inc-i") { i = i.inc() }
-      val effects: Effects = m(db to 185, fx to v(v(":inc-i", null)))
-      val context = m(
-        context.effects to effects,
-        context.coeffects to m(db to 0, coeffects.originalEvent to v(""))
-      )
-      val applyFx = doFx[after] as InterceptorFn
+    "initBuiltinEffectHandlers()" {
+      registerBuiltinFxHandlers()
 
-      val newContext = applyFx(context)
+      val fxFxHandler: Any? = getRegistrar(Kinds.Fx)[fx]
+      val dbFxHandler: Any? = getRegistrar(Kinds.Fx)[db]
+      val dispatchFxHandler: Any? = getRegistrar(Kinds.Fx)[dispatch]
 
-      newContext shouldBeSameInstanceAs context
-      appDb.value shouldBe 185
-      i shouldBeExactly 1
+      fxFxHandler.shouldNotBeNull()
+      dbFxHandler.shouldNotBeNull()
+      dispatchFxHandler.shouldNotBeNull()
     }
-
-    "when passing a vec of null effects, it should skip" {
-      var i = 0
-      regFx(id = ":inc-i") { i = i.inc() }
-      val effects: Effects = m(fx to v(null, null))
-      val context = m(
-        context.effects to effects,
-        context.coeffects to m(db to 0, coeffects.originalEvent to v(""))
-      )
-      val applyFx = doFx[after] as InterceptorFn
-
-      val newContext = applyFx(context)
-
-      newContext shouldBeSameInstanceAs context
-      appDb.value shouldBe m<Any, Any>()
-      i shouldBeExactly 0
-    }
-
-    "when passing a null effect id, it should skip" {
-      var i = 0
-      regFx(id = ":inc-i") { i = i.inc() }
-      val effects: Effects = m(fx to v(v(null)))
-      val context = m(
-        context.effects to effects,
-        context.coeffects to m(db to 0, coeffects.originalEvent to v(""))
-      )
-      val applyFx = doFx[after] as InterceptorFn
-
-      val newContext = applyFx(context)
-
-      newContext shouldBeSameInstanceAs context
-      appDb.value shouldBe m<Any, Any>()
-      i shouldBeExactly 0
-    }
-  }
-
-  "initBuiltinEffectHandlers()" {
-    registerBuiltinFxHandlers()
-
-    val fxFxHandler: Any? = getRegistrar(Kinds.Fx)[fx]
-    val dbFxHandler: Any? = getRegistrar(Kinds.Fx)[db]
-    val dispatchFxHandler: Any? = getRegistrar(Kinds.Fx)[dispatch]
-
-    fxFxHandler.shouldNotBeNull()
-    dbFxHandler.shouldNotBeNull()
-    dispatchFxHandler.shouldNotBeNull()
-  }
-})
+  })

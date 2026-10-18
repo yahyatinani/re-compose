@@ -5,7 +5,8 @@ enum class context {
   coeffects,
   effects,
   queue,
-  stack;
+  stack,
+  ;
 
   override fun toString(): String {
     Enum

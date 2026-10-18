@@ -30,7 +30,7 @@ class ExampleStartupBenchmark {
     packageName = "io.github.yahyatinani.recompose.example",
     metrics = listOf(StartupTimingMetric()),
     iterations = 5,
-    startupMode = StartupMode.COLD
+    startupMode = StartupMode.COLD,
   ) {
     pressHome()
     startActivityAndWait()

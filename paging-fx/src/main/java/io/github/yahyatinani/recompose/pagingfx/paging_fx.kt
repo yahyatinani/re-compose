@@ -35,7 +35,8 @@ enum class paging {
   on_append,
   pageName,
   nextUrl,
-  on_append_args;
+  on_append_args,
+  ;
 
   override fun toString(): String = "${this::class.simpleName}:$name"
 }
@@ -45,7 +46,7 @@ enum class paging {
 internal suspend fun httpCall(
   request: Any?,
   loadParams: LoadParams<Any>,
-  onSuccess: Event?
+  onSuccess: Event?,
 ): Any {
   // TODO: 1. validate(request).
   request as IPersistentMap<Any, Any>
@@ -88,25 +89,19 @@ internal suspend fun httpCall(
       method = httpRequest.method.value,
       error = status.description,
       status = status.value,
-      debugMessage = "Http response at 400 or 500 level"
+      debugMessage = "Http response at 400 or 500 level",
     )
   }
 }
 
-data class PagingSourceImp(
-  val onSuccess: Event?,
-  val request: Any?
-) : PagingSource<Any, Any>() {
-  override fun getRefreshKey(state: PagingState<Any, Any>) =
-    state.anchorPosition?.let { i -> state.closestPageToPosition(i)?.nextKey }
+data class PagingSourceImp(val onSuccess: Event?, val request: Any?) : PagingSource<Any, Any>() {
+  override fun getRefreshKey(state: PagingState<Any, Any>) = state.anchorPosition?.let { i -> state.closestPageToPosition(i)?.nextKey }
 
-  override suspend fun load(params: LoadParams<Any>): LoadResult<Any, Any> =
-    when (val result = httpCall(request, params, onSuccess)) {
-      is Page -> LoadResult.Page(result.data, result.prevKey, result.nextKey)
-      is Throwable -> LoadResult.Error(result)
-
-      else -> TODO()
-    }
+  override suspend fun load(params: LoadParams<Any>): LoadResult<Any, Any> = when (val result = httpCall(request, params, onSuccess)) {
+    is Page -> LoadResult.Page(result.data, result.prevKey, result.nextKey)
+    is Throwable -> LoadResult.Error(result)
+    else -> TODO()
+  }
 }
 
 private const val INITIAL_KEY = "INITIAL_KEY"
@@ -118,11 +113,11 @@ fun pagingEffect(request: Any?) {
     val appendId = get<Any>(request, paging.trigger_append_id)!!
     val pager = Pager(
       config = PagingConfig(pageSize = get(request, paging.page_size, 10)!!),
-      initialKey = INITIAL_KEY
+      initialKey = INITIAL_KEY,
     ) {
       PagingSourceImp(
         onSuccess = onSuccess,
-        request = request
+        request = request,
       )
     }
 
@@ -132,7 +127,7 @@ fun pagingEffect(request: Any?) {
       flow = pager.flow.cachedIn(coroutineScope),
       onAppendEvent = onAppendEvent,
       onAppendArgs = onAppendArgs as ISeq<Any>?,
-      triggerAppendId = appendId
+      triggerAppendId = appendId,
     )
     launch { lazyPagingItems.collectPagingData() }
       .invokeOnCompletion { lazyPagingItems.clear() }

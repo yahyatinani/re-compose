@@ -14,11 +14,8 @@ enum class Kinds { Event, Fx, Cofx, Sub }
 
 internal fun getRegistrar(kind: Kinds) = when (kind) {
   Kinds.Event -> eventsRegistrar
-
   Kinds.Fx -> effectsRegistrar
-
   Kinds.Cofx -> coeffectsRegistrar
-
   Kinds.Sub -> subsRegistrar
 }
 
@@ -27,11 +24,7 @@ fun getHandler(kind: Kinds, id: Any?): Any? {
   return getRegistrar(kind)[id]
 }
 
-fun registerHandler(
-  id: Any,
-  kind: Kinds,
-  handlerFn: Any
-): Any {
+fun registerHandler(id: Any, kind: Kinds, handlerFn: Any): Any {
   getRegistrar(kind)[id] = handlerFn
   return handlerFn
 }

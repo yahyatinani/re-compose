@@ -33,7 +33,8 @@ enum class BuiltInFx {
   fx,
   dispatch,
   dispatch_later,
-  ms;
+  ms,
+  ;
 
   override fun toString(): String = ":${super.toString()}"
 }
@@ -52,9 +53,10 @@ private fun execFx(effectsWithoutDb: Effects) {
     val fxHandler = getHandler(kind, effectKey) as EffectHandler?
     when {
       fxHandler != null -> fxHandler(effectValue)
+
       else -> Log.w(
         TAG,
-        "no handler registered for effect: $effectKey. Ignoring."
+        "no handler registered for effect: $effectKey. Ignoring.",
       )
     }
   }
@@ -74,7 +76,7 @@ val doFx: Interceptor = toInterceptor(
     execFx(effectsWithoutDb)
 
     context
-  }
+  },
 )
 
 // -- Builtin Effect Handlers --------------------------------------------------
@@ -117,7 +119,7 @@ internal fun registerBuiltinFxHandlers() {
       }
 
       else -> throw IllegalArgumentException(
-        "$TAG: bad :dispatch_later value: $value"
+        "$TAG: bad :dispatch_later value: $value",
       )
     }
   }
@@ -135,7 +137,7 @@ internal fun registerBuiltinFxHandlers() {
     if (effects !is IPersistentVector<*>) {
       Log.w(
         TAG,
-        "\":fx\" effect expects a vector, but was given: ${type(effects)}"
+        "\":fx\" effect expects a vector, but was given: ${type(effects)}",
       )
       return@regFx
     }
@@ -152,7 +154,7 @@ internal fun registerBuiltinFxHandlers() {
       when (val effectFn = getHandler(kind, effectKey) as? EffectHandler) {
         null -> Log.w(
           TAG,
-          "in :fx effect: `$effectKey` has no associated handler. Skip."
+          "in :fx effect: `$effectKey` has no associated handler. Skip.",
         )
 
         else -> effectFn(effectValue)
@@ -166,7 +168,7 @@ internal fun registerBuiltinFxHandlers() {
   regFx(id = BuiltInFx.dispatch) { event ->
     if (event !is IPersistentVector<*>) {
       throw IllegalArgumentException(
-        "$TAG: ignoring bad :dispatch value. Expected Vector, but got: $event"
+        "$TAG: ignoring bad :dispatch value. Expected Vector, but got: $event",
       )
     }
     dispatch(event as Event)

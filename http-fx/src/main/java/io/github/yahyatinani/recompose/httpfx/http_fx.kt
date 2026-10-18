@@ -39,7 +39,7 @@ var httpFxClient: HttpClient = HttpClient(Android) {
       Json {
         isLenient = true
         ignoreUnknownKeys = true
-      }
+      },
     )
   }
 }
@@ -55,23 +55,20 @@ enum class ktor {
   method,
   response_type_info,
   http_fx,
-  coroutine_scope;
+  coroutine_scope,
+  ;
 
   override fun toString(): String = ":$name"
 }
 
-fun httpErrorByException(
-  e: Exception,
-  url: String,
-  method: HttpMethod
-) = when (e) {
+fun httpErrorByException(e: Exception, url: String, method: HttpMethod) = when (e) {
   is UnknownHostException -> {
     HttpError(
       uri = url,
       method = method.value,
       status = 0,
       error = e.cause?.message,
-      debugMessage = e.message
+      debugMessage = e.message,
     )
   }
 
@@ -80,7 +77,7 @@ fun httpErrorByException(
     method = method.value,
     error = e.message,
     status = -1,
-    debugMessage = "Request timed out"
+    debugMessage = "Request timed out",
   )
 
   is NoTransformationFoundException -> TODO("504 Gateway Time-out: $e")
@@ -122,9 +119,9 @@ fun httpEffect(request: Any?) {
             method = httpRequest.method.value,
             error = status.description,
             status = status.value,
-            debugMessage = "Http response at 400 or 500 level"
-          )
-        )
+            debugMessage = "Http response at 400 or 500 level",
+          ),
+        ),
       )
     }
   }

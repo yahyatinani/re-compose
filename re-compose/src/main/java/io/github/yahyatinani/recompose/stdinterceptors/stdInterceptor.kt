@@ -26,7 +26,7 @@ import io.github.yahyatinani.y.core.l
 // These 2 factories wrap 2 kinds of event handlers.
 
 inline fun <T : Any> dbHandlerToInterceptor(
-  crossinline handler: DbEventHandler<T>
+  crossinline handler: DbEventHandler<T>,
 ) = toInterceptor(
   id = ":db-handler",
   before = { context: Context ->
@@ -34,20 +34,19 @@ inline fun <T : Any> dbHandlerToInterceptor(
     assocIn(
       context,
       l(effects, db),
-      handler(cofx[db] as T, cofx[event] as Event)
+      handler(cofx[db] as T, cofx[event] as Event),
     ) as Context
-  }
+  },
 )
 
-inline fun fxHandlerToInterceptor(crossinline handler: FxEventHandler) =
-  toInterceptor(
-    id = ":fx-handler",
-    before = { context ->
-      val cofx = context[coeffects] as Coeffects
-      val event = cofx[event] as Event
-      context.assoc(effects, handler(cofx, event))
-    }
-  )
+inline fun fxHandlerToInterceptor(crossinline handler: FxEventHandler) = toInterceptor(
+  id = ":fx-handler",
+  before = { context ->
+    val cofx = context[coeffects] as Coeffects
+    val event = cofx[event] as Event
+    context.assoc(effects, handler(cofx, event))
+  },
+)
 
 // -- Built-in Interceptors ----------------------------------------------------
 
@@ -65,6 +64,7 @@ val debug = toInterceptor(
 
     when (val newDb = if (fx == null) notFound else fx[db] ?: notFound) {
       notFound -> Log.i(TAG, "No appDb changes in: $event")
+
       else -> if (oldDb != newDb) {
         Log.i(TAG, "db for: $event")
         Log.i(TAG, "appDb before: $oldDb")
@@ -73,12 +73,12 @@ val debug = toInterceptor(
         Log.i(
           TAG,
           "No appDb changes in: $event, since the new appDb value is " +
-            "equal to the previous."
+            "equal to the previous.",
         )
       }
     }
     context
-  }
+  },
 )
 
 /**
@@ -102,5 +102,5 @@ fun <T> after(f: (db: T, event: Event) -> Unit): Interceptor = toInterceptor(
     f(db, event)
 
     context
-  }
+  },
 )

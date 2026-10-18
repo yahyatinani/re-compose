@@ -4,7 +4,8 @@ package io.github.yahyatinani.recompose.ids
 enum class recompose {
   dofx,
   db,
-  notFound;
+  notFound,
+  ;
 
   override fun toString(): String = ":${super.toString()}"
 }

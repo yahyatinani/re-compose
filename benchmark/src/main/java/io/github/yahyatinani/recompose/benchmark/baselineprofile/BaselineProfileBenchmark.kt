@@ -21,8 +21,9 @@ class BaselineProfileBenchmark {
       metrics = listOf(StartupTimingMetric()),
       iterations = 10,
       startupMode = StartupMode.COLD,
-      compilationMode = compilationMode
-    ) { // this = MacrobenchmarkScope
+      compilationMode = compilationMode,
+    ) {
+      // this = MacrobenchmarkScope
       pressHome()
       startActivityAndWait()
     }
@@ -37,8 +38,8 @@ class BaselineProfileBenchmark {
   fun startupBaselineProfile() {
     startup(
       CompilationMode.Partial(
-        baselineProfileMode = BaselineProfileMode.Require
-      )
+        baselineProfileMode = BaselineProfileMode.Require,
+      ),
     )
   }
 }

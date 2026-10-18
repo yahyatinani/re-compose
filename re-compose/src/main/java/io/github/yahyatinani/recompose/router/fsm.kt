@@ -26,7 +26,7 @@ internal enum class State {
   IDLE,
   SCHEDULING,
   RUNNING,
-  PAUSED
+  PAUSED,
 }
 
 internal enum class FsmEvent {
@@ -35,7 +35,7 @@ internal enum class FsmEvent {
   FINISH_RUN,
   PAUSE,
   RESUME,
-  EXCEPTION
+  EXCEPTION,
 }
 
 typealias FsmAction = (arg: Any?) -> Unit
@@ -45,8 +45,8 @@ internal class EventQueueFSM(
   start: State = IDLE,
   val context: CoroutineContext = Dispatchers.Default,
   internal val scope: CoroutineScope = CoroutineScope(
-    context + CoroutineName("Recompose Events Scope")
-  )
+    context + CoroutineName("Recompose Events Scope"),
+  ),
 ) {
   // -- FSM actions -----------------------------------------------
 
@@ -106,20 +106,24 @@ internal class EventQueueFSM(
    * @return Given we're in [currentState], when [trigger] happens, return a vec
    * of next FSM state and action to execute.
    */
-  private fun givenWhenThen(currentState: State, trigger: FsmEvent) =
-    when (Pair(currentState, trigger)) {
-      IDLE__ADD_EVENT -> SCHEDULING_enqueueEventAndRunQueue
-      SCHEDULING__ADD_EVENT -> SCHEDULING_enqueueEvent
-      SCHEDULING__RUN_QUEUE -> RUNNING_processAllCurrentEvents
-      RUNNING__ADD_EVENT -> RUNNING_enqueuEvent
-      RUNNING__EXCEPTION -> IDLE_exception
-      RUNNING__FINISH_RUN -> when (eventQueue.count) {
-        0 -> IDLE_identity
-        else -> SCHEDULING_runQueue
-      }
+  private fun givenWhenThen(currentState: State, trigger: FsmEvent) = when (Pair(currentState, trigger)) {
+    IDLE__ADD_EVENT -> SCHEDULING_enqueueEventAndRunQueue
 
-      else -> TODO("${currentState.name}, ${trigger.name}")
+    SCHEDULING__ADD_EVENT -> SCHEDULING_enqueueEvent
+
+    SCHEDULING__RUN_QUEUE -> RUNNING_processAllCurrentEvents
+
+    RUNNING__ADD_EVENT -> RUNNING_enqueuEvent
+
+    RUNNING__EXCEPTION -> IDLE_exception
+
+    RUNNING__FINISH_RUN -> when (eventQueue.count) {
+      0 -> IDLE_identity
+      else -> SCHEDULING_runQueue
     }
+
+    else -> TODO("${currentState.name}, ${trigger.name}")
+  }
 
   /** Emit an FSM trigger/event. */
   fun fsmTrigger(fsmEvent: FsmEvent, arg: Any? = null) {

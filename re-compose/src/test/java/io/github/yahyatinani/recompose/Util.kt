@@ -17,7 +17,7 @@ suspend fun multiThreadedRun(
   coroutinesN: Int = 100,
   runN: Int = 1000,
   context: CoroutineContext = StandardTestDispatcher(),
-  action: suspend () -> Unit
+  action: suspend () -> Unit,
 ) = coroutineScope {
   repeat(coroutinesN) {
     launch { repeat(runN) { action() } }

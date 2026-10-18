@@ -11,7 +11,7 @@ internal var eventQueueFSM = EventQueueFSM(EventQueueImp())
 internal fun dispatch(event: Event) {
   if (event.count == 0) {
     throw IllegalArgumentException(
-      "$TAG: `dispatch` was called with an empty event vector."
+      "$TAG: `dispatch` was called with an empty event vector.",
     )
   }
   eventQueueFSM.push(event)

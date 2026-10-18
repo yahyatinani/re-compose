@@ -18,88 +18,89 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class EventQueueActionsTest : FreeSpec({
-  val testDispatcher = StandardTestDispatcher()
+class EventQueueActionsTest :
+  FreeSpec({
+    val testDispatcher = StandardTestDispatcher()
 
-  beforeEach {
-    Dispatchers.setMain(testDispatcher)
-    clearHandlers()
-    appDb.value = m<Any, Any>()
-    registerDbInjectorCofx()
-    injectCofx(recompose.db)
-    registerBuiltinFxHandlers()
-  }
+    beforeEach {
+      Dispatchers.setMain(testDispatcher)
+      clearHandlers()
+      appDb.value = m<Any, Any>()
+      registerDbInjectorCofx()
+      injectCofx(recompose.db)
+      registerBuiltinFxHandlers()
+    }
 
-  afterEach {
-    Dispatchers.resetMain()
-  }
+    afterEach {
+      Dispatchers.resetMain()
+    }
 
-  "enqueue()" {
-    val event1 = v(":id1", 1234)
-    val event2 = v(":id2", 1234)
-    val eventQueueImp = EventQueueImp()
+    "enqueue()" {
+      val event1 = v(":id1", 1234)
+      val event2 = v(":id2", 1234)
+      val eventQueueImp = EventQueueImp()
 
-    eventQueueImp.enqueue(event1)
-    eventQueueImp.enqueue(event2)
+      eventQueueImp.enqueue(event1)
+      eventQueueImp.enqueue(event2)
 
-    eventQueueImp.count shouldBe 2
-    eventQueueImp.queue.count shouldBe 2
-    eventQueueImp.queue.peek() shouldBe event1
-    eventQueueImp.queue.pop().peek() shouldBe event2
-  }
+      eventQueueImp.count shouldBe 2
+      eventQueueImp.queue.count shouldBe 2
+      eventQueueImp.queue.peek() shouldBe event1
+      eventQueueImp.queue.pop().peek() shouldBe event2
+    }
 
-  "processFirstEventInQueue() should process first event then pop the queue" - {
-    "single thread/coroutine" {
+    "processFirstEventInQueue() should process first event then pop the queue" - {
+      "single thread/coroutine" {
+        val event1 = v(":id1", 1234)
+        val event2 = v(":id2", 1234)
+        val eventQueueImp = EventQueueImp()
+        eventQueueImp.enqueue(event1)
+        eventQueueImp.enqueue(event2)
+
+        eventQueueImp.processFirstEventInQueue()
+
+        eventQueueImp.count shouldBe 1
+        eventQueueImp.queue.peek() shouldBe event2
+      }
+    }
+
+    "processCurrentEvents() should process all current events in the queue" {
       val event1 = v(":id1", 1234)
       val event2 = v(":id2", 1234)
       val eventQueueImp = EventQueueImp()
       eventQueueImp.enqueue(event1)
       eventQueueImp.enqueue(event2)
 
-      eventQueueImp.processFirstEventInQueue()
+      eventQueueImp.processCurrentEvents()
 
-      eventQueueImp.count shouldBe 1
-      eventQueueImp.queue.peek() shouldBe event2
+      eventQueueImp.count shouldBe 0
     }
-  }
 
-  "processCurrentEvents() should process all current events in the queue" {
-    val event1 = v(":id1", 1234)
-    val event2 = v(":id2", 1234)
-    val eventQueueImp = EventQueueImp()
-    eventQueueImp.enqueue(event1)
-    eventQueueImp.enqueue(event2)
+    "purge() should empty the queue" {
+      val event1 = v(":id1", 1234)
+      val event2 = v(":id2", 1234)
+      val eventQueueImp = EventQueueImp()
+      eventQueueImp.enqueue(event1)
+      eventQueueImp.enqueue(event2)
 
-    eventQueueImp.processCurrentEvents()
+      eventQueueImp.purge()
 
-    eventQueueImp.count shouldBe 0
-  }
+      eventQueueImp.count shouldBe 0
+    }
 
-  "purge() should empty the queue" {
-    val event1 = v(":id1", 1234)
-    val event2 = v(":id2", 1234)
-    val eventQueueImp = EventQueueImp()
-    eventQueueImp.enqueue(event1)
-    eventQueueImp.enqueue(event2)
+    "exception() should empty the queue then throw" {
+      val event1 = v(":id1", 1234)
+      val event2 = v(":id2", 1234)
+      val eventQueueImp = EventQueueImp()
+      eventQueueImp.enqueue(event1)
+      eventQueueImp.enqueue(event2)
+      val ex = RuntimeException()
 
-    eventQueueImp.purge()
+      shouldThrowExactly<RuntimeException> { eventQueueImp.exception(ex) }
+      eventQueueImp.count shouldBe 0
+    }
 
-    eventQueueImp.count shouldBe 0
-  }
-
-  "exception() should empty the queue then throw" {
-    val event1 = v(":id1", 1234)
-    val event2 = v(":id2", 1234)
-    val eventQueueImp = EventQueueImp()
-    eventQueueImp.enqueue(event1)
-    eventQueueImp.enqueue(event2)
-    val ex = RuntimeException()
-
-    shouldThrowExactly<RuntimeException> { eventQueueImp.exception(ex) }
-    eventQueueImp.count shouldBe 0
-  }
-
-  // FIXME:
+    // FIXME:
   /*
     "multithreading" {
       continually(4.seconds) {
@@ -150,5 +151,5 @@ class EventQueueActionsTest : FreeSpec({
         }
       }
     }
-  */
-})
+   */
+  })

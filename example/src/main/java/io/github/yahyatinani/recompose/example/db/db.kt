@@ -10,7 +10,7 @@ data class AppDb(
   val primaryColor: String = "Red",
   val secondaryColor: String = "Orange",
   val showAboutDialog: Boolean = false,
-  val info: String = "Awesome app"
+  val info: String = "Awesome app",
 )
 
 fun regAllCofx() {

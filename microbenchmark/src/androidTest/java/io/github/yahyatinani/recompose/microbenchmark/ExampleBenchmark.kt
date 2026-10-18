@@ -23,7 +23,7 @@ class ExampleBenchmark {
     IDLE,
     SCHEDULING,
     RUNNING,
-    PAUSED
+    PAUSED,
   }
   internal enum class FsmEvent {
     ADD_EVENT,
@@ -31,7 +31,7 @@ class ExampleBenchmark {
     FINISH_RUN,
     PAUSE,
     RESUME,
-    EXCEPTION
+    EXCEPTION,
   }
 
   @Test

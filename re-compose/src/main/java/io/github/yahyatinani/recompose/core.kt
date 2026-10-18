@@ -45,27 +45,25 @@ import kotlin.reflect.KSuspendFunction6
 typealias ComputationFn1<T, V> = suspend (
   input: T,
   currentValue: V,
-  queryVec: Query
+  queryVec: Query,
 ) -> V
 
 typealias ComputationFn2<T> = suspend (
   subscriptions: IPersistentVector<Any?>,
   currentValue: T,
-  queryVec: Query
+  queryVec: Query,
 ) -> T
 
 internal const val TAG = "re-compose"
 
 // -- Dispatch -----------------------------------------------------------------
 
-fun dispatch(event: Event) =
-  io.github.yahyatinani.recompose.router.dispatch(event)
+fun dispatch(event: Event) = io.github.yahyatinani.recompose.router.dispatch(event)
 
 /**
  * This is a blocking function normally used to initialize the appDb.
  */
-fun dispatchSync(event: Event) =
-  io.github.yahyatinani.recompose.router.dispatchSync(event)
+fun dispatchSync(event: Event) = io.github.yahyatinani.recompose.router.dispatchSync(event)
 
 // -- Events -------------------------------------------------------------------
 
@@ -75,29 +73,29 @@ fun dispatchSync(event: Event) =
 inline fun <Db : Any> regEventDb(
   id: Any,
   interceptors: IPersistentVector<Interceptor> = v(),
-  crossinline handler: DbEventHandler<Db>
+  crossinline handler: DbEventHandler<Db>,
 ) = register(
   id = id,
   interceptors = v(
     injectDb,
     doFx,
     interceptors,
-    dbHandlerToInterceptor(handler)
-  )
+    dbHandlerToInterceptor(handler),
+  ),
 )
 
 inline fun regEventFx(
   id: Any,
   interceptors: IPersistentVector<Interceptor> = v(),
-  crossinline handler: FxEventHandler
+  crossinline handler: FxEventHandler,
 ) = register(
   id = id,
   interceptors = v(
     injectDb,
     doFx,
     interceptors,
-    fxHandlerToInterceptor(handler)
-  )
+    fxHandlerToInterceptor(handler),
+  ),
 )
 
 /**
@@ -116,8 +114,7 @@ fun clearEvent(id: Any) = clearHandlers(Kinds.Event, id)
 
 // -- Subscriptions ------------------------------------------------------------
 
-fun <V> subscribe(qvec: Query): Reaction<V> =
-  io.github.yahyatinani.recompose.subs.subscribe(qvec)
+fun <V> subscribe(qvec: Query): Reaction<V> = io.github.yahyatinani.recompose.subs.subscribe(qvec)
 
 /**
  * @param queryId a unique id for the subscription.
@@ -126,7 +123,7 @@ fun <V> subscribe(qvec: Query): Reaction<V> =
  */
 inline fun <Db> regSub(
   queryId: Any,
-  crossinline extractor: (db: Db, queryVec: Query) -> Any?
+  crossinline extractor: (db: Db, queryVec: Query) -> Any?,
 ) = regDbSubscription(queryId, extractor)
 
 /**
@@ -137,7 +134,7 @@ inline fun <Db> regSub(
  */
 fun <Db, V> regSub(
   queryId: Any,
-  extractor: KFunction1<Db, V>
+  extractor: KFunction1<Db, V>,
 ) = regDbSubscription(queryId) { db: Db, _ -> extractor(db) }
 
 /**
@@ -149,8 +146,7 @@ fun <Db, V> regSub(
  * @param queryId a unique id for the subscription.
  * @param key The key that is used on appDb [Map] to extract the desired data.
  */
-fun regSub(queryId: Any, key: Any) =
-  regDbSubscription(queryId) { db: Map<*, *>, _ -> db[key] }
+fun regSub(queryId: Any, key: Any) = regDbSubscription(queryId) { db: Map<*, *>, _ -> db[key] }
 
 /**
  * @param queryId a unique id for the subscription.
@@ -170,28 +166,28 @@ inline fun <S, V> regSub(
   queryId: Any,
   initialValue: V,
   crossinline inputSignal: (queryVec: Query) -> Reaction<S>,
-  crossinline computationFn: ComputationFn1<S, V>
+  crossinline computationFn: ComputationFn1<S, V>,
 ) = regCompSubscription(
   queryId = queryId,
   initialValue = initialValue,
   signalsFn = { queryVec -> v(inputSignal(queryVec)) },
   computationFn = { persistentVector, currentValue, qVec ->
     computationFn(persistentVector[0], currentValue, qVec)
-  }
+  },
 )
 
 inline fun <S, V> regSub(
   queryId: Any,
   initialValue: V,
   inputSignal: PersistentVector<Any>,
-  crossinline computationFn: ComputationFn1<S, V>
+  crossinline computationFn: ComputationFn1<S, V>,
 ) = regCompSubscription(
   queryId = queryId,
   initialValue = initialValue,
   signalsFn = { _ -> v(subscribe(inputSignal)) },
   computationFn = { persistentVector, currentValue, qVec ->
     computationFn(persistentVector[0], currentValue, qVec)
-  }
+  },
 )
 
 /**
@@ -215,12 +211,12 @@ inline fun <V> regSub(
   queryId: Any,
   initialValue: V,
   crossinline inputSignals: (qVec: Query) -> PersistentVector<Reaction<Any?>>,
-  crossinline computationFn: ComputationFn2<V>
+  crossinline computationFn: ComputationFn2<V>,
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = inputSignals,
   initialValue = initialValue,
-  computationFn = computationFn
+  computationFn = computationFn,
 )
 
 /**
@@ -231,52 +227,64 @@ inline fun <V> regSub(
   queryId: Any,
   initialValue: V,
   vararg inputSignals: Query,
-  crossinline computationFn: ComputationFn2<V>
+  crossinline computationFn: ComputationFn2<V>,
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = { inputSignals.fold(v()) { acc, q -> acc.conj(subscribe(q)) } },
   initialValue = initialValue,
-  computationFn = computationFn
+  computationFn = computationFn,
 )
 
 @Suppress("UNCHECKED_CAST")
 private suspend inline fun <V> com(
   arity: Int,
   f: KFunction<Any?>,
-  args: IPersistentVector<Any?>
+  args: IPersistentVector<Any?>,
 ): V = when (arity) {
-  1 -> if (f.isSuspend) (f as KSuspendFunction1<Any?, Any?>)(args[0])
-  else (f as KFunction1<Any?, Any?>)(args[0])
+  1 -> if (f.isSuspend) {
+    (f as KSuspendFunction1<Any?, Any?>)(args[0])
+  } else {
+    (f as KFunction1<Any?, Any?>)(args[0])
+  }
 
-  2 -> if (f.isSuspend) (f as KSuspendFunction2<Any?, Any?, Any?>)(
-    args[0],
-    args[1]
-  )
-  else (f as KFunction2<Any?, Any?, Any?>)(args[0], args[1])
+  2 -> if (f.isSuspend) {
+    (f as KSuspendFunction2<Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+    )
+  } else {
+    (f as KFunction2<Any?, Any?, Any?>)(args[0], args[1])
+  }
 
-  3 -> if (f.isSuspend) (f as KSuspendFunction3<Any?, Any?, Any?, Any?>)(
-    args[0],
-    args[1],
-    args[2]
-  )
-  else (f as KFunction3<Any?, Any?, Any?, Any?>)(
-    args[0],
-    args[1],
-    args[2]
-  )
+  3 -> if (f.isSuspend) {
+    (f as KSuspendFunction3<Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+    )
+  } else {
+    (f as KFunction3<Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+    )
+  }
 
-  4 -> if (f.isSuspend) (f as KSuspendFunction4<Any?, Any?, Any?, Any?, Any?>)(
-    args[0],
-    args[1],
-    args[2],
-    args[3]
-  )
-  else (f as KFunction4<Any?, Any?, Any?, Any?, Any?>)(
-    args[0],
-    args[1],
-    args[2],
-    args[3]
-  )
+  4 -> if (f.isSuspend) {
+    (f as KSuspendFunction4<Any?, Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+    )
+  } else {
+    (f as KFunction4<Any?, Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+    )
+  }
 
   5 -> if (f.isSuspend) {
     (f as KSuspendFunction5<Any?, Any?, Any?, Any?, Any?, Any?>)(
@@ -284,15 +292,17 @@ private suspend inline fun <V> com(
       args[1],
       args[2],
       args[3],
-      args[4]
+      args[4],
     )
-  } else (f as KFunction5<Any?, Any?, Any?, Any?, Any?, Any?>)(
-    args[0],
-    args[1],
-    args[2],
-    args[3],
-    args[4]
-  )
+  } else {
+    (f as KFunction5<Any?, Any?, Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+      args[4],
+    )
+  }
 
   6 -> if (f.isSuspend) {
     (f as KSuspendFunction6<Any?, Any?, Any?, Any?, Any?, Any?, Any?>)(
@@ -301,16 +311,18 @@ private suspend inline fun <V> com(
       args[2],
       args[3],
       args[4],
-      args[5]
+      args[5],
     )
-  } else (f as KFunction6<Any?, Any?, Any?, Any?, Any?, Any?, Any?>)(
-    args[0],
-    args[1],
-    args[2],
-    args[3],
-    args[4],
-    args[5]
-  )
+  } else {
+    (f as KFunction6<Any?, Any?, Any?, Any?, Any?, Any?, Any?>)(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+      args[4],
+      args[5],
+    )
+  }
 
   else -> TODO("Registration not supported yet for $arity inputSignals")
 } as V
@@ -319,12 +331,12 @@ fun regSub(
   queryId: Any,
   initialValue: Any?,
   vararg inputSignals: Query,
-  computationFn: KFunction<Any?>
+  computationFn: KFunction<Any?>,
 ) = regCompSubscription(
   queryId = queryId,
   signalsFn = { inputSignals.fold(v()) { acc, q -> acc.conj(subscribe(q)) } },
   initialValue = initialValue,
-  computationFn = { subs, _, _ -> com(inputSignals.size, computationFn, subs) }
+  computationFn = { subs, _, _ -> com(inputSignals.size, computationFn, subs) },
 )
 
 /**
@@ -333,9 +345,7 @@ fun regSub(
  */
 @Suppress("UNCHECKED_CAST")
 @Composable
-fun <T> watch(query: Query): T {
-  return remember { subscribe<T>(query) as ReactionBase<*, *> }.watch() as T
-}
+fun <T> watch(query: Query): T = remember { subscribe<T>(query) as ReactionBase<*, *> }.watch() as T
 
 // -- Effects ------------------------------------------------------------------
 
@@ -345,8 +355,7 @@ fun <T> watch(query: Query): T {
  * @param handler is a side-effecting function which takes a single argument
  * and whose return value is ignored.
  */
-fun regFx(id: Any, handler: EffectHandler) =
-  io.github.yahyatinani.recompose.fx.regFx(id, handler)
+fun regFx(id: Any, handler: EffectHandler) = io.github.yahyatinani.recompose.fx.regFx(id, handler)
 
 /**
  * Unregisters all currently registered event handlers via [regFx].

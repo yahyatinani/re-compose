@@ -30,7 +30,7 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
   val colors = MaterialTheme.colors
   Column(
     modifier = modifier,
-    horizontalAlignment = Alignment.CenterHorizontally
+    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     OutlinedTextField(
       value = watch<String>(v(Ids.primaryColorStr)),
@@ -40,8 +40,8 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
       maxLines = 1,
       colors = TextFieldDefaults.outlinedTextFieldColors(
         textColor = colors.primary,
-        focusedBorderColor = colors.primary
-      )
+        focusedBorderColor = colors.primary,
+      ),
     )
     Spacer(modifier = Modifier.height(8.dp))
     OutlinedTextField(
@@ -54,8 +54,8 @@ fun InputThemeForm(modifier: Modifier = Modifier) {
       maxLines = 1,
       colors = TextFieldDefaults.outlinedTextFieldColors(
         textColor = colors.secondary,
-        focusedBorderColor = colors.secondary
-      )
+        focusedBorderColor = colors.secondary,
+      ),
     )
   }
 }

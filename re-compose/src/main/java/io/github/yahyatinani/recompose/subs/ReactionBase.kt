@@ -20,7 +20,7 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
       isDisposed.reset(true)
       reactionScope.cancel("$this is canceled due to inactivity.")
       viewSubCount.removeWatch(id)
-    })
+    }),
   )
 
   /** This flag is used to track the last subscriber of this reaction. */
@@ -59,9 +59,8 @@ abstract class ReactionBase<T, O>(override val id: Any) : Reaction<O> {
 
   abstract val stateFlow: StateFlow<Any?>
 
-  internal fun isNotActive(subCount: Int = viewSubCount.deref()) =
-    subCount == 0 &&
-      (!_state.isInitialized() || _state.value.subscriptionCount.value == 0)
+  internal fun isNotActive(subCount: Int = viewSubCount.deref()) = subCount == 0 &&
+    (!_state.isInitialized() || _state.value.subscriptionCount.value == 0)
 
   internal fun decUiSubCount() {
     viewSubCount.swap { if (it < 0) 0 else it.dec() }

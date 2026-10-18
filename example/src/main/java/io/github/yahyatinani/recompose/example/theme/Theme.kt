@@ -13,13 +13,13 @@ import io.github.yahyatinani.y.core.v
 private val DarkColorPalette = darkColors(
   primary = Purple200,
   primaryVariant = Purple700,
-  secondary = Teal200
+  secondary = Teal200,
 )
 
 private val LightColorPalette = lightColors(
   primary = Purple500,
   primaryVariant = Purple700,
-  secondary = Teal200
+  secondary = Teal200,
 
   /* Other default colors to override
   background = Color.White,
@@ -28,19 +28,19 @@ private val LightColorPalette = lightColors(
   onSecondary = Color.Black,
   onBackground = Color.Black,
   onSurface = Color.Black,
-  */
+   */
 )
 
 @Composable
 fun RecomposeTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   colors: Colors = watch(
-    v(themeColors, if (darkTheme) DarkColorPalette else LightColorPalette)
+    v(themeColors, if (darkTheme) DarkColorPalette else LightColorPalette),
   ),
-  content: @Composable () -> Unit
+  content: @Composable () -> Unit,
 ) = MaterialTheme(
   colors = colors,
   typography = Typography,
   shapes = Shapes,
-  content = content
+  content = content,
 )

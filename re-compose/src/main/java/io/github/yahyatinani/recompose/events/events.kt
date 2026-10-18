@@ -19,21 +19,21 @@ typealias DbEventHandler<Db> = (db: Db, event: Event) -> Any
 typealias FxEventHandler = (cofx: Coeffects, event: Event) -> Effects
 
 // TODO: Move flatten to y library?
+
 /**
  * Returns a flat nested seq of interceptors.
  * (e.g. (i1, i2, (i3)) => [i1, i2, i3]).
 
  * It preserves the order of `interceptors`.
  */
-internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> =
-  lazySeq {
-    interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
-      when (interceptor) {
-        is IPersistentVector<*> -> concat(interceptor, seq)
-        else -> conj(seq, interceptor) as ISeq<Any>
-      }
+internal fun flatten(interceptors: IPersistentVector<Any>): ISeq<Any> = lazySeq {
+  interceptors.foldRight<Any, ISeq<Any>>(lazySeq()) { interceptor, seq ->
+    when (interceptor) {
+      is IPersistentVector<*> -> concat(interceptor, seq)
+      else -> conj(seq, interceptor) as ISeq<Any>
     }
   }
+}
 
 /***
  * Associate the given event `id` with the given collection of `interceptors`.

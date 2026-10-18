@@ -17,24 +17,20 @@
 package io.github.yahyatinani.recompose.pagingfx
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.paging.CombinedLoadStates
-import androidx.paging.DifferCallback
 import androidx.paging.ItemSnapshotList
-import androidx.paging.LOGGER
-import androidx.paging.LOG_TAG
 import androidx.paging.LoadState
 import androidx.paging.LoadState.Error
 import androidx.paging.LoadState.Loading
 import androidx.paging.LoadState.NotLoading
 import androidx.paging.LoadStates
-import androidx.paging.Logger
-import androidx.paging.NullPaddedList
 import androidx.paging.PagingData
-import androidx.paging.PagingDataDiffer
+import androidx.paging.PagingDataEvent
+import androidx.paging.PagingDataPresenter
 import io.github.yahyatinani.recompose.clearEvent
 import io.github.yahyatinani.recompose.clearFx
 import io.github.yahyatinani.recompose.dispatch
@@ -46,18 +42,10 @@ import io.github.yahyatinani.y.core.collections.ISeq
 import io.github.yahyatinani.y.core.fold
 import io.github.yahyatinani.y.core.m
 import io.github.yahyatinani.y.core.v
-import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
-
-private val IncompleteLoadState = NotLoading(false)
-private val InitialLoadStates = LoadStates(
-  Loading,
-  IncompleteLoadState,
-  IncompleteLoadState
-)
 
 /**
  * @param flow the [Flow] object which contains a stream of [PagingData] elements.
@@ -67,14 +55,14 @@ class LazyPagingItems<T : Any> internal constructor(
   private val flow: Flow<PagingData<T>>,
   val onAppendEvent: Event,
   val onAppendArgs: ISeq<Any>?,
-  private val triggerAppendId: Any
+  private val triggerAppendId: Any,
 ) {
   init {
     regFx(triggerAppendId) { index ->
       // Notify Paging of the item access to trigger any loads necessary to
       // fulfill prefetchDistance.
-      if ((index as Int) < pagingDataDiffer.size) {
-        pagingDataDiffer[index]
+      if ((index as Int) < pagingDataPresenter.size) {
+        pagingDataPresenter[index]
       }
     }
 
@@ -88,72 +76,50 @@ class LazyPagingItems<T : Any> internal constructor(
     clearFx(triggerAppendId)
   }
 
-  private val mainDispatcher = Dispatchers.Main
+  private val mainDispatcher = AndroidUiDispatcher.Main
 
   /**
-   * Contains the immutable [ItemSnapshotList] of currently presented items,
-   * including any placeholders if they are enabled.
-   * Note that similarly to [peek] accessing the items in a list will not
-   * trigger any loads.
-   * Use [get] to achieve such behavior.
+   * If the [flow] is a SharedFlow, it is expected to be the flow returned by from
+   * pager.flow.cachedIn(scope) which could contain a cached PagingData. We pass the cached
+   * PagingData to the presenter so that if the PagingData contains cached data, the presenter can
+   * be initialized with the data prior to collection on pager.
    */
-  var itemSnapshotList by mutableStateOf(
-    ItemSnapshotList<T>(
-      placeholdersBefore = 0,
-      placeholdersAfter = 0,
-      items = emptyList()
-    )
-  )
+  private val pagingDataPresenter =
+    object :
+      PagingDataPresenter<T>(
+        mainContext = mainDispatcher,
+        cachedPagingData =
+        if (flow is SharedFlow<PagingData<T>>) flow.replayCache.firstOrNull() else null,
+      ) {
+      override suspend fun presentPagingDataEvent(event: PagingDataEvent<T>) {
+        updateItemSnapshotList()
+      }
+    }
+
+  /**
+   * Contains the immutable [ItemSnapshotList] of currently presented items, including any
+   * placeholders if they are enabled. Note that similarly to [peek] accessing the items in a list
+   * will not trigger any loads. Use [get] to achieve such behavior.
+   */
+  var itemSnapshotList by mutableStateOf(pagingDataPresenter.snapshot())
     private set
 
   /**
    * The number of items which can be accessed.
    */
-  val itemCount: Int get() = itemSnapshotList.size
+  val itemCount: Int
+    get() = itemSnapshotList.size
 
-  private val differCallback: DifferCallback = object : DifferCallback {
-    override fun onChanged(position: Int, count: Int) {
-      if (count > 0) {
-        updateItemSnapshotList()
-      }
-    }
-
-    override fun onInserted(position: Int, count: Int) {
-      if (count > 0) {
-        updateItemSnapshotList()
-      }
-    }
-
-    override fun onRemoved(position: Int, count: Int) {
-      if (count > 0) {
-        updateItemSnapshotList()
-      }
-    }
-  }
-
-  private val pagingDataDiffer: PagingDataDiffer<T> =
-    object : PagingDataDiffer<T>(
-      differCallback = differCallback,
-      mainContext = mainDispatcher
-    ) {
-      override suspend fun presentNewList(
-        previousList: NullPaddedList<T>,
-        newList: NullPaddedList<T>,
-        lastAccessedIndex: Int,
-        onListPresentable: () -> Unit
-      ): Int? {
-        onListPresentable()
-        updateItemSnapshotList()
-        return null
-      }
-    }
-
-  private val itemSnapshotListUpdateCount = atomic(0)
   private fun updateItemSnapshotList() {
-    val snapshot = pagingDataDiffer.snapshot()
-    itemSnapshotList = snapshot
-    itemSnapshotListUpdateCount.incrementAndGet()
+    itemSnapshotList = pagingDataPresenter.snapshot()
   }
+
+  operator fun get(index: Int): T? {
+    pagingDataPresenter[index] // this registers the value load
+    return itemSnapshotList[index]
+  }
+
+  fun peek(index: Int): T? = itemSnapshotList[index]
 
   /**
    * Retry any failed load requests that would result in a [LoadState.Error]
@@ -166,7 +132,9 @@ class LazyPagingItems<T : Any> internal constructor(
    *  * [PagingSource.load] returning [PagingSource.LoadResult.Error]
    *  * [RemoteMediator.load] returning [RemoteMediator.MediatorResult.Error]
    */
-  fun retry() = pagingDataDiffer.retry()
+  fun retry() {
+    pagingDataPresenter.retry()
+  }
 
   /**
    * Refresh the data presented by this [LazyPagingItems].
@@ -184,23 +152,26 @@ class LazyPagingItems<T : Any> internal constructor(
    *
    * @see PagingSource.invalidate
    */
-  fun refresh() = pagingDataDiffer.refresh()
+  fun refresh() {
+    pagingDataPresenter.refresh()
+  }
 
   /**
    * A [CombinedLoadStates] object which represents the current loading state.
    */
-  var loadState: CombinedLoadStates by mutableStateOf(
-    pagingDataDiffer.loadStateFlow.value
-      ?: CombinedLoadStates(
-        refresh = InitialLoadStates.refresh,
-        prepend = InitialLoadStates.prepend,
-        append = InitialLoadStates.append,
-        source = InitialLoadStates
-      )
-  )
+  var loadState: CombinedLoadStates by
+    mutableStateOf(
+      pagingDataPresenter.loadStateFlow.value
+        ?: CombinedLoadStates(
+          refresh = InitialLoadStates.refresh,
+          prepend = InitialLoadStates.prepend,
+          append = InitialLoadStates.append,
+          source = InitialLoadStates,
+        ),
+    )
     private set
 
-  internal suspend fun collectLoadState() = pagingDataDiffer
+  internal suspend fun collectLoadState() = pagingDataPresenter
     .loadStateFlow
     .filterNotNull()
     .collect { loadStates: CombinedLoadStates ->
@@ -232,7 +203,7 @@ class LazyPagingItems<T : Any> internal constructor(
               }
 
           is NotLoading -> {
-            if (itemSnapshotListUpdateCount.value == 0) return@collect
+            if (itemSnapshotList.items.isEmpty()) return@collect
 
             onAppendEvent
               .conj(v(triggerAppendId, "done_loading"))
@@ -248,39 +219,14 @@ class LazyPagingItems<T : Any> internal constructor(
       dispatch(event)
     }
 
-  internal suspend fun collectPagingData() = flow.collectLatest {
-    pagingDataDiffer.collectFrom(it)
-  }
-
-  private companion object {
-    init {
-      /**
-       * Implements the Logger interface from paging-common and injects it into
-       * the LOGGER global var stored within Pager.
-       *
-       * Checks for null LOGGER because other runtime entry points to paging can
-       * also inject a Logger
-       */
-      LOGGER = LOGGER ?: object : Logger {
-        override fun isLoggable(level: Int): Boolean {
-          return Log.isLoggable(LOG_TAG, level)
-        }
-
-        override fun log(level: Int, message: String, tr: Throwable?) {
-          when {
-            tr != null && level == Log.DEBUG -> Log.d(LOG_TAG, message, tr)
-            tr != null && level == Log.VERBOSE -> Log.v(LOG_TAG, message, tr)
-            level == Log.DEBUG -> Log.d(LOG_TAG, message)
-            level == Log.VERBOSE -> Log.v(LOG_TAG, message)
-            else -> {
-              throw IllegalArgumentException(
-                "debug level $level is requested but Paging only supports " +
-                  "default logging for level 2 (DEBUG) or level 3 (VERBOSE)"
-              )
-            }
-          }
-        }
-      }
-    }
+  internal suspend fun collectPagingData() {
+    flow.collectLatest { pagingDataPresenter.collectFrom(it) }
   }
 }
+
+private val IncompleteLoadState = NotLoading(endOfPaginationReached = false)
+private val InitialLoadStates = LoadStates(
+  refresh = Loading,
+  prepend = IncompleteLoadState,
+  append = IncompleteLoadState,
+)

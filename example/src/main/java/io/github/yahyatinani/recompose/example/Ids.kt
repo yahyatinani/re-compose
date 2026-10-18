@@ -18,5 +18,5 @@ enum class Ids {
   themeColors,
   exitApp,
   about_dialog,
-  info
+  info,
 }

@@ -24,7 +24,7 @@ class Extraction(
   val appDb: () -> Any?,
   id: Any,
   val context: CoroutineDispatcher = Dispatchers.Default,
-  override val f: (signalValue: Any?) -> Any?
+  override val f: (signalValue: Any?) -> Any?,
 ) : ReactionBase<Any?, Any?>(id) {
 
   override val initialValue: Any? = f(appDb())
@@ -48,8 +48,7 @@ class Extraction(
     _state.value
   }
 
-  override suspend fun collect(collector: FlowCollector<Any?>) =
-    stateFlow.collect(collector)
+  override suspend fun collect(collector: FlowCollector<Any?>) = stateFlow.collect(collector)
 
   override fun deref(): Any? = state.value
 

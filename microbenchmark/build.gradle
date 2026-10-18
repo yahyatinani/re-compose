@@ -1,7 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   alias(deps.plugins.androidx.benchmark)
   id 'com.android.library'
-  id 'kotlin-conventions'
 }
 
 android {
@@ -11,10 +12,6 @@ android {
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-  }
-
-  kotlinOptions {
-    jvmTarget = "11"
   }
 
   defaultConfig {
@@ -29,12 +26,16 @@ android {
     debug {
       // Since debuggable can"t be modified by gradle for library modules,
       // it must be done in a manifest - see src/androidTest/AndroidManifest.xml
-      minifyEnabled true
       proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro"
     }
     release {
-      isDefault = true
     }
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget = JvmTarget.JVM_11
   }
 }
 
@@ -49,5 +50,4 @@ dependencies {
   // in an app module this way - you will need to move any code you
   // want to benchmark to a library module:
   // https://developer.android.com/studio/projects/android-library#Convert
-
 }

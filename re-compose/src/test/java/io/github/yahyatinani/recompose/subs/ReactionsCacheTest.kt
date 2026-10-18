@@ -20,36 +20,37 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReactionsCacheTest : FreeSpec({
-  mockkStatic(Log::class)
-  every { Log.d(any(), any()) } returns 0
-  every { Log.i(any(), any()) } returns 0
-  Dispatchers.setMain(StandardTestDispatcher())
+class ReactionsCacheTest :
+  FreeSpec({
+    mockkStatic(Log::class)
+    every { Log.d(any(), any()) } returns 0
+    every { Log.i(any(), any()) } returns 0
+    Dispatchers.setMain(StandardTestDispatcher())
 
-  beforeEach { reactionsCache.clear() }
+    beforeEach { reactionsCache.clear() }
 
-  "cacheReaction()" - {
-    "should call addOnDispose(f) on the cached reaction" {
-      val reaction = MockReaction()
+    "cacheReaction()" - {
+      "should call addOnDispose(f) on the cached reaction" {
+        val reaction = MockReaction()
 
-      cacheReaction(v(v("test"), v()), reaction as ReactionBase<*, *>)
+        cacheReaction(v(v("test"), v()), reaction as ReactionBase<*, *>)
 
-      reaction.addOnDisposeCalled.shouldBeTrue()
-    }
-
-    "should add the reaction to the cache map" {
-      val key = v("test")
-      val reaction = Extraction({ mutableStateOf(1).value }, id = "id") {
-        (it as Int).inc()
+        reaction.addOnDisposeCalled.shouldBeTrue()
       }
 
-      val cached = cacheReaction(key, reaction)
+      "should add the reaction to the cache map" {
+        val key = v("test")
+        val reaction = Extraction({ mutableStateOf(1).value }, id = "id") {
+          (it as Int).inc()
+        }
 
-      reactionsCache[key].shouldNotBeNull()
-      cached shouldBeSameInstanceAs reaction
+        val cached = cacheReaction(key, reaction)
+
+        reactionsCache[key].shouldNotBeNull()
+        cached shouldBeSameInstanceAs reaction
+      }
     }
-  }
-}) {
+  }) {
   class MockReaction : ReactionBase<Any?, Any?>("mock") {
     private val _addOnDisposeCalled = atom(false)
 

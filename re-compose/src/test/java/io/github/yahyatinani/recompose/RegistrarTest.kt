@@ -17,115 +17,116 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 
-class RegistrarTest : FreeSpec({
-  afterTest {
-    clearHandlers()
-  }
-
-  "registerHandler()/getHandler(kind)" - {
-    "Fx kind" {
-      val id = ":fx"
-      val handlerFn = { _: Any -> }
-      val hFn = registerHandler(id, Fx, handlerFn)
-
-      val handler = getHandler(Fx, id)
-
-      handler shouldBeSameInstanceAs handlerFn
-      hFn shouldBeSameInstanceAs handlerFn
-    }
-
-    "Event kind" {
-      val id = ":event"
-      val interceptors = v<Any>()
-      registerHandler(id, Event, interceptors)
-
-      val handler = getHandler(Event, id)
-
-      handler shouldBeSameInstanceAs interceptors
-    }
-
-    "Cofx kind" {
-      val id = ":cofx"
-      val handlerFn: (Any) -> Any = { _ -> }
-      registerHandler(id, Cofx, handlerFn)
-
-      val handler = getHandler(Cofx, id)
-
-      getRegistrar(Cofx).size shouldBeExactly 1
-      handler shouldBeSameInstanceAs handlerFn
-    }
-
-    "Sub kind" {
-      val id = ":sub"
-      val handlerFn: (Any, IPersistentVector<Any>) -> Any = { _, _ -> }
-      registerHandler(id, Sub, handlerFn)
-
-      val handler = getHandler(Sub, id)
-
-      handler shouldBeSameInstanceAs handlerFn
-    }
-
-    "two kinds of handlers with same id should register separately" {
-      val id = ":id"
-      val handlerFn1 = { _: Any -> }
-      val handlerFn2 = { _: Any -> }
-      val handlerFn3 = { _: Any -> }
-      val handlerFn4 = { _: Any -> }
-      registerHandler(id, Fx, handlerFn1)
-      registerHandler(id, Cofx, handlerFn2)
-      registerHandler(id, Event, handlerFn3)
-      registerHandler(id, Sub, handlerFn4)
-
-      val handler1 = getHandler(Fx, id)
-      val handler2 = getHandler(Cofx, id)
-      val handler3 = getHandler(Event, id)
-      val handler4 = getHandler(Sub, id)
-
-      handler1 shouldBeSameInstanceAs handlerFn1
-      handler2 shouldBeSameInstanceAs handlerFn2
-      handler3 shouldBeSameInstanceAs handlerFn3
-      handler4 shouldBeSameInstanceAs handlerFn4
-
-      handler1 shouldNotBeSameInstanceAs handler2
-      handler2 shouldNotBeSameInstanceAs handler3
-      handler3 shouldNotBeSameInstanceAs handler4
-      handler4 shouldNotBeSameInstanceAs handler1
-    }
-  }
-
-  "clearHandlers" - {
-    "clearHandlers() should clear all event handlers." {
-      registerHandler(":event1", Event, {})
-      registerHandler(":event2", Event, {})
-
+class RegistrarTest :
+  FreeSpec({
+    afterTest {
       clearHandlers()
-
-      getRegistrar(Event).size shouldBeExactly 0
     }
 
-    "clearHandlers(kind) should clear all event handlers of given kind." {
-      registerHandler(":event1", Event, {})
-      registerHandler(":event2", Event, {})
-      val subHandler = {}
-      registerHandler(":sub", Sub, subHandler)
+    "registerHandler()/getHandler(kind)" - {
+      "Fx kind" {
+        val id = ":fx"
+        val handlerFn = { _: Any -> }
+        val hFn = registerHandler(id, Fx, handlerFn)
 
-      clearHandlers(Event)
+        val handler = getHandler(Fx, id)
 
-      getRegistrar(Event).size shouldBeExactly 0
+        handler shouldBeSameInstanceAs handlerFn
+        hFn shouldBeSameInstanceAs handlerFn
+      }
+
+      "Event kind" {
+        val id = ":event"
+        val interceptors = v<Any>()
+        registerHandler(id, Event, interceptors)
+
+        val handler = getHandler(Event, id)
+
+        handler shouldBeSameInstanceAs interceptors
+      }
+
+      "Cofx kind" {
+        val id = ":cofx"
+        val handlerFn: (Any) -> Any = { _ -> }
+        registerHandler(id, Cofx, handlerFn)
+
+        val handler = getHandler(Cofx, id)
+
+        getRegistrar(Cofx).size shouldBeExactly 1
+        handler shouldBeSameInstanceAs handlerFn
+      }
+
+      "Sub kind" {
+        val id = ":sub"
+        val handlerFn: (Any, IPersistentVector<Any>) -> Any = { _, _ -> }
+        registerHandler(id, Sub, handlerFn)
+
+        val handler = getHandler(Sub, id)
+
+        handler shouldBeSameInstanceAs handlerFn
+      }
+
+      "two kinds of handlers with same id should register separately" {
+        val id = ":id"
+        val handlerFn1 = { _: Any -> }
+        val handlerFn2 = { _: Any -> }
+        val handlerFn3 = { _: Any -> }
+        val handlerFn4 = { _: Any -> }
+        registerHandler(id, Fx, handlerFn1)
+        registerHandler(id, Cofx, handlerFn2)
+        registerHandler(id, Event, handlerFn3)
+        registerHandler(id, Sub, handlerFn4)
+
+        val handler1 = getHandler(Fx, id)
+        val handler2 = getHandler(Cofx, id)
+        val handler3 = getHandler(Event, id)
+        val handler4 = getHandler(Sub, id)
+
+        handler1 shouldBeSameInstanceAs handlerFn1
+        handler2 shouldBeSameInstanceAs handlerFn2
+        handler3 shouldBeSameInstanceAs handlerFn3
+        handler4 shouldBeSameInstanceAs handlerFn4
+
+        handler1 shouldNotBeSameInstanceAs handler2
+        handler2 shouldNotBeSameInstanceAs handler3
+        handler3 shouldNotBeSameInstanceAs handler4
+        handler4 shouldNotBeSameInstanceAs handler1
+      }
     }
 
-    "clearHandlers(kind, id) should clear event of given id" {
-      registerHandler(":event1", Event, {})
-      val eventHandler = {}
-      registerHandler(":event2", Event, eventHandler)
-      val subHandler = {}
-      registerHandler(":sub", Sub, subHandler)
+    "clearHandlers" - {
+      "clearHandlers() should clear all event handlers." {
+        registerHandler(":event1", Event, {})
+        registerHandler(":event2", Event, {})
 
-      clearHandlers(Event, ":event1")
-      clearHandlers(Event, ":not-found-event")
+        clearHandlers()
 
-      getRegistrar(Event) shouldBe m(":event2" to eventHandler)
-      getRegistrar(Sub) shouldBe m(":sub" to subHandler)
+        getRegistrar(Event).size shouldBeExactly 0
+      }
+
+      "clearHandlers(kind) should clear all event handlers of given kind." {
+        registerHandler(":event1", Event, {})
+        registerHandler(":event2", Event, {})
+        val subHandler = {}
+        registerHandler(":sub", Sub, subHandler)
+
+        clearHandlers(Event)
+
+        getRegistrar(Event).size shouldBeExactly 0
+      }
+
+      "clearHandlers(kind, id) should clear event of given id" {
+        registerHandler(":event1", Event, {})
+        val eventHandler = {}
+        registerHandler(":event2", Event, eventHandler)
+        val subHandler = {}
+        registerHandler(":sub", Sub, subHandler)
+
+        clearHandlers(Event, ":event1")
+        clearHandlers(Event, ":not-found-event")
+
+        getRegistrar(Event) shouldBe m(":event2" to eventHandler)
+        getRegistrar(Sub) shouldBe m(":sub" to subHandler)
+      }
     }
-  }
-})
+  })

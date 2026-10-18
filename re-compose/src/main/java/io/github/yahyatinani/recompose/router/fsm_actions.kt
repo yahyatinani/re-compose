@@ -49,8 +49,9 @@ internal class EventQueueImp(queue: EventQueue = q() as EventQueue) :
   /** This function is NOT thread safe. */
   override suspend fun processCurrentEvents() {
     val n = count
-    for (i: Int in 0 until n)
+    for (i: Int in 0 until n) {
       processFirstEventInQueue()
+    }
   }
 
   override fun pause() {

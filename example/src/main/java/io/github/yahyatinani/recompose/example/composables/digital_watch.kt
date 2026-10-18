@@ -31,13 +31,13 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
   Column(
     modifier = modifier
       .fillMaxWidth()
-      .padding(8.dp)
+      .padding(8.dp),
   ) {
     Text(
       text = "Local time:",
       modifier = Modifier.align(CenterHorizontally),
       style = typography.h3.copy(fontWeight = FontWeight.Light),
-      color = colors.primary
+      color = colors.primary,
     )
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -47,8 +47,8 @@ fun DigitalWatch(modifier: Modifier = Modifier) {
       color = colors.secondary,
       style = typography.h1.copy(
         fontWeight = FontWeight.SemiBold,
-        fontSize = 72.sp
-      )
+        fontSize = 72.sp,
+      ),
     )
   }
 }

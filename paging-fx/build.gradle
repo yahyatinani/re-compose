@@ -1,5 +1,6 @@
 plugins {
   id 'recompose.android-lib-conventions'
+  alias deps.plugins.compose.compiler
 }
 
 dependencies {
@@ -7,6 +8,7 @@ dependencies {
   api project(':http-fx')
   api deps.bundles.ktor
   api deps.bundles.paging
+  implementation deps.androidx.compose.ui.ui
 
   implementation deps.androidx.core.ktx
   implementation deps.androidx.compose.runtime

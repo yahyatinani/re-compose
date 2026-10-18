@@ -10,7 +10,10 @@ interface Disposable {
   fun dispose(): Boolean
 }
 
-interface Reaction<T> : IDeref<T>, Flow<T>, Disposable {
+interface Reaction<T> :
+  IDeref<T>,
+  Flow<T>,
+  Disposable {
   val f: Any?
   val initialValue: Any?
   val id: Any

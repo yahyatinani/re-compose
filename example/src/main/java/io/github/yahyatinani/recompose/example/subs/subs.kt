@@ -70,7 +70,7 @@ fun regAllSubs(defaultColors: Colors) {
   regSub(
     queryId = formattedTime,
     initialValue = "...",
-    inputSignal = v(time)
+    inputSignal = v(time),
   ) { date: Date, _, _: Query ->
 //    heavyComp()
     simpleDateFormat.format(date)
@@ -87,7 +87,7 @@ fun regAllSubs(defaultColors: Colors) {
   regSub(
     queryId = primaryColor,
     initialValue = Red,
-    inputSignal = v(primaryColorStr)
+    inputSignal = v(primaryColorStr),
   ) { colorName: String, _, _ ->
     toColor(colorName)
   }
@@ -95,7 +95,7 @@ fun regAllSubs(defaultColors: Colors) {
   regSub(
     queryId = secondaryColor,
     initialValue = Yellow,
-    inputSignal = v(secondaryColorStr)
+    inputSignal = v(secondaryColorStr),
   ) { colorName: String, _, _ ->
     toColor(colorName)
   }
@@ -104,12 +104,12 @@ fun regAllSubs(defaultColors: Colors) {
     queryId = themeColors,
     initialValue = defaultColors,
     v(primaryColor),
-    v(secondaryColor)
+    v(secondaryColor),
   ) { (primary, secondary), _, (_, colors) ->
     withContext(Dispatchers.Main) {
       (colors as Colors).copy(
         primary = primary as Color,
-        secondary = secondary as Color
+        secondary = secondary as Color,
       )
     }
   }

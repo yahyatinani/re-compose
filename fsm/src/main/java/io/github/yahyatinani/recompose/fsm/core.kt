@@ -25,14 +25,22 @@ typealias Guard = KFunction3<AppDb, State?, Event, Boolean>
 
 @Suppress("EnumEntryName", "ClassName")
 enum class fsm {
-  _state, guard, target, actions, ALL, state_map, type, parallel, regions
+  _state,
+  guard,
+  target,
+  actions,
+  ALL,
+  state_map,
+  type,
+  parallel,
+  regions,
 }
 
 fun transitionMap(
   transition: Any,
   appDb: AppDb,
   stateMap: State?,
-  event: Event
+  event: Event,
 ): IPersistentMap<Any, Any?> = when (transition) {
   is IPersistentVector<*> -> { // guard
     val m1 = transition[0] as IPersistentMap<Any, Any?>
@@ -41,9 +49,14 @@ fun transitionMap(
       (guard as IPersistentVector<Guard>).fold(true) { acc, predicate ->
         acc && predicate(appDb, stateMap, event)
       }
-    } else (guard as Guard)(appDb, stateMap, event)
-    if (flag) m1
-    else transitionMap(transition[1] as Any, appDb, stateMap, event)
+    } else {
+      (guard as Guard)(appDb, stateMap, event)
+    }
+    if (flag) {
+      m1
+    } else {
+      transitionMap(transition[1] as Any, appDb, stateMap, event)
+    }
   }
 
   else -> transition
@@ -54,7 +67,7 @@ internal fun _trigger(
   machine: IPersistentMap<Any?, Any?>,
   appDb: AppDb,
   stateMap: State?,
-  event: Event
+  event: Event,
 ): Effects? {
   val currentState = stateMap?.get(fsm._state)
   val eventId = event[0]
@@ -65,12 +78,15 @@ internal fun _trigger(
   val transitionMap = transitionMap(transition, appDb, stateMap, event)
 
   val nextState = when (val targetState = transitionMap[fsm.target]) {
-    fsm.ALL -> currentState // keep same state.
+    fsm.ALL -> currentState
+
+    // keep same state.
     else -> targetState
   }
 
   val nextStateMap: State? = when (nextState) {
     null -> stateMap?.dissoc(fsm._state)
+
     else -> {
       stateMap?.assoc(fsm._state, nextState) ?: m(fsm._state to nextState)
     }
@@ -93,7 +109,7 @@ internal fun _trigger(
         if (moreFxs == null) return@let oldFx
 
         val f = moreFxs.fold(
-          (oldFx[BuiltInFx.fx] as IPersistentVector<Any>?) ?: v()
+          (oldFx[BuiltInFx.fx] as IPersistentVector<Any>?) ?: v(),
         ) { acc, newFx -> acc.conj(newFx) }
         oldFx.assoc(BuiltInFx.fx, f)
       }
@@ -104,13 +120,13 @@ internal fun triggerParallel(
   machine: Machine,
   appDb: AppDb,
   stateMap: State?,
-  event: Event
+  event: Event,
 ): Effects? {
   val regions =
     machine[fsm.regions] as IPersistentVector<IPersistentVector<Any>>
   val initial = m(fsm.state_map to stateMap)
   val effectsWithActions = regions.fold(
-    initial = initial
+    initial = initial,
   ) { accFx: Effects, (fsmKey, fsmMachine) ->
     fsmMachine as Machine
     val currentState = stateMap?.get(fsm._state) as State?
@@ -123,7 +139,9 @@ internal fun triggerParallel(
     val rTransitionMap = transitionMap(rTransition, appDb, stateMap, event)
 
     val nextRegionState = when (val targetState = rTransitionMap[fsm.target]) {
-      fsm.ALL -> regionCurrentState // keep same state.
+      fsm.ALL -> regionCurrentState
+
+      // keep same state.
       else -> targetState
     }
 
@@ -131,7 +149,7 @@ internal fun triggerParallel(
       updateIn(
         accFx,
         l(fsm.state_map, fsm._state),
-        { s: State? -> s?.dissoc(fsmKey) }
+        { s: State? -> s?.dissoc(fsmKey) },
       )
     } else {
       assocIn(accFx, l(fsm.state_map, fsm._state, fsmKey), nextRegionState)
@@ -173,7 +191,7 @@ internal fun triggerParallel(
         if (moreFxs == null) return@let oldFx
 
         val f = moreFxs.fold(
-          (oldFx[BuiltInFx.fx] as IPersistentVector<Any>?) ?: v()
+          (oldFx[BuiltInFx.fx] as IPersistentVector<Any>?) ?: v(),
         ) { acc, newFx -> acc.conj(newFx) }
         oldFx.assoc(BuiltInFx.fx, f)
       }
@@ -184,7 +202,7 @@ fun trigger(
   machine: Machine,
   fxs: Effects,
   statePath: IPersistentVector<Any>,
-  event: Event
+  event: Event,
 ): Effects {
   val appDb = fxs[recompose.db] as AppDb
   val stateMap = getIn<State>(appDb, statePath.seq())
@@ -203,8 +221,11 @@ fun trigger(
     val last = statePath.peek()!!
     val butLast = statePath.pop().seq()
 
-    if (butLast.count == 0) appDb.dissoc(last)
-    else updateIn(appDb, butLast, { s: State? -> s?.dissoc(last) })
+    if (butLast.count == 0) {
+      appDb.dissoc(last)
+    } else {
+      updateIn(appDb, butLast, { s: State? -> s?.dissoc(last) })
+    }
   }
 
   return effects.assoc(recompose.db, newAppDb)

@@ -1,17 +1,19 @@
 import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import io.github.yahyatinani.recompose.Ci
+import io.github.yahyatinani.recompose.ci
 
 plugins {
   id("com.vanniktech.maven.publish.base")
 }
+
+val ci = ci()
 
 extensions.configure<MavenPublishBaseExtension> {
   pom {
     val devUrl = "https://github.com/yahyatinani"
     val libUrl = "$devUrl/re-compose"
 
-    name.set("Re-compose")
+    name.set("re-compose")
     description.set("Event Driven Android UI Framework")
     url.set(libUrl)
 
@@ -38,13 +40,13 @@ extensions.configure<MavenPublishBaseExtension> {
   }
 
   publishToMavenCentral()
-  if (Ci.isRelease || Ci.isSnapshot) {
+  if (ci.isRelease || ci.isSnapshot) {
     signAllPublications()
   }
-  configure(AndroidSingleVariantLibrary())
+  configure(platform = AndroidSingleVariantLibrary())
   coordinates(
-    groupId = Ci.groupId,
-    artifactId = name,
-    version = Ci.publishVersion
+    groupId = ci.groupId,
+    artifactId = project.name,
+    version = ci.publishVersion,
   )
 }

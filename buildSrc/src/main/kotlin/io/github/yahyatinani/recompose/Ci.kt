@@ -1,21 +1,37 @@
+// buildSrc is JVM code compiled by Gradle's daemon (JDK 17+); java.util.Optional
+// is always available here. Android Studio's lint applies minSdk rules to buildSrc
+// anyway — known IDE limitation, not a real API-level issue.
+@file:Suppress("NewApi")
+
 package io.github.yahyatinani.recompose
 
-object Ci {
-  const val groupId = "io.github.yahyatinani.recompose"
-  private const val snapshotBase = "0.4.0"
+import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.kotlin.dsl.getByType
 
-  private fun githubBuildNumber() = System.getenv("GITHUB_RUN_NUMBER")
+class Ci(private val providers: ProviderFactory, private val snapshotBase: String) {
+  val groupId = "io.github.yahyatinani.recompose"
 
-  private fun snapshotVersion(): String = when (val n = githubBuildNumber()) {
-    null -> "$snapshotBase-LOCAL"
-    else -> "$snapshotBase.$n-SNAPSHOT"
-  }
+  private val buildNumber = providers.environmentVariable("GITHUB_RUN_NUMBER")
+  private val releaseVersion = providers.environmentVariable("RELEASE_VERSION")
 
-  private fun releaseVersion() = System.getenv("RELEASE_VERSION")
+  val isRelease: Boolean get() = releaseVersion.isPresent
 
-  val isRelease get() = releaseVersion() != null
+  val publishVersion: String
+    get() = releaseVersion.orNull
+      ?: buildNumber.orNull?.let { "$snapshotBase.$it-SNAPSHOT" }
+      ?: "$snapshotBase-LOCAL"
 
-  val isSnapshot get() = snapshotVersion().endsWith("SNAPSHOT")
-
-  val publishVersion: String = releaseVersion() ?: snapshotVersion()
+  val isSnapshot: Boolean get() = publishVersion.endsWith("SNAPSHOT")
 }
+
+fun Project.ci(): Ci = Ci(
+  providers = providers,
+  snapshotBase = extensions
+    .getByType<VersionCatalogsExtension>()
+    .named("deps")
+    .findVersion("recompose")
+    .get()
+    .requiredVersion,
+)

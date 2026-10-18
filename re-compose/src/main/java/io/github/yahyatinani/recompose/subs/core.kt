@@ -53,7 +53,7 @@ internal fun <V> subscribe(query: Query): Reaction<V> {
   val (queryId) = query
   val subHandler = getHandler(kind, queryId) as (SubHandler<V>)?
     ?: throw IllegalStateException(
-      "No subscription handler registered for id: `$queryId`"
+      "No subscription handler registered for id: `$queryId`",
     )
 
   return cacheReaction(key = query, reaction = subHandler(appDb, query))
@@ -62,7 +62,7 @@ internal fun <V> subscribe(query: Query): Reaction<V> {
 // -- regSub -----------------------------------------------------------------
 inline fun <Db, V> regDbSubscription(
   queryId: Any,
-  crossinline extractorFn: (db: Db, queryVec: Query) -> V
+  crossinline extractorFn: (db: Db, queryVec: Query) -> V,
 ) {
   val handlerFn: (MutableState<*>, Query) -> Extraction =
     { appDb: MutableState<*>, queryVec: Query ->
@@ -73,7 +73,7 @@ inline fun <Db, V> regDbSubscription(
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = handlerFn
+    handlerFn = handlerFn,
   )
 }
 
@@ -84,8 +84,8 @@ inline fun <I, V> regCompSubscription(
   crossinline computationFn: suspend (
     subscriptions: IPersistentVector<I>,
     currentValue: V,
-    queryVec: Query
-  ) -> V
+    queryVec: Query,
+  ) -> V,
 ) {
   // warning: leave it unlined, the compiler doesn't catch the new type of appDb
   // if we changed it.
@@ -94,18 +94,18 @@ inline fun <I, V> regCompSubscription(
       Computation(
         inputSignals = signalsFn(queryVec) as Signals,
         initialValue = initialValue,
-        id = queryId
+        id = queryId,
       ) { signalsValues, currentValue ->
         computationFn(
           signalsValues as IPersistentVector<I>,
           currentValue as V,
-          queryVec
+          queryVec,
         )
       }
     }
   registerHandler(
     id = queryId,
     kind = kind,
-    handlerFn = handlerFn
+    handlerFn = handlerFn,
   )
 }

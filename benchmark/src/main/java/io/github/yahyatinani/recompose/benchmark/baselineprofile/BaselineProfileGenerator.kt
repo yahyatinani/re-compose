@@ -15,7 +15,7 @@ class BaselineProfileGenerator {
 
   @Test
   fun generate() = baselineProfileRule.collectBaselineProfile(
-    packageName = "io.github.yahyatinani.recompose.example"
+    packageName = "io.github.yahyatinani.recompose.example",
   ) {
     pressHome()
 

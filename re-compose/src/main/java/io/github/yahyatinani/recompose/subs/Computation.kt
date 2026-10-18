@@ -29,9 +29,9 @@ class Computation(
   id: Any,
   val context: CoroutineContext = Default,
   override val reactionScope: CoroutineScope = CoroutineScope(
-    SupervisorJob() + context
+    SupervisorJob() + context,
   ),
-  override val f: suspend (signalsValues: Any?, currentValue: Any?) -> Any?
+  override val f: suspend (signalsValues: Any?, currentValue: Any?) -> Any?,
 ) : ReactionBase<Any?, Any?>(id) {
 
   val signalObserver: Job = combineV(inputSignals)
@@ -42,8 +42,7 @@ class Computation(
     .catch { th: Throwable -> throw RuntimeException(super.toString(), th) }
     .launchIn(reactionScope)
 
-  override suspend fun collect(collector: FlowCollector<Any?>) =
-    _state.value.collect(collector)
+  override suspend fun collect(collector: FlowCollector<Any?>) = _state.value.collect(collector)
 
   override val stateFlow: StateFlow<Any?> = _state.value
 
@@ -59,11 +58,10 @@ class Computation(
 
   companion object {
     /** Same as [combine] but with [IPersistentVector] instead of [Array]. */
-    inline fun <reified T> combineV(flows: Iterable<Flow<T>>) =
-      combine(flows) { ts: Array<T> ->
-        var ret: PersistentVector.TransientVector<T> = v<T>().asTransient()
-        ts.forEach { ret = ret.conj(it) }
-        ret.persistent()
-      }
+    inline fun <reified T> combineV(flows: Iterable<Flow<T>>) = combine(flows) { ts: Array<T> ->
+      var ret: PersistentVector.TransientVector<T> = v<T>().asTransient()
+      ts.forEach { ret = ret.conj(it) }
+      ret.persistent()
+    }
   }
 }
