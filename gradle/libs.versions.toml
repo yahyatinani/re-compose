@@ -86,7 +86,7 @@ benchmark-junit4 = { group = "androidx.benchmark", name = "benchmark-junit4", ve
 y-core = { module = "io.github.yahyatinani.y:y-core", version.ref = "ylib" }
 y-concurrency = { module = "io.github.yahyatinani.y:y-concurrency", version.ref = "ylib" }
 
-gradlePlugin-mavenPublish = "com.vanniktech:gradle-maven-publish-plugin:0.25.2"
+gradlePlugin-mavenPublish = "com.vanniktech:gradle-maven-publish-plugin:0.37.0"
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }

@@ -1,6 +1,5 @@
 import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import io.github.yahyatinani.recompose.Ci
 
 plugins {
@@ -38,12 +37,11 @@ extensions.configure<MavenPublishBaseExtension> {
     }
   }
 
-  publishToMavenCentral(SonatypeHost.S01)
+  publishToMavenCentral()
   if (Ci.isRelease || Ci.isSnapshot) {
     signAllPublications()
   }
   configure(AndroidSingleVariantLibrary())
-  println("namename: $name")
   coordinates(
     groupId = Ci.groupId,
     artifactId = name,
